@@ -7,11 +7,13 @@ import java.util.List;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
 import org.libvirt.LibvirtException;
+import org.libvirt.NodeInfo;
 
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
+import com.intrbiz.virt.libvirt.model.wrapper.LibVirtNodeInfo;
 
 public class LibVirtAdapter implements DataAdapter
 {
@@ -185,6 +187,19 @@ public class LibVirtAdapter implements DataAdapter
         catch (LibvirtException e)
         {
             throw new DataException("Could not define domain", e);
+        }
+    }
+    
+    public LibVirtNodeInfo nodeInfo()
+    {
+        try
+        {
+            NodeInfo ni = this.connection.nodeInfo();
+            return new LibVirtNodeInfo(ni.model, ni.memory * 1024L, ni.cpus, ni.mhz, ni.nodes, ni.sockets, ni.cores, ni.threads);
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Cannot get node info", e);
         }
     }
     
