@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.libvirt.Connect;
 import org.libvirt.Domain;
+import org.libvirt.Interface;
 import org.libvirt.LibvirtException;
 import org.libvirt.NodeInfo;
 
@@ -13,6 +14,7 @@ import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
+import com.intrbiz.virt.libvirt.model.wrapper.LibVirtHostInterface;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtNodeInfo;
 
 public class LibVirtAdapter implements DataAdapter
@@ -201,6 +203,50 @@ public class LibVirtAdapter implements DataAdapter
         {
             throw new DataException("Cannot get node info", e);
         }
+    }
+    
+    public LibVirtHostInterface lookupHostInterfaceByName(String name)
+    {
+        try
+        {
+            Interface ifc = this.connection.interfaceLookupByName(name);
+            return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Cannot get interface info", e);
+        }
+    }
+    
+    public LibVirtHostInterface lookupHostInterfaceByMACAddress(String macAddress)
+    {
+        try
+        {
+            Interface ifc = this.connection.interfaceLookupByMACString(macAddress);
+            return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Cannot get interface info", e);
+        }
+    }
+    
+    public List<LibVirtHostInterface> listHostInterfaces()
+    {
+        List<LibVirtHostInterface> interfaces = new LinkedList<LibVirtHostInterface>();
+        try
+        {
+            for (String name : this.connection.listInterfaces())
+            {
+                interfaces.add(this.lookupHostInterfaceByName(name));
+            }
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Cannot get interfaces", e);
+        }
+        Collections.sort(interfaces);
+        return interfaces;
     }
     
     public void close()
