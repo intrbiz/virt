@@ -3,6 +3,7 @@ package com.intrbiz.virt.libvirt;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.libvirt.Connect;
 import org.libvirt.Domain;
@@ -169,6 +170,20 @@ public class LibVirtAdapter implements DataAdapter
         try
         {
             Domain d = this.connection.domainLookupByName(name);
+            if (d != null) return new LibVirtDomain(this, d);
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Cannot lookup domain", e);
+        }
+        return null;
+    }
+    
+    public LibVirtDomain lookupDomainByUuid(UUID uuid)
+    {
+        try
+        {
+            Domain d = this.connection.domainLookupByUUID(uuid);
             if (d != null) return new LibVirtDomain(this, d);
         }
         catch (LibvirtException e)
