@@ -1,6 +1,7 @@
 package com.intrbiz.virt.libvirt.test;
 
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
+import com.intrbiz.virt.libvirt.model.definition.GraphicsDef;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDisk;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDiskInfo;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDiskStats;
@@ -30,6 +31,10 @@ public class ListGuests
                     System.out.println("  Interface: " + iface.getType() + " " + iface.getMacAddress() + " -> " + iface.getBridge() + "::" + iface.getName());
                     LibVirtInterfaceStats stats = iface.getInterfaceStats();
                     if (stats != null) System.out.println("    rx: " + stats.getRxBytes() + " tx: " + stats.getTxBytes());
+                }
+                for (GraphicsDef gfx : dom.getDomainDef().getDevices().getGraphics())
+                {
+                    System.out.println("  Graphics: auto:" + gfx.getAutoport() + " " + gfx.getListen() + ":" + gfx.getPort() + " websocket=" + gfx.getWebsocket());
                 }
                 System.out.println();
             }

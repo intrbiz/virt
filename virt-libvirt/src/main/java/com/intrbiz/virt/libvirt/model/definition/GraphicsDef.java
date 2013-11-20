@@ -13,6 +13,10 @@ public class GraphicsDef
     private int port;
 
     private String autoport;
+    
+    private String listen;
+    
+    private String websocket;
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -47,4 +51,25 @@ public class GraphicsDef
         this.autoport = autoport;
     }
 
+    @XmlAttribute(name = "listen")
+    public String getListen()
+    {
+        return listen;
+    }
+
+    public void setListen(String listen)
+    {
+        this.listen = listen;
+    }
+
+    @XmlAttribute(name = "websocket")
+    public String getWebsocket()
+    {
+        return websocket;
+    }
+
+    public void setWebsocket(String websocket)
+    {
+        this.websocket = websocket;
+    }
 }
