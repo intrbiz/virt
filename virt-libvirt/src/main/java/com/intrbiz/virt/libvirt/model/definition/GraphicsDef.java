@@ -16,7 +16,7 @@ public class GraphicsDef
     
     private String listen;
     
-    private String websocket;
+    private int websocket;
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -63,12 +63,12 @@ public class GraphicsDef
     }
 
     @XmlAttribute(name = "websocket")
-    public String getWebsocket()
+    public int getWebsocket()
     {
         return websocket;
     }
 
-    public void setWebsocket(String websocket)
+    public void setWebsocket(int websocket)
     {
         this.websocket = websocket;
     }
