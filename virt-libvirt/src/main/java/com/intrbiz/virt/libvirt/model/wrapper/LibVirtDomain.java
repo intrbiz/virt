@@ -16,27 +16,29 @@ import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 
-public class LibVirtDomain implements Comparable<LibVirtDomain>
+public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 {
     private final LibVirtAdapter adapter;
+
     private final Domain domain;
-    
+
     public LibVirtDomain(LibVirtAdapter adapter, Domain domain)
     {
         this.adapter = adapter;
         this.domain = domain;
+        this.adapter.addDomainToCleanUp(this);
     }
-    
+
     public LibVirtAdapter getLibVirtAdapter()
     {
         return this.adapter;
     }
-    
+
     public Domain getLibVirtDomain()
     {
         return this.domain;
     }
-    
+
     public String getName()
     {
         try
@@ -48,7 +50,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException(e);
         }
     }
-    
+
     public UUID getUUID()
     {
         try
@@ -60,7 +62,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException(e);
         }
     }
-    
+
     public int getId()
     {
         try
@@ -72,7 +74,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException(e);
         }
     }
-    
+
     public boolean isAutostart()
     {
         try
@@ -181,7 +183,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException("Failed to configure domain", e);
         }
     }
-    
+
     public LibVirtDiskInfo getDiskInfo(String device)
     {
         try
@@ -195,16 +197,16 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return null;
     }
-    
+
     public LibVirtDiskInfo getDiskInfo(LibVirtDisk disk)
     {
         return this.getDiskInfo(disk.getTargetName());
     }
-    
+
     public LibVirtDiskStats getDiskStats(String dev)
     {
         if (dev == null) return null;
-        if (! this.isRunning()) return null;
+        if (!this.isRunning()) return null;
         try
         {
             DomainBlockStats stats = this.domain.blockStats(dev);
@@ -216,25 +218,27 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return null;
     }
-    
+
     public LibVirtDiskStats getDiskStats(LibVirtDisk disk)
     {
         return this.getDiskStats(disk.getTargetName());
     }
-    
+
     public List<LibVirtDisk> getDisks()
     {
         List<LibVirtDisk> disks = new LinkedList<LibVirtDisk>();
         LibVirtDomainDef def = this.getDomainDef();
         for (DiskDef dskDef : def.getDevices().getDisks())
         {
-            disks.add(new LibVirtDisk(dskDef){
+            disks.add(new LibVirtDisk(dskDef)
+            {
                 @Override
                 public LibVirtDiskInfo getDiskInfo()
                 {
                     if (this.getSourceUrl() == null) return null;
                     return LibVirtDomain.this.getDiskInfo(this);
                 }
+
                 @Override
                 public LibVirtDiskStats getDiskStats()
                 {
@@ -245,7 +249,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return disks;
     }
-    
+
     public LibVirtInterfaceStats getInterfaceStats(String path)
     {
         if (path == null) return null;
@@ -260,25 +264,26 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return null;
     }
-    
+
     public LibVirtInterfaceStats getInterfaceStats(LibVirtInterface iface)
     {
         return this.getInterfaceStats(iface.getName());
     }
-    
+
     public List<LibVirtInterface> getInterfaces()
     {
         List<LibVirtInterface> ifaces = new LinkedList<LibVirtInterface>();
         LibVirtDomainDef def = this.getDomainDef();
         for (InterfaceDef ifDef : def.getDevices().getInterfaces())
         {
-           ifaces.add(new LibVirtInterface(ifDef) {
-               @Override
-               public LibVirtInterfaceStats getInterfaceStats()
-               {
-                   return LibVirtDomain.this.getInterfaceStats(this);
-               }
-           });
+            ifaces.add(new LibVirtInterface(ifDef)
+            {
+                @Override
+                public LibVirtInterfaceStats getInterfaceStats()
+                {
+                    return LibVirtDomain.this.getInterfaceStats(this);
+                }
+            });
         }
         return ifaces;
     }
@@ -303,5 +308,21 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>
         if (getClass() != obj.getClass()) return false;
         LibVirtDomain other = (LibVirtDomain) obj;
         return this.getUUID().equals(other.getUUID());
+    }
+
+    /**
+     * Free this domain
+     */
+    public void close()
+    {
+        try
+        {
+            this.domain.free();
+        }
+        catch (LibvirtException e)
+        {
+            e.printStackTrace();
+        }
+        this.adapter.removeDomainToCleanUp(this);
     }
 }

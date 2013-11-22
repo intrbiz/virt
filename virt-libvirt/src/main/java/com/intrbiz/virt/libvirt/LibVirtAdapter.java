@@ -44,6 +44,8 @@ public class LibVirtAdapter implements DataAdapter
     
     private Connect connection;
     
+    private List<LibVirtDomain> domainsToCleanUp = Collections.synchronizedList(new LinkedList<LibVirtDomain>());
+    
     protected LibVirtAdapter(String url) throws DataException
     {
         super();
@@ -225,7 +227,14 @@ public class LibVirtAdapter implements DataAdapter
         try
         {
             Interface ifc = this.connection.interfaceLookupByName(name);
-            return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+            try
+            {
+                return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+            }
+            finally
+            {
+                if (ifc != null) ifc.free();
+            }
         }
         catch (LibvirtException e)
         {
@@ -238,7 +247,14 @@ public class LibVirtAdapter implements DataAdapter
         try
         {
             Interface ifc = this.connection.interfaceLookupByMACString(macAddress);
-            return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+            try
+            {
+                return new LibVirtHostInterface(ifc.getName(), ifc.getMACString());
+            }
+            finally
+            {
+                if (ifc != null) ifc.free();
+            }
         }
         catch (LibvirtException e)
         {
@@ -268,17 +284,42 @@ public class LibVirtAdapter implements DataAdapter
     {
         if (this.connection != null)
         {
+            // System.out.println("Cleaning up domain objects: " + this.domainsToCleanUp.size());
+            for (LibVirtDomain d : this.domainsToCleanUp)
+            {
+                try
+                {
+                    d.getLibVirtDomain().free();
+                }
+                catch (LibvirtException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            this.domainsToCleanUp.clear();
+            // System.out.println("Closing LibVirt connection");
             try
             {
                 this.connection.close();
             }
             catch (LibvirtException e)
             {
+                e.printStackTrace();
             }
             finally
             {
                 this.connection = null;
             }
         }
+    }
+    
+    public void addDomainToCleanUp(LibVirtDomain domain)
+    {
+        this.domainsToCleanUp.add(domain);
+    }
+    
+    public void removeDomainToCleanUp(LibVirtDomain domain)
+    {
+        this.domainsToCleanUp.remove(domain);
     }
 }
