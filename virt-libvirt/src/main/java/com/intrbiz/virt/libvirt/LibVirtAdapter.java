@@ -24,6 +24,17 @@ import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtHostInterface;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtNodeInfo;
 
+/**
+ * A simple adapter to the libvirt virtualisation library.
+ * 
+ * Use one of the connect methods to connect to a running libvirtd and manipulate guests.
+ * 
+ * try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost")
+ * {
+ *     List<LibVirtDomain> domains = lv.listDomains();
+ * }
+ * 
+ */
 public class LibVirtAdapter implements DataAdapter
 {
     static
@@ -66,8 +77,14 @@ public class LibVirtAdapter implements DataAdapter
         return connect(driver + "+" + transport + "://" + user + "@" + host + "/system");
     }
 
+    /**
+     * Connect to the qemu driver
+     */
     public static class qemu
     {
+        /**
+         * Connect over SSH
+         */
         public static class ssh
         {
             public static final LibVirtAdapter connect(String host, int port)
@@ -91,6 +108,9 @@ public class LibVirtAdapter implements DataAdapter
             }
         }
 
+        /**
+         * Connect over TCP
+         */
         public static class tcp
         {
             public static final LibVirtAdapter connect(String host, int port)
@@ -119,6 +139,7 @@ public class LibVirtAdapter implements DataAdapter
     
     private ReferenceQueue<LibVirtDomain> cleanUpRefQueue = new ReferenceQueue<LibVirtDomain>();
 
+    
     protected LibVirtAdapter(String url) throws DataException
     {
         super();
@@ -146,12 +167,18 @@ public class LibVirtAdapter implements DataAdapter
 
     // delegates
 
+    /**
+     * Get the underlying libvirt connection
+     */
     public Connect getLibVirtConnection()
     {
         this.checkOpen();
         return this.connection;
     }
 
+    /**
+     * Is this adapter still connected
+     */
     public boolean isConnected()
     {
         this.checkOpen();
@@ -165,6 +192,9 @@ public class LibVirtAdapter implements DataAdapter
         return false;
     }
 
+    /**
+     * Get the connection URL
+     */
     public String getURL()
     {
         this.checkOpen();
@@ -178,6 +208,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * Get the connection type
+     */
     public String getType()
     {
         this.checkOpen();
@@ -191,6 +224,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * List all domains on the host, running or just defined
+     */
     public List<LibVirtDomain> listDomains()
     {
         this.checkOpen();
@@ -201,6 +237,9 @@ public class LibVirtAdapter implements DataAdapter
         return domains;
     }
 
+    /**
+     * List only domains which are running on the host
+     */
     public List<LibVirtDomain> listRunningDomains()
     {
         this.checkOpen();
@@ -220,6 +259,9 @@ public class LibVirtAdapter implements DataAdapter
         return domains;
     }
 
+    /**
+     * List only domains which are defined on the host
+     */
     public List<LibVirtDomain> listDefinedDomains()
     {
         this.checkOpen();
@@ -239,6 +281,9 @@ public class LibVirtAdapter implements DataAdapter
         return domains;
     }
 
+    /**
+     * Lookup a domain by its running id
+     */
     public LibVirtDomain lookupDomainById(int id)
     {
         this.checkOpen();
@@ -254,6 +299,9 @@ public class LibVirtAdapter implements DataAdapter
         return null;
     }
 
+    /**
+     * Lookup a domain by it name
+     */
     public LibVirtDomain lookupDomainByName(String name)
     {
         this.checkOpen();
@@ -269,6 +317,9 @@ public class LibVirtAdapter implements DataAdapter
         return null;
     }
 
+    /**
+     * Lookup a domain by its UUID
+     */
     public LibVirtDomain lookupDomainByUuid(UUID uuid)
     {
         this.checkOpen();
@@ -284,6 +335,9 @@ public class LibVirtAdapter implements DataAdapter
         return null;
     }
 
+    /**
+     * Define a domain with the given definition
+     */
     public LibVirtDomain addDomain(LibVirtDomainDef def) throws DataException
     {
         this.checkOpen();
@@ -299,6 +353,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * Get information about the host hardware
+     */
     public LibVirtNodeInfo nodeInfo()
     {
         this.checkOpen();
@@ -313,6 +370,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * Lookup a host interface by name
+     */
     public LibVirtHostInterface lookupHostInterfaceByName(String name)
     {
         this.checkOpen();
@@ -334,6 +394,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * Lookup a host interface by MAC address
+     */
     public LibVirtHostInterface lookupHostInterfaceByMACAddress(String macAddress)
     {
         this.checkOpen();
@@ -355,6 +418,9 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    /**
+     * List the host interfaces on this host
+     */
     public List<LibVirtHostInterface> listHostInterfaces()
     {
         this.checkOpen();
@@ -374,6 +440,9 @@ public class LibVirtAdapter implements DataAdapter
         return interfaces;
     }
 
+    /**
+     * Close this connection
+     */
     public void close()
     {
         if (! this.closed)

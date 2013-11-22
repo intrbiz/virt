@@ -16,6 +16,9 @@ import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 
+/**
+ * A guest virtual machine defined or running on a host
+ */
 public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
 {
     private final LibVirtAdapter adapter;
@@ -48,6 +51,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         return this.domain;
     }
     
+    /**
+     * Get the name of this guest (NB: this is cached)
+     */
     public String getName()
     {
         return this.name;
@@ -66,6 +72,10 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
     
+    /**
+     * Get the UUID of this guest (NB: this is cached)
+     * @return
+     */
     public UUID getUUID()
     {
         return this.uuid;
@@ -84,6 +94,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Get the runtime id of this guest
+     */
     public int getId()
     {
         this.adapter.checkOpen();
@@ -97,6 +110,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Is this guest set to start when the host starts
+     */
     public boolean isAutostart()
     {
         this.adapter.checkOpen();
@@ -110,6 +126,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Is this guest running
+     */
     public boolean isRunning()
     {
         this.adapter.checkOpen();
@@ -123,6 +142,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Is this guest persistent
+     */
     public boolean isPersistent()
     {
         this.adapter.checkOpen();
@@ -136,6 +158,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Get and parse the XML definition of this guest
+     */
     public LibVirtDomainDef getDomainDef()
     {
         this.adapter.checkOpen();
@@ -149,6 +174,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Start this guest
+     */
     public void start()
     {
         this.adapter.checkOpen();
@@ -162,6 +190,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Send the guest the shutdown signal, note some guests might ignore this.
+     */
     public void powerOff()
     {
         this.adapter.checkOpen();
@@ -175,6 +206,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Terminate this guest immediately, note this does not cleanly shutdown the guest
+     */
     public void terminate()
     {
         this.adapter.checkOpen();
@@ -188,6 +222,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Remove this guest definition from the host, terminating the guest if it is running
+     */
     public void remove()
     {
         this.adapter.checkOpen();
@@ -202,6 +239,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
     }
 
+    /**
+     * Enable or disable the guest starting when the host starts
+     */
     public void configureAutostart(boolean autostart)
     {
         this.adapter.checkOpen();
@@ -229,7 +269,6 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return null;
     }
-
     public LibVirtDiskInfo getDiskInfo(LibVirtDisk disk)
     {
         this.adapter.checkOpen();
@@ -259,6 +298,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         return this.getDiskStats(disk.getTargetName());
     }
 
+    /**
+     * Get the block devices of this guest
+     */
     public List<LibVirtDisk> getDisks()
     {
         this.adapter.checkOpen();
@@ -308,6 +350,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         return this.getInterfaceStats(iface.getName());
     }
 
+    /**
+     * Get the interfaces of this guest
+     */
     public List<LibVirtInterface> getInterfaces()
     {
         this.adapter.checkOpen();
