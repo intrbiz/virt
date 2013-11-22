@@ -11,9 +11,9 @@ import com.intrbiz.virt.libvirt.model.wrapper.LibVirtInterfaceStats;
 
 public class ListGuests
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
-        try (LibVirtAdapter lv = LibVirtAdapter.sshConnect("localhost"))
+        try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost"))
         {
             for (LibVirtDomain dom : lv.listDomains())
             {

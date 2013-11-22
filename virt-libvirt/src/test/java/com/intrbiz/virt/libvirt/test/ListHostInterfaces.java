@@ -7,7 +7,7 @@ public class ListHostInterfaces
 {
     public static void main(String[] args)
     {
-        try (LibVirtAdapter lv = LibVirtAdapter.sshConnect("localhost"))
+        try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root", "localhost"))
         {
             for (LibVirtHostInterface hif : lv.listHostInterfaces())
             {

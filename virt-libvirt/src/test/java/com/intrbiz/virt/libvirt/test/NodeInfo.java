@@ -7,7 +7,7 @@ public class NodeInfo
 {
     public static void main(String[] args)
     {
-        try (LibVirtAdapter lv = LibVirtAdapter.sshConnect("localhost"))
+        try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root", "localhost"))
         {
             LibVirtNodeInfo node = lv.nodeInfo();
             System.out.println("Model: " + node.getModel());
