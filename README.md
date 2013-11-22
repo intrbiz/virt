@@ -1,6 +1,12 @@
 # Intrbiz Virt
 A basic wrapper library around the LibVirt Java bindings.
 
+This provides a nicer, cleaner library around the rawer libvirt Java bindings.  It 
+only covers simple use cases currently, but is sufficient for most usage.  It provides 
+a semi complete definition data model which can parse and write the libvirt XML.  It 
+also solves problems with connections not closing properly, by tracking and freeing 
+underlying objects when the connection is closed.
+
 ## Usage
 
 	try (LibVirtAdapter lv = LibVirtAdapter.sshConnect("localhost"))
@@ -22,7 +28,7 @@ A basic wrapper library around the LibVirt Java bindings.
 
 ## License
 Intrbiz Virt
-Copyright (c) 2005, Chris Ellis
+Copyright (c) 2013, Chris Ellis
 All rights reserved.
 
 Intrbiz Virt is free software: you can redistribute it and/or modify
