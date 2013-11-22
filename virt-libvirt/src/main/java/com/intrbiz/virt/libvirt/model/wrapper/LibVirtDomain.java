@@ -16,17 +16,26 @@ import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 
-public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
+public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
 {
     private final LibVirtAdapter adapter;
 
     private final Domain domain;
+    
+    private final String name;
+    
+    private final UUID uuid;
+
+    private volatile boolean freed = false;
 
     public LibVirtDomain(LibVirtAdapter adapter, Domain domain)
     {
         this.adapter = adapter;
         this.domain = domain;
-        this.adapter.addDomainToCleanUp(this);
+        this.addDomainToCleanUp();
+        //
+        this.name = this.fetchName();
+        this.uuid = this.fetchUUID();
     }
 
     public LibVirtAdapter getLibVirtAdapter()
@@ -38,9 +47,15 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
     {
         return this.domain;
     }
-
+    
     public String getName()
     {
+        return this.name;
+    }
+
+    protected String fetchName()
+    {
+        this.adapter.checkOpen();
         try
         {
             return this.domain.getName();
@@ -50,9 +65,15 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
             throw new DataException(e);
         }
     }
-
+    
     public UUID getUUID()
     {
+        return this.uuid;
+    }
+
+    protected UUID fetchUUID()
+    {
+        this.adapter.checkOpen();
         try
         {
             return UUID.fromString(this.domain.getUUIDString());
@@ -65,6 +86,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public int getId()
     {
+        this.adapter.checkOpen();
         try
         {
             return this.domain.getID();
@@ -77,6 +99,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public boolean isAutostart()
     {
+        this.adapter.checkOpen();
         try
         {
             return this.domain.getAutostart();
@@ -89,6 +112,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public boolean isRunning()
     {
+        this.adapter.checkOpen();
         try
         {
             return this.domain.isActive() == 1;
@@ -101,6 +125,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public boolean isPersistent()
     {
+        this.adapter.checkOpen();
         try
         {
             return this.domain.isPersistent() == 1;
@@ -113,6 +138,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtDomainDef getDomainDef()
     {
+        this.adapter.checkOpen();
         try
         {
             return LibVirtDomainDef.read(this.domain.getXMLDesc(1));
@@ -125,6 +151,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public void start()
     {
+        this.adapter.checkOpen();
         try
         {
             if (this.domain.isActive() != 1) this.domain.create();
@@ -137,6 +164,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public void powerOff()
     {
+        this.adapter.checkOpen();
         try
         {
             if (this.domain.isActive() == 1) this.domain.shutdown();
@@ -149,6 +177,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public void terminate()
     {
+        this.adapter.checkOpen();
         try
         {
             if (this.domain.isActive() == 1) this.domain.destroy();
@@ -161,6 +190,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public void remove()
     {
+        this.adapter.checkOpen();
         try
         {
             if (this.domain.isActive() == 1) this.domain.destroy();
@@ -174,6 +204,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public void configureAutostart(boolean autostart)
     {
+        this.adapter.checkOpen();
         try
         {
             this.domain.setAutostart(autostart);
@@ -186,6 +217,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtDiskInfo getDiskInfo(String device)
     {
+        this.adapter.checkOpen();
         try
         {
             DomainBlockInfo info = this.domain.blockInfo(device);
@@ -200,11 +232,13 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtDiskInfo getDiskInfo(LibVirtDisk disk)
     {
+        this.adapter.checkOpen();
         return this.getDiskInfo(disk.getTargetName());
     }
 
     public LibVirtDiskStats getDiskStats(String dev)
     {
+        this.adapter.checkOpen();
         if (dev == null) return null;
         if (!this.isRunning()) return null;
         try
@@ -221,11 +255,13 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtDiskStats getDiskStats(LibVirtDisk disk)
     {
+        this.adapter.checkOpen();
         return this.getDiskStats(disk.getTargetName());
     }
 
     public List<LibVirtDisk> getDisks()
     {
+        this.adapter.checkOpen();
         List<LibVirtDisk> disks = new LinkedList<LibVirtDisk>();
         LibVirtDomainDef def = this.getDomainDef();
         for (DiskDef dskDef : def.getDevices().getDisks())
@@ -252,6 +288,7 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtInterfaceStats getInterfaceStats(String path)
     {
+        this.adapter.checkOpen();
         if (path == null) return null;
         try
         {
@@ -267,11 +304,13 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
 
     public LibVirtInterfaceStats getInterfaceStats(LibVirtInterface iface)
     {
+        this.adapter.checkOpen();
         return this.getInterfaceStats(iface.getName());
     }
 
     public List<LibVirtInterface> getInterfaces()
     {
+        this.adapter.checkOpen();
         List<LibVirtInterface> ifaces = new LinkedList<LibVirtInterface>();
         LibVirtDomainDef def = this.getDomainDef();
         for (InterfaceDef ifDef : def.getDevices().getInterfaces())
@@ -291,13 +330,13 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
     @Override
     public int compareTo(LibVirtDomain o)
     {
-        return this.getName().compareTo(o.getName());
+        return this.name.compareTo(o.name);
     }
 
     @Override
     public int hashCode()
     {
-        return this.getName().hashCode();
+        return this.uuid.hashCode();
     }
 
     @Override
@@ -307,22 +346,27 @@ public class LibVirtDomain implements Comparable<LibVirtDomain>, AutoCloseable
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         LibVirtDomain other = (LibVirtDomain) obj;
-        return this.getUUID().equals(other.getUUID());
+        return this.uuid.equals(other.uuid);
     }
 
-    /**
-     * Free this domain
-     */
-    public void close()
+    @Override
+    public void finalize()
     {
-        try
+        if (!this.freed)
         {
-            this.domain.free();
+            this.freed = true;
+            try
+            {
+                this.domain.free();
+            }
+            catch (LibvirtException e)
+            {
+            }
+            this.removeDomainFromCleanUp();
         }
-        catch (LibvirtException e)
-        {
-            e.printStackTrace();
-        }
-        this.adapter.removeDomainToCleanUp(this);
     }
+    
+    protected abstract void addDomainToCleanUp();
+    
+    protected abstract void removeDomainFromCleanUp();
 }

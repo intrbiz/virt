@@ -1,9 +1,14 @@
 package com.intrbiz.virt.libvirt;
 
+import java.lang.ref.ReferenceQueue;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.libvirt.Connect;
 import org.libvirt.Domain;
@@ -14,6 +19,7 @@ import org.libvirt.NodeInfo;
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
+import com.intrbiz.virt.libvirt.model.util.IdedWeakReference;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtHostInterface;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtNodeInfo;
@@ -24,28 +30,95 @@ public class LibVirtAdapter implements DataAdapter
     {
         System.setProperty("jna.library.path", "/usr/lib/");
     }
-    
+
     public static final LibVirtAdapter connect(String url)
     {
         return new LibVirtAdapter(url);
     }
-    
-    public static final LibVirtAdapter sshConnect(String host, int port)
+
+    public static final LibVirtAdapter connect(String driver, String host)
     {
-        return connect("qemu+ssh://root@" + host + ":" + port + "/system");
+        return connect(driver + "://" + host + "/system");
     }
-    
-    public static final LibVirtAdapter sshConnect(String host)
+
+    public static final LibVirtAdapter connect(String driver, String host, int port)
     {
-        return sshConnect(host, 22);
+        return connect(driver + "://" + host + ":" + port + "/system");
     }
-    
+
+    public static final LibVirtAdapter connect(String driver, String transport, String host, int port)
+    {
+        return connect(driver + "+" + transport + "://" + host + ":" + port + "/system");
+    }
+
+    public static final LibVirtAdapter connect(String driver, String transport, String user, String host, int port)
+    {
+        return connect(driver + "+" + transport + "://" + user + "@" + host + ":" + port + "/system");
+    }
+
+    public static final LibVirtAdapter connect(String driver, String transport, String host)
+    {
+        return connect(driver + "+" + transport + "://" + host + "/system");
+    }
+
+    public static final LibVirtAdapter connect(String driver, String transport, String user, String host)
+    {
+        return connect(driver + "+" + transport + "://" + user + "@" + host + "/system");
+    }
+
+    public static class qemu
+    {
+        public static class ssh
+        {
+            public static final LibVirtAdapter connect(String host, int port)
+            {
+                return LibVirtAdapter.connect("qemu", "ssh", host, port);
+            }
+
+            public static final LibVirtAdapter connect(String host)
+            {
+                return LibVirtAdapter.connect("qemu", "ssh", host);
+            }
+
+            public static final LibVirtAdapter connect(String user, String host, int port)
+            {
+                return LibVirtAdapter.connect("qemu", "ssh", user, host, port);
+            }
+
+            public static final LibVirtAdapter connect(String user, String host)
+            {
+                return LibVirtAdapter.connect("qemu", "ssh", user, host);
+            }
+        }
+
+        public static class tcp
+        {
+            public static final LibVirtAdapter connect(String host, int port)
+            {
+                return LibVirtAdapter.connect("qemu", "tcp", host, port);
+            }
+
+            public static final LibVirtAdapter connect(String host)
+            {
+                return LibVirtAdapter.connect("qemu", "tcp", host);
+            }
+        }
+    }
+
     // private Logger logger = Logger.getLogger(LibvirtAdapter.class);
-    
+
     private Connect connection;
     
-    private List<LibVirtDomain> domainsToCleanUp = Collections.synchronizedList(new LinkedList<LibVirtDomain>());
+    private volatile boolean closed = false;
     
+    private ConcurrentMap<Integer,IdedWeakReference<LibVirtDomain>> domainsToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<LibVirtDomain>>();
+    
+    private ConcurrentMap<Integer,Domain> realDomainsToCleanUp = new ConcurrentHashMap<Integer,Domain>();
+    
+    private AtomicInteger cleanUpId = new AtomicInteger(1);
+    
+    private ReferenceQueue<LibVirtDomain> cleanUpRefQueue = new ReferenceQueue<LibVirtDomain>();
+
     protected LibVirtAdapter(String url) throws DataException
     {
         super();
@@ -58,21 +131,30 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Failed to connect to libvirtd: " + url);
         }
     }
-    
+
     public String getName()
     {
         return "libvirt";
     }
     
-    // delegates
+    // check
     
+    public void checkOpen()
+    {
+        if (this.closed) throw new DataException("LibVirtAdapter is closed, are you trying to use it after calling close?");
+    }
+
+    // delegates
+
     public Connect getLibVirtConnection()
     {
+        this.checkOpen();
         return this.connection;
     }
-    
+
     public boolean isConnected()
     {
+        this.checkOpen();
         try
         {
             return this.connection != null && this.connection.isConnected();
@@ -82,9 +164,10 @@ public class LibVirtAdapter implements DataAdapter
         }
         return false;
     }
-    
+
     public String getURL()
     {
+        this.checkOpen();
         try
         {
             return this.connection.getURI();
@@ -94,9 +177,10 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException(e);
         }
     }
-    
+
     public String getType()
     {
+        this.checkOpen();
         try
         {
             return this.connection.getType();
@@ -106,10 +190,10 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException(e);
         }
     }
-    
-    
+
     public List<LibVirtDomain> listDomains()
     {
+        this.checkOpen();
         List<LibVirtDomain> domains = new LinkedList<LibVirtDomain>();
         domains.addAll(this.listRunningDomains());
         domains.addAll(this.listDefinedDomains());
@@ -119,6 +203,7 @@ public class LibVirtAdapter implements DataAdapter
 
     public List<LibVirtDomain> listRunningDomains()
     {
+        this.checkOpen();
         List<LibVirtDomain> domains = new LinkedList<LibVirtDomain>();
         try
         {
@@ -137,6 +222,7 @@ public class LibVirtAdapter implements DataAdapter
 
     public List<LibVirtDomain> listDefinedDomains()
     {
+        this.checkOpen();
         List<LibVirtDomain> domains = new LinkedList<LibVirtDomain>();
         try
         {
@@ -155,10 +241,11 @@ public class LibVirtAdapter implements DataAdapter
 
     public LibVirtDomain lookupDomainById(int id)
     {
+        this.checkOpen();
         try
         {
             Domain d = this.connection.domainLookupByID(id);
-            if (d != null) return new LibVirtDomain(this, d);
+            if (d != null) return newLibVirtDomain(d);
         }
         catch (LibvirtException e)
         {
@@ -169,10 +256,11 @@ public class LibVirtAdapter implements DataAdapter
 
     public LibVirtDomain lookupDomainByName(String name)
     {
+        this.checkOpen();
         try
         {
             Domain d = this.connection.domainLookupByName(name);
-            if (d != null) return new LibVirtDomain(this, d);
+            if (d != null) return newLibVirtDomain(d);
         }
         catch (LibvirtException e)
         {
@@ -180,13 +268,14 @@ public class LibVirtAdapter implements DataAdapter
         }
         return null;
     }
-    
+
     public LibVirtDomain lookupDomainByUuid(UUID uuid)
     {
+        this.checkOpen();
         try
         {
             Domain d = this.connection.domainLookupByUUID(uuid);
-            if (d != null) return new LibVirtDomain(this, d);
+            if (d != null) return newLibVirtDomain(d);
         }
         catch (LibvirtException e)
         {
@@ -194,23 +283,25 @@ public class LibVirtAdapter implements DataAdapter
         }
         return null;
     }
-    
+
     public LibVirtDomain addDomain(LibVirtDomainDef def) throws DataException
     {
+        this.checkOpen();
         try
         {
             System.out.println("Creating VM from\n" + def);
             Domain d = this.connection.domainDefineXML(def.toString());
-            return new LibVirtDomain(this, d);
+            return newLibVirtDomain(d);
         }
         catch (LibvirtException e)
         {
             throw new DataException("Could not define domain", e);
         }
     }
-    
+
     public LibVirtNodeInfo nodeInfo()
     {
+        this.checkOpen();
         try
         {
             NodeInfo ni = this.connection.nodeInfo();
@@ -221,9 +312,10 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot get node info", e);
         }
     }
-    
+
     public LibVirtHostInterface lookupHostInterfaceByName(String name)
     {
+        this.checkOpen();
         try
         {
             Interface ifc = this.connection.interfaceLookupByName(name);
@@ -241,9 +333,10 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot get interface info", e);
         }
     }
-    
+
     public LibVirtHostInterface lookupHostInterfaceByMACAddress(String macAddress)
     {
+        this.checkOpen();
         try
         {
             Interface ifc = this.connection.interfaceLookupByMACString(macAddress);
@@ -261,9 +354,10 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot get interface info", e);
         }
     }
-    
+
     public List<LibVirtHostInterface> listHostInterfaces()
     {
+        this.checkOpen();
         List<LibVirtHostInterface> interfaces = new LinkedList<LibVirtHostInterface>();
         try
         {
@@ -279,47 +373,91 @@ public class LibVirtAdapter implements DataAdapter
         Collections.sort(interfaces);
         return interfaces;
     }
-    
+
     public void close()
     {
-        if (this.connection != null)
+        if (! this.closed)
         {
-            // System.out.println("Cleaning up domain objects: " + this.domainsToCleanUp.size());
-            for (LibVirtDomain d : this.domainsToCleanUp)
+            this.closed = true;
+            try
+            {
+                for (Entry<Integer, Domain> e : this.realDomainsToCleanUp.entrySet())
+                {
+                    Domain dom = e.getValue();
+                    if (dom != null)
+                    {
+                        try
+                        {
+                            dom.free();
+                        }
+                        catch (LibvirtException ex)
+                        {
+                        }
+                    }
+                }
+                this.domainsToCleanUp.clear();
+                this.realDomainsToCleanUp.clear();
+            }
+            finally
             {
                 try
                 {
-                    d.getLibVirtDomain().free();
+                    this.connection.close();
                 }
                 catch (LibvirtException e)
                 {
                     e.printStackTrace();
                 }
-            }
-            this.domainsToCleanUp.clear();
-            // System.out.println("Closing LibVirt connection");
-            try
-            {
-                this.connection.close();
-            }
-            catch (LibvirtException e)
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                this.connection = null;
+                finally
+                {
+                    this.connection = null;
+                }
             }
         }
     }
-    
-    public void addDomainToCleanUp(LibVirtDomain domain)
+
+    protected LibVirtDomain newLibVirtDomain(Domain domain)
     {
-        this.domainsToCleanUp.add(domain);
+        return new LibVirtDomain(this, domain) {
+            
+            private int cleanUpId;
+            
+            @Override
+            protected void addDomainToCleanUp()
+            {
+                this.cleanUpId = LibVirtAdapter.this.addDomainToCleanUp(this);
+            }
+
+            @Override
+            protected void removeDomainFromCleanUp()
+            {
+                LibVirtAdapter.this.removeDomainFromCleanUp(this.cleanUpId);
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    protected int addDomainToCleanUp(LibVirtDomain domain)
+    {
+        int id = this.cleanUpId.incrementAndGet();
+        this.domainsToCleanUp.put(id, new IdedWeakReference<LibVirtDomain>(id,domain, this.cleanUpRefQueue));
+        this.realDomainsToCleanUp.put(id, domain.getLibVirtDomain());
+        // process the reference queue
+        try
+        {
+            while (this.cleanUpRefQueue.poll() != null)
+            {
+                this.domainsToCleanUp.remove(((IdedWeakReference<LibVirtDomain>) this.cleanUpRefQueue.remove()).getId());
+            }
+        }
+        catch (InterruptedException e)
+        {
+        }
+        return id;
     }
     
-    public void removeDomainToCleanUp(LibVirtDomain domain)
+    protected void removeDomainFromCleanUp(int id)
     {
-        this.domainsToCleanUp.remove(domain);
+        this.realDomainsToCleanUp.remove(id);
     }
 }
