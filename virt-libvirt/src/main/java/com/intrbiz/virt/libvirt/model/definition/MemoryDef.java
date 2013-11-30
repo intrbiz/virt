@@ -2,6 +2,7 @@ package com.intrbiz.virt.libvirt.model.definition;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
@@ -36,6 +37,7 @@ public class MemoryDef
         this.value = value;
     }
     
+    @XmlTransient()
     public long getBytesValue()
     {
         if ("B".equalsIgnoreCase(this.getUnit()) || "Bytes".equalsIgnoreCase(this.getUnit()))
