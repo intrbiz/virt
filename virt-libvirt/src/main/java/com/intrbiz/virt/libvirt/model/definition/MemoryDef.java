@@ -76,4 +76,48 @@ public class MemoryDef
         }
         throw new RuntimeException("Unknown unit");
     }
+    
+    public void setBytesValue(long bytes)
+    {
+        // set the default unit
+        if (this.getUnit() == null || this.getUnit().length() == 0) this.setUnit("KiB");
+        // convirt
+        if ("B".equalsIgnoreCase(this.getUnit()) || "Bytes".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes);
+        }
+        else if ("KiB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / 1024);
+        }
+        else if ("MiB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1024 * 1024));
+        }
+        else if ("GiB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1024 * 1024 * 1024));
+        }
+        else if ("TiB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1024 * 1024 * 1024 * 1024));
+        }
+        else if ("KB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / 1000);
+        }
+        else if ("MB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1000 * 1000));
+        }
+        else if ("GB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1000 * 1000 * 1000));
+        }
+        else if ("TB".equalsIgnoreCase(this.getUnit()))
+        {
+            this.setValue(bytes / (1000 * 1000 * 1000 * 1000));
+        }
+        throw new RuntimeException("Unknown unit");
+    }
 }
