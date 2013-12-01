@@ -235,4 +235,9 @@ public class LibVirtDomainDef
             throw new DataException("Failed to serialise domain definition to XML", e);
         }
     }
+    
+    public LibVirtDomainDef clone()
+    {
+        return LibVirtDomainDef.read(this.toString());
+    }
 }

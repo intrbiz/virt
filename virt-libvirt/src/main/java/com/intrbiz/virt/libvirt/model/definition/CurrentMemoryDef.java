@@ -5,6 +5,6 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "currentMemory")
 @XmlType(name = "currentMemory")
-public class CurrentMemoryDef extends MemoryDef
+public class CurrentMemoryDef extends BytesValue
 {
 }
