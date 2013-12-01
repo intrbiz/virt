@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import com.intrbiz.data.DataException;
@@ -190,6 +191,7 @@ public class LibVirtDomainDef
         this.devices = devices;
     }
 
+    @XmlTransient
     public String getOriginalXML()
     {
         return originalXML;
