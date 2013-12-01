@@ -10,9 +10,9 @@ public class ModelDef
 {
     private String type;
     
-    private int vram;
+    private Integer vram;
     
-    private int heads;
+    private Integer heads;
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -26,23 +26,23 @@ public class ModelDef
     }
 
     @XmlAttribute(name = "vram")
-    public int getVram()
+    public Integer getVram()
     {
         return vram;
     }
 
-    public void setVram(int vram)
+    public void setVram(Integer vram)
     {
         this.vram = vram;
     }
 
     @XmlAttribute(name = "heads")
-    public int getHeads()
+    public Integer getHeads()
     {
         return heads;
     }
 
-    public void setHeads(int heads)
+    public void setHeads(Integer heads)
     {
         this.heads = heads;
     }

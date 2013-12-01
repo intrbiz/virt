@@ -26,6 +26,8 @@ public class InterfaceDef
 
     private TargetDef target;
 
+    private ModelDef model;
+
     @XmlAttribute(name = "type")
     public String getType()
     {
@@ -79,6 +81,17 @@ public class InterfaceDef
     public void setTarget(TargetDef target)
     {
         this.target = target;
+    }
+
+    @XmlElementRef(type=ModelDef.class)
+    public ModelDef getModel()
+    {
+        return model;
+    }
+
+    public void setModel(ModelDef model)
+    {
+        this.model = model;
     }
 
     public static InterfaceDef read(String def)
