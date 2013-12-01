@@ -141,7 +141,7 @@ public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
      * @param cloneName
      * @return
      */
-    public LibVirtStorageVol cloneFileVolume(String cloneName)
+    public LibVirtStorageVol cloneFileVolume(String cloneName, LibVirtStoragePool into)
     {
         this.adapter.checkOpen();
         // create the definition
@@ -151,7 +151,12 @@ public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
         cloneVolDef.setAllocation(null);
         cloneVolDef.getTarget().setPath(null);
         // create the volume
-        return this.getStoragePool().addStorageVolFromExistingVolume(cloneVolDef, this);
+        return into.addStorageVolFromExistingVolume(cloneVolDef, this);
+    }
+    
+    public LibVirtStorageVol cloneFileVolume(String cloneName)
+    {
+        return this.cloneFileVolume(cloneName, this.getStoragePool());
     }
 
     @Override
