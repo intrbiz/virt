@@ -15,7 +15,7 @@
 					<span class="label">CPUs:</span><span>#{guest.cpuCount}</span>
 				</li>
 				<li>
-					<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)}MiB</span>
+					<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)} MiB</span>
 				</li>
 			</ul>
 			<ul class="actions">
@@ -34,7 +34,7 @@
 						<span class="label">CPUs:</span><span>#{guest.cpuCount}</span>
 					</li>
 					<li>
-						<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)}MiB</span>
+						<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)} MiB</span>
 					</li>
 				</ul>
 			</div>

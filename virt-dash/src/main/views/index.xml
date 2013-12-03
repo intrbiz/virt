@@ -22,13 +22,13 @@
 							<span class="label" title="The number of CPUs this host has">CPUs:</span><span>#{host.cpuCount}</span>
 						</li>
 						<li>
-							<span class="label" title="The speed of this hosts CPUs">CPU speed:</span><span>#{host.cpuSpeed}MHz</span>
+							<span class="label" title="The speed of this hosts CPUs">CPU speed:</span><span>#{host.cpuSpeed} MHz</span>
 						</li>
 						<li>
-							<span class="label" title="The total memory of this host">Memory:</span><span>#{host.memory / (1024*1024)}MiB</span>
+							<span class="label" title="The total memory of this host">Memory:</span><span>#{host.memory / (1024*1024)} MiB</span>
 						</li>
 						<li>
-							<span class="label" title="The amount of memory which has not been allocated to guests">Spare memory:</span><span>#{host.availableMemory / (1024*1024)}MiB</span>
+							<span class="label" title="The amount of memory which has not been allocated to guests">Spare memory:</span><span>#{host.availableMemory / (1024*1024)} MiB</span>
 						</li>
 					</ul>
 					<ul class="actions">
@@ -52,7 +52,7 @@
 									<td class="col-state"><span class="state #{guest.state}" title="Guest is #{guest.state}"></span></td>
 									<td><a href="/guest/#{host.name}/#{guest.name}">#{guest.name}</a></td>
 									<td class="col-cpu">#{guest.cpuCount}</td>
-									<td class="col-mem">#{guest.memory / (1024*1024)}MiB</td>
+									<td class="col-mem">#{guest.memory / (1024*1024)} MiB</td>
 									<td class="col-action">
 										<a class="start" href="/start/guest/#{host.name}/#{guest.name}">Start</a>
 										<a class="shutdown" href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a>
