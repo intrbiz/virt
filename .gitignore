@@ -3,4 +3,6 @@
 .settings/
 .directory
 target/
+virt-dash/virt-dash.xml
+virt-dash/websockify.cfg
 *~
