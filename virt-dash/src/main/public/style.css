@@ -1,0 +1,237 @@
+* { padding: 0; margin: 0; }
+
+a { outline: none; }
+
+body {
+	font-family: 'Open Sans',sans-serif;
+	font-size: 14px;
+	color: #2c2c2c;
+	background-color: #FFF;
+}
+
+h1 { font-size: 24px; }
+
+#header {
+	background-color: #000;
+	width: 100%;
+	height: 50px;
+	margin-bottom: 10px;
+	color: #fff;
+}
+.container {
+	width: 1200px;
+	margin: 0 auto;
+	position: relative;
+}
+#logo {
+	font-size: 30px;
+	font-weight: bold;
+}
+#header a {
+	color: #fff;
+	padding: 2px 10px 2px 0px;
+}
+#login-box {
+	background-color: #f5f5f5;
+	border-radius: 4px;
+	padding: 10px 20px;
+	width: 360px;
+	margin: 50px auto 0px auto;
+}
+#login-box form {
+	margin: 10px 0;
+}
+#login-box input[type=text], #login-box input[type=password] {
+	width: 340px;
+	margin: 5px 0;
+	font-size: 16px;
+	padding: 5px;
+}
+#login-box input[type=submit] {
+	width: 100px;
+	font-size: 20px;
+	font-weight: bold;
+	margin-top: 5px;
+	padding: 5px;
+}
+#header {
+	background-color: #000;
+	width: 100%;
+	height: 50px;
+	margin-bottom: 10px;
+	color: #fff;
+}
+.container {
+	width: 1200px;
+	margin: 0 auto;
+	position: relative;
+}
+#logo {
+	font-size: 30px;
+	font-weight: bold;
+	color: #fff !important;
+}
+#logo a {
+	text-decoration: none;
+}
+#login {
+	position: absolute;
+	right: 20px;
+	top: 0px;
+	width: 200px;
+	height: 45px;
+	border-radius: 0px 0px 20px 20px;
+	background-color: #000;
+	padding: 10px 20px;
+}
+#header a {
+	color: #fff;
+	padding: 2px 10px 2px 0px;
+}
+h1 { margin: 10px 0px; }
+.host, .guest {
+	background: #f5f5f5;
+	margin: 0px 0px 10px 0px;
+	position: relative;
+	float: left;
+	clear: both;
+	padding: 10px;
+	border-radius: 4px;
+}
+.host h3, .guest h3 {
+	margin-bottom: 10px;
+}
+.host .info, .guest .info {
+	float: left;
+	width: 200px;
+	margin-right: 10px;
+}
+.host .info ul, .guest .info ul, .guest .conf ul {
+	list-style: none;
+	padding: 0 0 10px 0;
+}
+.host .info ul li, .guest .info ul li, .guest .conf ul li {
+	padding: 3px 0;
+}
+.host .info ul li span.label, .guest .info ul li span.label, , .guest .conf ul li span.label {
+	font-weight: bold;
+	margin-right: 5px;
+}
+.host .info ul.actions li, .guest .info ul.actions li {
+	padding: 5px 0;
+}
+.host .guests, .guest .conf {
+	float: left;
+	width: 950px;
+}
+.guests table {
+	border-collapse: collapse;
+	border: 1px solid #bbb;
+	width: 940px;
+}
+.guests table th, .host table td {
+	padding: 5px 10px;
+	border: 1px solid #bbb;
+}
+.guests tbody tr:hover {
+	background-color: #FFF6C8;
+}
+.state {
+	display: block;
+	width: 32px;
+	height: 32px;
+	border-radius: 32px;
+}
+.state.DEFINED {
+	background-color: #E85752;
+}
+.state.RUNNING {
+	background-color: #77B753;
+}
+.state.STOPPING, .state.STARTING {
+	background-color: #EAAF00;
+}
+.console, .start, .shutdown, .terminate, .remove, .create {
+	margin-right: 10px;
+	padding: 3px 0px 3px 27px;
+}
+.start {
+	background: url(media-playback-start.png) 0px 3px no-repeat;
+}
+.shutdown {
+	background: url(media-playback-stop.png) 0px 3px no-repeat;
+}
+.console {
+	background: url(krdc.png) 0px 3px no-repeat;
+}
+.terminate {
+	background: url(application-exit.png) 0px 3px no-repeat;
+}
+.remove {
+	background: url(list-remove.png) 0px 3px no-repeat;
+}
+.create {
+	background: url(list-add.png) 0px 3px no-repeat;
+}
+.col-state { width: 32px; }
+.col-action { width: 300px; }
+.col-cpu, .col-mem { width: 75px; }
+#passwd-box form p span {
+	display: inline-block;
+	width: 250px;
+	margin-right: 10px;
+	text-align: right;
+}
+#passwd-box form {
+	margin: 10px 0;
+}
+#passwd-box input[type=text], #passwd-box input[type=password] {
+	width: 340px;
+	margin: 5px 0;
+	font-size: 16px;
+	padding: 5px;
+}
+#passwd-box input[type=submit] {
+	width: 100px;
+	font-size: 20px;
+	margin-top: 5px;
+	margin-left: 265px;
+	padding: 5px;
+}
+
+.guest .conf div {
+	margin-bottom: 20px;	
+}
+.guest .conf .xml {
+	padding: 20px;
+	background: #fff;
+}
+.guest .conf div h3 {
+	margin-bottom: 0;
+}
+
+
+#create-box form p span {
+	display: inline-block;
+	width: 250px;
+	margin-right: 10px;
+	text-align: right;
+}
+#create-box form {
+	margin: 10px 0;
+}
+#create-box input[type=text], #create-box input[type=password], #create-box select {
+	width: 340px;
+	margin: 5px 0;
+	font-size: 16px;
+	padding: 5px;
+}
+#create-box select {
+	width: 360px;
+}
+#create-box input[type=submit] {
+	font-size: 20px;
+	margin-top: 5px;
+	margin-left: 265px;
+	padding: 5px;
+}

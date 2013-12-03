@@ -1,0 +1,14 @@
+[Unit]
+Description=Virt Dash
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/balsa/virt-dash
+User=virtdash
+Group=virtdash
+ExecStart=/usr/bin/java -jar /srv/balsa/virt-dash/virt-dash-1.0.0-SNAPSHOT.balsa
+Type=simple
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

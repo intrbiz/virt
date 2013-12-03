@@ -1,0 +1,64 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Host #{host.name}">
+	<script type="text/javascript">
+		$(document).ready(function(){
+			setTimeout(function(){
+				window.location = window.location;
+			}, 30000);
+		});
+	</script>
+	<div class="host">
+		<div class="info">
+			<ul>
+				<li>
+					<span class="label" title="The CPU architecture of this host">Arch:</span><span>#{host.arch}</span>
+				</li>
+				<li>
+					<span class="label" title="The number of CPUs this host has">CPUs:</span><span>#{host.cpuCount}</span>
+				</li>
+				<li>
+					<span class="label" title="The speed of this hosts CPUs">CPU speed:</span><span>#{host.cpuSpeed}MHz</span>
+				</li>
+				<li>
+					<span class="label" title="The total memory of this host">Memory:</span><span>#{host.memory / (1024*1024)}MiB</span>
+				</li>
+				<li>
+					<span class="label" title="The amount of memory which has not been allocated to guests">Spare memory:</span><span>#{host.availableMemory / (1024*1024)}MiB</span>
+				</li>
+			</ul>
+			<ul class="actions">
+				<li rendered="#{host.images.size > 0}"><a class="create" href="/create/guest/#{host.name}">Create guest</a></li>
+			</ul>
+		</div>
+		<div class="guests">
+			<table>
+				<thead>
+					<tr>
+						<th></th>
+						<th>Name</th>
+						<th>CPUs</th>
+						<th>Memory</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<data-set var="guest" value="#{host.guests}">
+						<tr>
+							<td class="col-state"><span class="state #{guest.state}" title="Guest is #{guest.state}"></span></td>
+							<td><a href="/guest/#{host.name}/#{guest.name}">#{guest.name}</a></td>
+							<td class="col-cpu">#{guest.cpuCount}</td>
+							<td class="col-mem">#{guest.memory / (1024*1024)}MiB</td>
+							<td class="col-action">
+								<a class="start" href="/start/guest/#{host.name}/#{guest.name}">Start</a>
+								<a class="shutdown" href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a>
+								<a class="console" rendered="#{guest.vncPort != -1}" href="/console/guest/#{host.name}/#{guest.name}" target="blank">Console</a>
+							</td>
+						</tr>
+					</data-set>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</fragment>

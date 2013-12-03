@@ -1,0 +1,35 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- Login -->
+<html xmlns="com.intrbiz.balsa">
+	<head>
+		<title>Virt Dash - Login</title>
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'/>
+		<link href="#{path('style.css')}" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+		<div id="header">
+			<div class="container">
+				<p id="logo">Virt Dash</p>
+			</div>
+		</div>
+		<div id="content" class="container">
+			<div id="login-box">
+				<h2>Login</h2>
+				<form method="post" action="#{path('/login')}">
+					<p>
+						<input type="text" id="username" name="username" placeholder="Enter your email address"/>
+					</p>
+					<p>
+						<input type="password" id="password" name="password" placeholder="Enter your password"/>
+					</p>
+					<p>
+						<access-token-for-url path="#{path('/login')}"/>
+						<input type="hidden" id="redirect" name="redirect" value="#{coalesce(redirect,'')}" />
+						<input type="submit" id="dologin" name="dologin" value="Login"/>
+					</p>
+				</form>
+			</div>
+		</div>
+	</body>
+</html>

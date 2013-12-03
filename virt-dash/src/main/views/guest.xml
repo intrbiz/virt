@@ -1,0 +1,85 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Guest #{guest.name}">
+	<div class="guest">
+		<div class="info">
+			<p>
+				<span class="state #{guest.state}" title="Guest is #{guest.state}"></span>
+			</p>
+			<ul>
+				<li>
+					<span class="label">Host:</span><span><a href="/host/#{host.name}">#{host.name}</a></span>
+				</li>
+				<li>
+					<span class="label">CPUs:</span><span>#{guest.cpuCount}</span>
+				</li>
+				<li>
+					<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)}MiB</span>
+				</li>
+			</ul>
+			<ul class="actions">
+				<li><a class="start"     href="/start/guest/#{host.name}/#{guest.name}">Start</a></li>
+				<li><a class="shutdown"  href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a></li>
+				<li rendered="#{guest.vncPort != -1}"><a class="console"   href="/console/guest/#{host.name}/#{guest.name}" target="blank">Open Console</a></li>
+				<li><a class="terminate" href="/terminate/guest/#{host.name}/#{guest.name}">Terminate</a></li>
+				<li><a class="remove"    href="/remove/guest/#{host.name}/#{guest.name}">Remove</a></li>
+			</ul>
+		</div>
+		<div class="conf">
+			<div>
+				<h3>Basics</h3>
+				<ul>
+					<li>
+						<span class="label">CPUs:</span><span>#{guest.cpuCount}</span>
+					</li>
+					<li>
+						<span class="label">Memory:</span><span>#{guest.memory / (1024*1024)}MiB</span>
+					</li>
+				</ul>
+			</div>
+			<data-set var="disk" value="#{guest.disks}">
+				<div>
+					<h3>Disk #{disk.targetDevice}</h3>
+					<ul>
+						<li>
+							<span class="label">Type:</span><span>#{disk.type}</span>
+						</li>
+						<li>
+							<span class="label">Device:</span><span>#{disk.device}</span>
+						</li>
+						<li>
+							<span class="label">Driver:</span><span>#{disk.driverName}</span>
+						</li>
+						<li>
+							<span class="label">Format:</span><span>#{disk.driverType}</span>
+						</li>
+						<li>
+							<span class="label">File:</span><spna>#{coalesce(disk.sourceUrl,'')}</spna>
+						</li>
+					</ul>
+				</div>
+			</data-set>
+			<data-set var="interface" value="#{guest.interfaces}">
+				<div>
+					<h3>Interface</h3>
+					<ul>
+						<li>
+							<span class="label">MAC address:</span><span>#{interface.macAddress}</span>
+						</li>
+						<li>
+							<span class="label">Type:</span><span>#{interface.type}</span>
+						</li>
+						<li rendered="interface.type == 'bridge'">
+							<span class="label">Bridge:</span><span>#{interface.bridge}</span>
+						</li>
+					</ul>
+				</div>
+			</data-set>
+			<div>
+				<h3>Definition XML</h3>
+				<pre class="xml">#{guest.definition.originalXML}</pre>
+			</div>
+		</div>
+	</div>
+</fragment>

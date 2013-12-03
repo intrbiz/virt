@@ -1,0 +1,14 @@
+[Unit]
+Description=Websockify
+After=virt-dash.target
+
+[Service]
+WorkingDirectory=/srv/balsa/virt-dash
+User=virtdash
+Group=virtdash
+ExecStart=/usr/local/bin/websockify 8558 --target-config=/etc/virt-dash/websockify.cfg
+Type=simple
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

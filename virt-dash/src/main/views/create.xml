@@ -1,0 +1,67 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- Login -->
+<fragment xmlns="com.intrbiz.balsa" title="Create guest">
+	<div id="create-box">
+		<form method="post" action="#{path('/create/guest/' + host.name)}">
+			<p>
+				<span>Name:</span>
+				<input type="text" id="name" name="name" placeholder="Enter guest name"/>
+			</p>
+			<p>
+				<span>The image to use:</span>
+				<select id="image" name="image">
+					<data-set var="image" value="#{host.images}">
+						<option value="#{image.name}">#{image.name}</option>
+					</data-set>
+				</select>
+			</p>
+			<p>
+				<span>CPUs:</span>
+				<select id="cpus" name="cpus">
+					<option value="1">1</option>
+					<option value="2" selected="selected">2</option>
+					<option value="4">4</option>
+					<option value="8">8</option>
+				</select>
+			</p>
+			<p>
+				<span>Memory:</span>
+				<select id="memory" name="memory">
+					<option value="256">256 MiB</option>
+					<option value="512">512 MiB</option>
+					<option value="768">768 MiB</option>
+					<option value="1024" selected="selected">1 GiB</option>
+					<option value="2048">2 GiB</option>
+					<option value="3072">3 GiB</option>
+					<option value="4096">4 GiB</option>
+					<option value="5120">5 GiB</option>
+					<option value="6144">6 GiB</option>
+					<option value="7168">7 GiB</option>
+					<option value="8192">8 GiB</option>
+				</select>
+			</p>
+			<p>
+				<span>Bridge:</span>
+				<select id="bridge" name="bridge">
+					<option value="" selected="selected">default</option>
+					<data-set var="bridge" value="#{host.bridges}">
+						<option value="#{bridge}">#{bridge}</option>
+					</data-set>
+				</select>
+			</p>
+			<p>
+				<span>Storage pool:</span>
+				<select id="pool" name="pool">
+					<data-set var="pool" value="#{host.storagePools}">
+						<option value="#{pool.uuid}">#{pool.name}</option>
+					</data-set>
+				</select>
+			</p>
+			<p>
+				<access-token-for-url path="#{path('/create/guest/' + host.name)}"/>
+				<input type="submit" id="create" name="create" value="Create guest"/>
+			</p>
+		</form>
+	</div>
+</fragment>
