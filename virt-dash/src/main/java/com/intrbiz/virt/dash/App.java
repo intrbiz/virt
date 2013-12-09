@@ -35,7 +35,7 @@ public class App extends BalsaApplication
     @Override
     protected void setup() throws Exception
     {
-        this.configFile = new File(this.getArgument("config", "/etc/virt-dash/virt-dash.xml"));
+        this.configFile = new File(System.getProperty("virt-dash.config", "/etc/virt-dash/virt-dash.xml"));
         if (! this.configFile.exists()) VirtDashCfg.write(this.configFile, VirtDashCfg.defaults());
         // load the application configuation
         this.config = VirtDashCfg.read(this.configFile);
@@ -131,5 +131,11 @@ public class App extends BalsaApplication
         {
             e.printStackTrace();
         }
+    }
+    
+    public static void main(String[] args) throws Exception
+    {
+        App app = new App();
+        app.start();
     }
 }

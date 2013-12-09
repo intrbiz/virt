@@ -133,6 +133,16 @@ public class VirtGuest implements Comparable<VirtGuest>
     {
         this.interfaces.add(iface);
     }
+    
+    public boolean isRunning()
+    {
+        return this.state == GuestState.RUNNING;
+    }
+    
+    public boolean isDefined()
+    {
+        return this.state == GuestState.DEFINED;
+    }
 
     @Override
     public int compareTo(VirtGuest o)

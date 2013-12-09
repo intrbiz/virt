@@ -77,11 +77,11 @@ public class VirtDashCfg
         this.pollPeriod = pollPeriod;
     }
 
-    public VirtDashUser getUser(String email)
+    public VirtDashUser getUser(String username)
     {
         for (VirtDashUser user : this.getUsers())
         {
-            if (email.equals(user.getEmail())) return user;
+            if (username.equals(user.getUsername())) return user;
         }
         return null;
     }

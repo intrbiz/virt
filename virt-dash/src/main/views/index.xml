@@ -54,9 +54,9 @@
 									<td class="col-cpu">#{guest.cpuCount}</td>
 									<td class="col-mem">#{guest.memory / (1024*1024)} MiB</td>
 									<td class="col-action">
-										<a class="start" href="/start/guest/#{host.name}/#{guest.name}">Start</a>
-										<a class="shutdown" href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a>
-										<a class="console" rendered="#{guest.vncPort != -1}" href="/console/guest/#{host.name}/#{guest.name}" target="blank">Console</a>
+										<a class="start"    rendered="#{guest.defined}" href="/start/guest/#{host.name}/#{guest.name}">Start</a>
+										<a class="shutdown" rendered="#{guest.running}" href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a>
+										<a class="console"  rendered="#{guest.vncPort != -1}" href="/console/guest/#{host.name}/#{guest.name}" target="blank">Console</a>
 									</td>
 								</tr>
 							</data-set>

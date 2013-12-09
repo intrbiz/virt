@@ -19,11 +19,11 @@
 				</li>
 			</ul>
 			<ul class="actions">
-				<li><a class="start"     href="/start/guest/#{host.name}/#{guest.name}">Start</a></li>
-				<li><a class="shutdown"  href="/shutdown/guest/#{host.name}/#{guest.name}">Shutdown</a></li>
-				<li rendered="#{guest.vncPort != -1}"><a class="console"   href="/console/guest/#{host.name}/#{guest.name}" target="blank">Open Console</a></li>
-				<li><a class="terminate" href="/terminate/guest/#{host.name}/#{guest.name}">Terminate</a></li>
-				<li><a class="remove"    href="/remove/guest/#{host.name}/#{guest.name}">Remove</a></li>
+				<li rendered="#{guest.defined}"><a class="start"     href="/start/guest/#{host.name}/#{guest.name}" title="Start this guest">Start</a></li>
+				<li rendered="#{guest.running}"><a class="shutdown"  href="/shutdown/guest/#{host.name}/#{guest.name}" title="Signal the guest to shutdown">Shutdown</a></li>
+				<li rendered="#{guest.vncPort != -1}"><a class="console"   href="/console/guest/#{host.name}/#{guest.name}" target="blank" title="Open the console of this guest">Open Console</a></li>
+				<li rendered="#{guest.running}"><a class="terminate" href="/terminate/guest/#{host.name}/#{guest.name}" title="Terminate this guest immediately, unclean shutdown">Terminate</a></li>
+				<li><a class="remove"    href="/remove/guest/#{host.name}/#{guest.name}" title="Terminate and remove this guest">Remove</a></li>
 			</ul>
 		</div>
 		<div class="conf">

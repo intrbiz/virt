@@ -42,7 +42,7 @@ public class VirtDashSecurityEngine extends SecurityEngineImpl
                 // this is a lazy way to make it easy to add users
                 if (Util.isEmpty(user.getPasswordHash()))
                 {
-                    logger.warn("Authenticated user " + user.getEmail() + " with blank password, please change the password for " + user.getEmail());
+                    logger.warn("Authenticated user " + user.getUsername() + " with blank password, please change the password for " + user.getUsername());
                     return user;
                 }
                 // verify the password, erroring or returning the principal

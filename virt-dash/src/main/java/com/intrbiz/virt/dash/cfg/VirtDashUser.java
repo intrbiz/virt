@@ -14,7 +14,7 @@ public class VirtDashUser implements Principal
 {
     public static final int BCRYPT_WORK_FACTOR = 12;
 
-    private String email;
+    private String username;
 
     private String fullName;
 
@@ -25,22 +25,22 @@ public class VirtDashUser implements Principal
         super();
     }
 
-    public VirtDashUser(String email, String fullName)
+    public VirtDashUser(String username, String fullName)
     {
         super();
-        this.email = email;
+        this.username = username;
         this.fullName = fullName;
     }
 
-    @XmlAttribute(name = "email")
-    public String getEmail()
+    @XmlAttribute(name = "username")
+    public String getUsername()
     {
-        return email;
+        return username;
     }
 
-    public void setEmail(String email)
+    public void setUsername(String username)
     {
-        this.email = email;
+        this.username = username;
     }
 
     @XmlAttribute(name = "name")
@@ -83,6 +83,6 @@ public class VirtDashUser implements Principal
     @Override
     public String getName()
     {
-        return this.email;
+        return this.username;
     }
 }

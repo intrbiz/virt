@@ -18,7 +18,7 @@
 				<h2>Login</h2>
 				<form method="post" action="#{path('/login')}">
 					<p>
-						<input type="text" id="username" name="username" placeholder="Enter your email address"/>
+						<input type="text" id="username" name="username" placeholder="Enter your username"/>
 					</p>
 					<p>
 						<input type="password" id="password" name="password" placeholder="Enter your password"/>
