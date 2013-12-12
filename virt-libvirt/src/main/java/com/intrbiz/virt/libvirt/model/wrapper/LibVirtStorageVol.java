@@ -7,6 +7,7 @@ import org.libvirt.StorageVol;
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.model.definition.storage.LibVirtStorageVolumeDef;
+import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 
 public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
 {
@@ -16,12 +17,13 @@ public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
 
     private final String name;
 
-    private volatile boolean freed = false;
+    protected final LibVirtCleanupWrapper cleanup;
 
     public LibVirtStorageVol(LibVirtAdapter adapter, StorageVol vol)
     {
         this.adapter = adapter;
         this.vol = vol;
+        this.cleanup = LibVirtCleanupWrapper.newStorageVolWrapper(vol);
         this.addStorageVolToCleanUp();
         //
         this.name = this.fetchName();
@@ -162,16 +164,9 @@ public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
     @Override
     public void finalize()
     {
-        if (!this.freed)
+        synchronized (this)
         {
-            this.freed = true;
-            try
-            {
-                this.vol.free();
-            }
-            catch (LibvirtException e)
-            {
-            }
+            this.cleanup.free();
             this.removeStorageVolFromCleanUp();
         }
     }

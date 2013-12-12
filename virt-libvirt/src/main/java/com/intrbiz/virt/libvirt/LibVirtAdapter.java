@@ -4,7 +4,6 @@ import java.lang.ref.ReferenceQueue;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -22,6 +21,7 @@ import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 import com.intrbiz.virt.libvirt.model.util.IdedWeakReference;
+import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtHostInterface;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtNodeInfo;
@@ -135,31 +135,17 @@ public class LibVirtAdapter implements DataAdapter
     
     private volatile boolean closed = false;
     
-    // domain clean up
+    // clean up
     
-    private ConcurrentMap<Integer,IdedWeakReference<LibVirtDomain>> domainsToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<LibVirtDomain>>();
+    private AtomicInteger cleanUpId = new AtomicInteger();
     
-    private ConcurrentMap<Integer,Domain> realDomainsToCleanUp = new ConcurrentHashMap<Integer,Domain>();
+    private ConcurrentMap<Integer, IdedWeakReference<Object>> wrappersToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<Object>>();
     
-    private AtomicInteger cleanUpId = new AtomicInteger(1);
+    private ReferenceQueue<Object> cleanUpRefQueue = new ReferenceQueue<Object>();
     
-    private ReferenceQueue<LibVirtDomain> domainCleanUpRefQueue = new ReferenceQueue<LibVirtDomain>();
-
-    // storage pool clean up
+    private ConcurrentMap<Integer, LibVirtCleanupWrapper> objectsToCleanUp = new ConcurrentHashMap<Integer, LibVirtCleanupWrapper>();
     
-    private ConcurrentMap<Integer,IdedWeakReference<LibVirtStoragePool>> storagePoolsToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<LibVirtStoragePool>>();
-    
-    private ConcurrentMap<Integer,StoragePool> realStoragePoolsToCleanUp = new ConcurrentHashMap<Integer,StoragePool>();
-    
-    private ReferenceQueue<LibVirtStoragePool> storagePoolsCleanUpRefQueue = new ReferenceQueue<LibVirtStoragePool>();
-    
-    // storage vol clean up
-    
-    private ConcurrentMap<Integer,IdedWeakReference<LibVirtStorageVol>> storageVolsToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<LibVirtStorageVol>>();
-    
-    private ConcurrentMap<Integer,StorageVol> realStorageVolsToCleanUp = new ConcurrentHashMap<Integer,StorageVol>();
-    
-    private ReferenceQueue<LibVirtStorageVol> storageVolsCleanUpRefQueue = new ReferenceQueue<LibVirtStorageVol>();
+    //
     
     protected LibVirtAdapter(String url) throws DataException
     {
@@ -546,57 +532,13 @@ public class LibVirtAdapter implements DataAdapter
             this.closed = true;
             try
             {
-                // clean up domains
-                for (Entry<Integer, Domain> e : this.realDomainsToCleanUp.entrySet())
+                // clean up objects
+                for (LibVirtCleanupWrapper e : this.objectsToCleanUp.values())
                 {
-                    Domain dom = e.getValue();
-                    if (dom != null)
-                    {
-                        try
-                        {
-                            dom.free();
-                        }
-                        catch (LibvirtException ex)
-                        {
-                        }
-                    }
+                    e.free();
                 }
-                this.domainsToCleanUp.clear();
-                this.realDomainsToCleanUp.clear();
-                // clean up storage pools
-                for (Entry<Integer, StoragePool> e : this.realStoragePoolsToCleanUp.entrySet())
-                {
-                    StoragePool pool = e.getValue();
-                    if (pool != null)
-                    {
-                        try
-                        {
-                            pool.free();
-                        }
-                        catch (LibvirtException ex)
-                        {
-                        }
-                    }
-                }
-                this.storagePoolsToCleanUp.clear();
-                this.realStoragePoolsToCleanUp.clear();
-                // clean up storage vols
-                for (Entry<Integer, StorageVol> e : this.realStorageVolsToCleanUp.entrySet())
-                {
-                    StorageVol vol = e.getValue();
-                    if (vol != null)
-                    {
-                        try
-                        {
-                            vol.free();
-                        }
-                        catch (LibvirtException ex)
-                        {
-                        }
-                    }
-                }
-                this.storageVolsToCleanUp.clear();
-                this.realStorageVolsToCleanUp.clear();
+                this.wrappersToCleanUp.clear();
+                this.objectsToCleanUp.clear();
             }
             finally
             {
@@ -625,13 +567,13 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addDomainToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addDomainToCleanUp(this);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
             }
 
             @Override
             protected void removeDomainFromCleanUp()
             {
-                LibVirtAdapter.this.removeDomainFromCleanUp(this.cleanUpId);
+                LibVirtAdapter.this.removeObjectFromCleanUp(this.cleanUpId);
             }
         };
     }
@@ -645,13 +587,13 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addStoragePoolToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addStoragePoolToCleanUp(this);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
             }
 
             @Override
             protected void removeStoragePoolFromCleanUp()
             {
-                LibVirtAdapter.this.removeStoragePoolFromCleanUp(this.cleanUpId);
+                LibVirtAdapter.this.removeObjectFromCleanUp(this.cleanUpId);
             }
 
             @Override
@@ -671,13 +613,13 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addStorageVolToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addStorageVolToCleanUp(this);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
             }
 
             @Override
             protected void removeStorageVolFromCleanUp()
             {
-                LibVirtAdapter.this.removeStorageVolFromCleanUp(this.cleanUpId);
+                LibVirtAdapter.this.removeObjectFromCleanUp(this.cleanUpId);
             }
 
             @Override
@@ -687,19 +629,19 @@ public class LibVirtAdapter implements DataAdapter
             }
         };
     }
-
+    
     @SuppressWarnings("unchecked")
-    protected int addDomainToCleanUp(LibVirtDomain domain)
+    protected int addObjectToCleanUp(Object wrapper, LibVirtCleanupWrapper cleanup)
     {
         int id = this.cleanUpId.incrementAndGet();
-        this.domainsToCleanUp.put(id, new IdedWeakReference<LibVirtDomain>(id,domain, this.domainCleanUpRefQueue));
-        this.realDomainsToCleanUp.put(id, domain.getLibVirtDomain());
+        this.wrappersToCleanUp.put(id, new IdedWeakReference<Object>(id, wrapper, this.cleanUpRefQueue));
+        this.objectsToCleanUp.put(id, cleanup);
         // process the reference queue
         try
         {
-            while (this.domainCleanUpRefQueue.poll() != null)
+            while (this.cleanUpRefQueue.poll() != null)
             {
-                this.domainsToCleanUp.remove(((IdedWeakReference<LibVirtDomain>) this.domainCleanUpRefQueue.remove()).getId());
+                this.objectsToCleanUp.remove(((IdedWeakReference<Object>) this.cleanUpRefQueue.remove()).getId());
             }
         }
         catch (InterruptedException e)
@@ -708,58 +650,8 @@ public class LibVirtAdapter implements DataAdapter
         return id;
     }
     
-    protected void removeDomainFromCleanUp(int id)
+    protected void removeObjectFromCleanUp(int id)
     {
-        this.realDomainsToCleanUp.remove(id);
-    }
-    
-    @SuppressWarnings("unchecked")
-    protected int addStoragePoolToCleanUp(LibVirtStoragePool pool)
-    {
-        int id = this.cleanUpId.incrementAndGet();
-        this.storagePoolsToCleanUp.put(id, new IdedWeakReference<LibVirtStoragePool>(id,pool, this.storagePoolsCleanUpRefQueue));
-        this.realStoragePoolsToCleanUp.put(id, pool.getLibVirtStoragePool());
-        // process the reference queue
-        try
-        {
-            while (this.storagePoolsCleanUpRefQueue.poll() != null)
-            {
-                this.storagePoolsToCleanUp.remove(((IdedWeakReference<LibVirtStoragePool>) this.storagePoolsCleanUpRefQueue.remove()).getId());
-            }
-        }
-        catch (InterruptedException e)
-        {
-        }
-        return id;
-    }
-    
-    protected void removeStoragePoolFromCleanUp(int id)
-    {
-        this.realStoragePoolsToCleanUp.remove(id);
-    }
-    
-    @SuppressWarnings("unchecked")
-    protected int addStorageVolToCleanUp(LibVirtStorageVol vol)
-    {
-        int id = this.cleanUpId.incrementAndGet();
-        this.storageVolsToCleanUp.put(id, new IdedWeakReference<LibVirtStorageVol>(id, vol, this.storageVolsCleanUpRefQueue));
-        this.realStorageVolsToCleanUp.put(id, vol.getLibVirtStorageVol());
-        // process the reference queue
-        try
-        {
-            while (this.storageVolsCleanUpRefQueue.poll() != null)
-            {
-                this.storageVolsToCleanUp.remove(((IdedWeakReference<LibVirtStorageVol>) this.storageVolsCleanUpRefQueue.remove()).getId());
-            }
-        }
-        catch (InterruptedException e)
-        {
-        }
-        return id;
-    }
-    
-    protected void removeStorageVolFromCleanUp(int id)
-    {
-        this.realStorageVolsToCleanUp.remove(id);
+        this.objectsToCleanUp.remove(id);
     }
 }

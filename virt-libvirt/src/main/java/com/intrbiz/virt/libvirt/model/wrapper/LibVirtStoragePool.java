@@ -13,6 +13,7 @@ import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.model.definition.storage.LibVirtStoragePoolDef;
 import com.intrbiz.virt.libvirt.model.definition.storage.LibVirtStorageVolumeDef;
+import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 
 public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePool>
 {
@@ -24,12 +25,13 @@ public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePoo
 
     private final UUID uuid;
 
-    private volatile boolean freed = false;
+    protected final LibVirtCleanupWrapper cleanup;
 
     public LibVirtStoragePool(LibVirtAdapter adapter, StoragePool pool)
     {
         this.adapter = adapter;
         this.pool = pool;
+        this.cleanup = LibVirtCleanupWrapper.newStoragePoolWrapper(this.pool);
         this.addStoragePoolToCleanUp();
         //
         this.name = this.fetchName();
@@ -255,16 +257,9 @@ public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePoo
     @Override
     public void finalize()
     {
-        if (!this.freed)
+        synchronized (this)
         {
-            this.freed = true;
-            try
-            {
-                this.pool.free();
-            }
-            catch (LibvirtException e)
-            {
-            }
+            this.cleanup.free();
             this.removeStoragePoolFromCleanUp();
         }
     }

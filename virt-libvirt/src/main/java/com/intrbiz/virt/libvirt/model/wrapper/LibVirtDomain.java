@@ -15,6 +15,7 @@ import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
+import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 
 /**
  * A guest virtual machine defined or running on a host
@@ -28,13 +29,14 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
     private final String name;
     
     private final UUID uuid;
-
-    private volatile boolean freed = false;
+    
+    protected final LibVirtCleanupWrapper cleanup;
 
     public LibVirtDomain(LibVirtAdapter adapter, Domain domain)
     {
         this.adapter = adapter;
         this.domain = domain;
+        this.cleanup = LibVirtCleanupWrapper.newDomainWrapper(this.domain);
         this.addDomainToCleanUp();
         //
         this.name = this.fetchName();
@@ -397,16 +399,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
     @Override
     public void finalize()
     {
-        if (!this.freed)
+        synchronized (this)
         {
-            this.freed = true;
-            try
-            {
-                this.domain.free();
-            }
-            catch (LibvirtException e)
-            {
-            }
+            this.cleanup.free();
             this.removeDomainFromCleanUp();
         }
     }
