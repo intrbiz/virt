@@ -50,7 +50,7 @@
     </hosts>
     <poll-period>300</poll-period>
     <users>
-        <user email="admin" name="Admin" password=""/>
+        <user username="admin" name="Admin" password=""/>
     </users>
 	<websockify-config-file>/etc/virt-dash/websockify.cfg</websockify-config-file>
 </virt-dash>
