@@ -16,7 +16,7 @@ public abstract class LibVirtCleanupWrapper
     {
         synchronized (this)
         {
-            System.out.println("Cleaning up libvirt object from Thread: " + Thread.currentThread().getName() + " freed: " + this.freed);
+            // System.out.println("Cleaning up libvirt object from Thread: " + Thread.currentThread().getName() + " freed: " + this.freed);
             if (! this.freed)
             {
                 try
