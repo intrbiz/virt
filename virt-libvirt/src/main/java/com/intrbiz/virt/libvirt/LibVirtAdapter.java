@@ -1,5 +1,6 @@
 package com.intrbiz.virt.libvirt;
 
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -29,14 +30,14 @@ import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStoragePool;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStorageVol;
 
 /**
- * A simple adapter to the libvirt virtualisation library.
- * 
- * Use one of the connect methods to connect to a running libvirtd and manipulate guests.
- * 
- * try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost")
- * {
- *     List<LibVirtDomain> domains = lv.listDomains();
+ * <p>A simple adapter to the libvirt virtualisation library.</p>
+ * <p>Use one of the connect methods to connect to a running libvirtd and manipulate guests.</p>
+ * <code><pre>
+ * try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost") 
+ * { 
+ *     List<LibVirtDomain> domains = lv.listDomains(); 
  * }
+ * </pre></code>
  * 
  */
 public class LibVirtAdapter implements DataAdapter
@@ -132,21 +133,21 @@ public class LibVirtAdapter implements DataAdapter
     // private Logger logger = Logger.getLogger(LibvirtAdapter.class);
 
     private Connect connection;
-    
+
     private volatile boolean closed = false;
-    
+
     // clean up
-    
+
     private AtomicInteger cleanUpId = new AtomicInteger();
-    
-    private ConcurrentMap<Integer, IdedWeakReference<Object>> wrappersToCleanUp = new ConcurrentHashMap<Integer,IdedWeakReference<Object>>();
-    
+
+    private ConcurrentMap<Integer, IdedWeakReference<Object>> wrappersToCleanUp = new ConcurrentHashMap<Integer, IdedWeakReference<Object>>();
+
     private ReferenceQueue<Object> cleanUpRefQueue = new ReferenceQueue<Object>();
-    
+
     private ConcurrentMap<Integer, LibVirtCleanupWrapper> objectsToCleanUp = new ConcurrentHashMap<Integer, LibVirtCleanupWrapper>();
-    
+
     //
-    
+
     protected LibVirtAdapter(String url) throws DataException
     {
         super();
@@ -164,9 +165,9 @@ public class LibVirtAdapter implements DataAdapter
     {
         return "libvirt";
     }
-    
+
     // check
-    
+
     public void checkOpen()
     {
         if (this.closed) throw new DataException("LibVirtAdapter is closed, are you trying to use it after calling close?");
@@ -350,7 +351,6 @@ public class LibVirtAdapter implements DataAdapter
         this.checkOpen();
         try
         {
-            System.out.println("Creating VM from\n" + def);
             Domain d = this.connection.domainDefineXML(def.toString());
             return newLibVirtDomain(d);
         }
@@ -446,7 +446,7 @@ public class LibVirtAdapter implements DataAdapter
         Collections.sort(interfaces);
         return interfaces;
     }
-    
+
     public LibVirtStoragePool lookupStoragePoolByName(String name)
     {
         this.checkOpen();
@@ -460,7 +460,7 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot lookup storage pool", e);
         }
     }
-    
+
     public LibVirtStoragePool lookupStoragePoolByUuid(UUID id)
     {
         this.checkOpen();
@@ -474,7 +474,7 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot lookup storage pool", e);
         }
     }
-    
+
     public List<LibVirtStoragePool> listStoragePools()
     {
         this.checkOpen();
@@ -493,7 +493,7 @@ public class LibVirtAdapter implements DataAdapter
         Collections.sort(l);
         return l;
     }
-    
+
     public LibVirtStorageVol lookupStorageVolByPath(String path)
     {
         this.checkOpen();
@@ -507,7 +507,7 @@ public class LibVirtAdapter implements DataAdapter
             throw new DataException("Cannot lookup storage vol", e);
         }
     }
-    
+
     public LibVirtStorageVol lookupStorageVolByKey(String key)
     {
         this.checkOpen();
@@ -527,7 +527,7 @@ public class LibVirtAdapter implements DataAdapter
      */
     public void close()
     {
-        if (! this.closed)
+        if (!this.closed)
         {
             this.closed = true;
             try
@@ -560,10 +560,11 @@ public class LibVirtAdapter implements DataAdapter
 
     protected LibVirtDomain newLibVirtDomain(Domain domain)
     {
-        return new LibVirtDomain(this, domain) {
-            
+        return new LibVirtDomain(this, domain)
+        {
+
             private int cleanUpId;
-            
+
             @Override
             protected void addDomainToCleanUp()
             {
@@ -577,13 +578,14 @@ public class LibVirtAdapter implements DataAdapter
             }
         };
     }
-    
+
     protected LibVirtStoragePool newLibVirtStoragePool(StoragePool pool)
     {
-        return new LibVirtStoragePool(this, pool) {
-            
+        return new LibVirtStoragePool(this, pool)
+        {
+
             private int cleanUpId;
-            
+
             @Override
             protected void addStoragePoolToCleanUp()
             {
@@ -603,13 +605,14 @@ public class LibVirtAdapter implements DataAdapter
             }
         };
     }
-    
+
     protected LibVirtStorageVol newLibVirtStorageVol(StorageVol vol)
     {
-        return new LibVirtStorageVol(this, vol) {
-            
+        return new LibVirtStorageVol(this, vol)
+        {
+
             private int cleanUpId;
-            
+
             @Override
             protected void addStorageVolToCleanUp()
             {
@@ -629,7 +632,7 @@ public class LibVirtAdapter implements DataAdapter
             }
         };
     }
-    
+
     @SuppressWarnings("unchecked")
     protected int addObjectToCleanUp(Object wrapper, LibVirtCleanupWrapper cleanup)
     {
@@ -637,19 +640,14 @@ public class LibVirtAdapter implements DataAdapter
         this.wrappersToCleanUp.put(id, new IdedWeakReference<Object>(id, wrapper, this.cleanUpRefQueue));
         this.objectsToCleanUp.put(id, cleanup);
         // process the reference queue
-        try
+        Reference<? extends Object> ref;
+        while ((ref = this.cleanUpRefQueue.poll()) != null)
         {
-            while (this.cleanUpRefQueue.poll() != null)
-            {
-                this.objectsToCleanUp.remove(((IdedWeakReference<Object>) this.cleanUpRefQueue.remove()).getId());
-            }
-        }
-        catch (InterruptedException e)
-        {
+            this.objectsToCleanUp.remove(((IdedWeakReference<Object>) ref).getId());
         }
         return id;
     }
-    
+
     protected void removeObjectFromCleanUp(int id)
     {
         this.objectsToCleanUp.remove(id);
