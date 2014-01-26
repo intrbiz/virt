@@ -204,7 +204,11 @@ public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePoo
         {
             for (String vol : this.pool.listVolumes())
             {
-                l.add(this.newLibVirtStorageVol(this.pool.storageVolLookupByName(vol)));
+                StorageVol volume = this.pool.storageVolLookupByName(vol);
+                if (volume != null)
+                {
+                    l.add(this.newLibVirtStorageVol(volume));
+                }
             }
         }
         catch (LibvirtException e)
