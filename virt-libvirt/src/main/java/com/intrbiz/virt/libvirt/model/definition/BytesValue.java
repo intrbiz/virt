@@ -39,19 +39,19 @@ public class BytesValue
         {
             return this.getValue();
         }
-        else if ("KiB".equalsIgnoreCase(this.getUnit()))
+        else if ("KiB".equalsIgnoreCase(this.getUnit()) || "K".equalsIgnoreCase(this.getUnit()))
         {
             return this.getValue() * 1024;
         }
-        else if ("MiB".equalsIgnoreCase(this.getUnit()))
+        else if ("MiB".equalsIgnoreCase(this.getUnit()) || "M".equalsIgnoreCase(this.getUnit()))
         {
             return this.getValue() * 1024 * 1024;
         }
-        else if ("GiB".equalsIgnoreCase(this.getUnit()))
+        else if ("GiB".equalsIgnoreCase(this.getUnit()) || "G".equalsIgnoreCase(this.getUnit()))
         {
             return this.getValue() * 1024 * 1024 * 1024;
         }
-        else if ("TiB".equalsIgnoreCase(this.getUnit()))
+        else if ("TiB".equalsIgnoreCase(this.getUnit()) || "T".equalsIgnoreCase(this.getUnit()))
         {
             return this.getValue() * 1024 * 1024 * 1024 * 1024;
         }
@@ -84,22 +84,22 @@ public class BytesValue
             this.setValue(bytes);
             return;
         }
-        else if ("KiB".equalsIgnoreCase(this.getUnit()))
+        else if ("KiB".equalsIgnoreCase(this.getUnit()) || "K".equalsIgnoreCase(this.getUnit()))
         {
             this.setValue(bytes / 1024);
             return;
         }
-        else if ("MiB".equalsIgnoreCase(this.getUnit()))
+        else if ("MiB".equalsIgnoreCase(this.getUnit()) || "M".equalsIgnoreCase(this.getUnit()))
         {
             this.setValue(bytes / (1024 * 1024));
             return;
         }
-        else if ("GiB".equalsIgnoreCase(this.getUnit()))
+        else if ("GiB".equalsIgnoreCase(this.getUnit()) || "G".equalsIgnoreCase(this.getUnit()))
         {
             this.setValue(bytes / (1024 * 1024 * 1024));
             return;
         }
-        else if ("TiB".equalsIgnoreCase(this.getUnit()))
+        else if ("TiB".equalsIgnoreCase(this.getUnit()) || "T".equalsIgnoreCase(this.getUnit()))
         {
             this.setValue(bytes / (1024 * 1024 * 1024 * 1024));
             return;
