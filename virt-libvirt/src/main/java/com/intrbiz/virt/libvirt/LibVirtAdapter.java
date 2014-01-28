@@ -31,8 +31,12 @@ import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStoragePool;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStorageVol;
 
 /**
- * <p>A simple adapter to the libvirt virtualisation library.</p>
- * <p>Use one of the connect methods to connect to a running libvirtd and manipulate guests.</p>
+ * <p>
+ * A simple adapter to the libvirt virtualisation library.
+ * </p>
+ * <p>
+ * Use one of the connect methods to connect to a running libvirtd and manipulate guests.
+ * </p>
  * <code><pre>
  * try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost") 
  * { 
@@ -303,6 +307,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw return null
+            if (ErrorNumber.VIR_ERR_NO_DOMAIN == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup domain", e);
         }
         return null;
@@ -321,6 +327,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw return null
+            if (ErrorNumber.VIR_ERR_NO_DOMAIN == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup domain", e);
         }
         return null;
@@ -339,6 +347,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw return null
+            if (ErrorNumber.VIR_ERR_NO_DOMAIN == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup domain", e);
         }
         return null;
@@ -398,6 +408,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw return null
+            if (ErrorNumber.VIR_ERR_NO_INTERFACE == e.getError().getCode()) return null;
             throw new DataException("Cannot get interface info", e);
         }
     }
@@ -422,6 +434,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw return null
+            if (ErrorNumber.VIR_ERR_NO_INTERFACE == e.getError().getCode()) return null;
             throw new DataException("Cannot get interface info", e);
         }
     }
