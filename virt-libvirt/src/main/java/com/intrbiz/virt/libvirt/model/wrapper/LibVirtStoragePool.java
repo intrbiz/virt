@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.libvirt.Error.ErrorNumber;
 import org.libvirt.LibvirtException;
 import org.libvirt.StoragePool;
 import org.libvirt.StorageVol;
@@ -228,6 +229,8 @@ public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePoo
         }
         catch (LibvirtException e)
         {
+            // rather than throw on no volume we will return null;
+            if (ErrorNumber.VIR_ERR_NO_STORAGE_VOL == e.getError().getCode()) return null;
             throw new DataException("Failed to lookup storage volume", e);
         }
     }

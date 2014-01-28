@@ -17,6 +17,7 @@ import org.libvirt.LibvirtException;
 import org.libvirt.NodeInfo;
 import org.libvirt.StoragePool;
 import org.libvirt.StorageVol;
+import org.libvirt.Error.ErrorNumber;
 
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
@@ -457,6 +458,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw on no pool we will return null;
+            if (ErrorNumber.VIR_ERR_NO_STORAGE_POOL == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup storage pool", e);
         }
     }
@@ -471,6 +474,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw on no pool we will return null;
+            if (ErrorNumber.VIR_ERR_NO_STORAGE_POOL == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup storage pool", e);
         }
     }
@@ -504,6 +509,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw on no volume we will return null;
+            if (ErrorNumber.VIR_ERR_NO_STORAGE_VOL == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup storage vol", e);
         }
     }
@@ -518,6 +525,8 @@ public class LibVirtAdapter implements DataAdapter
         }
         catch (LibvirtException e)
         {
+            // rather than throw on no volume we will return null;
+            if (ErrorNumber.VIR_ERR_NO_STORAGE_VOL == e.getError().getCode()) return null;
             throw new DataException("Cannot lookup storage vol", e);
         }
     }
