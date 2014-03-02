@@ -12,12 +12,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.libvirt.Connect;
 import org.libvirt.Domain;
+import org.libvirt.Error.ErrorNumber;
 import org.libvirt.Interface;
 import org.libvirt.LibvirtException;
 import org.libvirt.NodeInfo;
 import org.libvirt.StoragePool;
 import org.libvirt.StorageVol;
-import org.libvirt.Error.ErrorNumber;
 
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
@@ -545,6 +545,24 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    public <T extends LibVirtEventHandler<?>> T registerEventHandler(T handler)
+    {
+        return this.registerEventHandler(null, handler);
+    }
+
+    public <T extends LibVirtEventHandler<?>> T registerEventHandler(LibVirtDomain domain, T handler)
+    {
+        try
+        {
+            handler.register(this, domain);
+            return handler;
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Failed to register for event", e);
+        }
+    }
+
     /**
      * Close this connection
      */
@@ -581,7 +599,7 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
-    protected LibVirtDomain newLibVirtDomain(Domain domain)
+    LibVirtDomain newLibVirtDomain(Domain domain)
     {
         return new LibVirtDomain(this, domain)
         {
@@ -602,7 +620,7 @@ public class LibVirtAdapter implements DataAdapter
         };
     }
 
-    protected LibVirtStoragePool newLibVirtStoragePool(StoragePool pool)
+    LibVirtStoragePool newLibVirtStoragePool(StoragePool pool)
     {
         return new LibVirtStoragePool(this, pool)
         {
@@ -629,7 +647,7 @@ public class LibVirtAdapter implements DataAdapter
         };
     }
 
-    protected LibVirtStorageVol newLibVirtStorageVol(StorageVol vol)
+    LibVirtStorageVol newLibVirtStorageVol(StorageVol vol)
     {
         return new LibVirtStorageVol(this, vol)
         {
