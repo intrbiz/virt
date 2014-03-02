@@ -13,6 +13,25 @@ public class ModelDef
     private Integer vram;
     
     private Integer heads;
+    
+    public ModelDef()
+    {
+        super();
+    }
+    
+    public ModelDef(String type)
+    {
+        super();
+        this.type = type;
+    }
+    
+    public ModelDef(String type, Integer vram, Integer heads)
+    {
+        super();
+        this.type = type;
+        this.vram = vram;
+        this.heads = heads;
+    }
 
     @XmlAttribute(name = "type")
     public String getType()

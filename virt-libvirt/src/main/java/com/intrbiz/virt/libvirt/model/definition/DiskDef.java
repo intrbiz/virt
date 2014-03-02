@@ -29,6 +29,21 @@ public class DiskDef
     private Sharable sharable;
 
     private AddressDef address;
+    
+    public DiskDef()
+    {
+        super();
+    }
+    
+    public DiskDef(String type, String device, DriverDef driver, SourceDef source, TargetDef target)
+    {
+        super();
+        this.type = type;
+        this.device = device;
+        this.driver = driver;
+        this.source = source;
+        this.target = target;
+    }
 
     @XmlAttribute(name = "type")
     public String getType()

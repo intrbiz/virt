@@ -11,6 +11,28 @@ public class SourceDef
     private String file;
 
     private String bridge;
+    
+    public SourceDef()
+    {
+        super();
+    }
+    
+    public SourceDef(String file, String bridge)
+    {
+        super();
+        this.file = file;
+        this.bridge = bridge;
+    }
+    
+    public static final SourceDef bridge(String bridge)
+    {
+        return new SourceDef(null, bridge);
+    }
+    
+    public static final SourceDef file(String file)
+    {
+        return new SourceDef(file, null);
+    }
 
     @XmlAttribute(name = "file")
     public String getFile()

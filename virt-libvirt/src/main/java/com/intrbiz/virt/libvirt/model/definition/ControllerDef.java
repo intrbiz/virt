@@ -14,6 +14,8 @@ public class ControllerDef
     private String index;
 
     private AddressDef address;
+    
+    private String model;
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -46,5 +48,16 @@ public class ControllerDef
     public void setAddress(AddressDef address)
     {
         this.address = address;
+    }
+
+    @XmlAttribute(name = "model")
+    public String getModel()
+    {
+        return model;
+    }
+
+    public void setModel(String model)
+    {
+        this.model = model;
     }
 }

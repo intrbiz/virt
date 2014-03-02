@@ -15,6 +15,27 @@ public class TargetDef
     private String port;
 
     private String type;
+    
+    public TargetDef()
+    {
+        super();
+    }
+    
+    public TargetDef(String bus, String dev)
+    {
+        super();
+        this.bus = bus;
+        this.dev = dev;
+    }
+    
+    public TargetDef(String bus, String dev, String type, String port)
+    {
+        super();
+        this.bus = bus;
+        this.dev = dev;
+        this.type = type;
+        this.port = port;
+    }
 
     @XmlAttribute(name = "dev")
     public String getDev()

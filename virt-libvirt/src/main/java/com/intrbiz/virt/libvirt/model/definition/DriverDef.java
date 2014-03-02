@@ -15,6 +15,28 @@ public class DriverDef
     private String cache;
 
     private String io;
+    
+    public DriverDef()
+    {
+        super();
+    }
+    
+    public DriverDef(String name, String type, String cache, String io)
+    {
+        super();
+        this.name = name;
+        this.type = type;
+        this.cache = cache;
+        this.io = io;
+    }
+    
+    public DriverDef(String name, String type, String cache)
+    {
+        super();
+        this.name = name;
+        this.type = type;
+        this.cache = cache;
+    }
 
     @XmlAttribute(name = "name")
     public String getName()

@@ -9,6 +9,17 @@ import javax.xml.bind.annotation.XmlType;
 public class MACDef
 {
     private String address;
+    
+    public MACDef()
+    {
+        super();
+    }
+    
+    public MACDef(String address)
+    {
+        super();
+        this.address = address;
+    }
 
     @XmlAttribute(name = "address")
     public String getAddress()

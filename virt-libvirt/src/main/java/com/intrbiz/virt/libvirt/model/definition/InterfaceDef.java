@@ -27,6 +27,20 @@ public class InterfaceDef
     private TargetDef target;
 
     private ModelDef model;
+    
+    public InterfaceDef()
+    {
+        super();
+    }
+    
+    public InterfaceDef(String type, MACDef mac, SourceDef source, ModelDef model)
+    {
+        super();
+        this.type = type;
+        this.mac = mac;
+        this.source = source;
+        this.model = model;
+    }
 
     @XmlAttribute(name = "type")
     public String getType()

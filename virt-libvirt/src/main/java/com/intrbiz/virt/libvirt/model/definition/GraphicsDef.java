@@ -13,10 +13,25 @@ public class GraphicsDef
     private int port;
 
     private String autoport;
-    
+
     private String listen;
-    
+
     private int websocket;
+
+    public GraphicsDef()
+    {
+        super();
+    }
+
+    public GraphicsDef(String type, int port, String autoport, String listen, int websocket)
+    {
+        super();
+        this.type = type;
+        this.port = port;
+        this.autoport = autoport;
+        this.listen = listen;
+        this.websocket = websocket;
+    }
 
     @XmlAttribute(name = "type")
     public String getType()
