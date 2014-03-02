@@ -44,6 +44,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Intrbiz Virt.  If not, see <http://www.gnu.org/licenses/>.
 
+## Thirdparty
+
+Note, this library currently includes a fork of the Libvirt-Java bindings, 
+these are also licensed under the LGPL.  See the http://libvirt.org for more 
+detail.
+
 Author
 ------
 Chris Ellis
