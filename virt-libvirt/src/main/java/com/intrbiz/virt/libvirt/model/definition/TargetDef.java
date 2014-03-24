@@ -16,6 +16,8 @@ public class TargetDef
 
     private String type;
     
+    private String name;
+    
     public TargetDef()
     {
         super();
@@ -81,4 +83,14 @@ public class TargetDef
         this.type = type;
     }
 
+    @XmlAttribute(name = "name")
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
 }

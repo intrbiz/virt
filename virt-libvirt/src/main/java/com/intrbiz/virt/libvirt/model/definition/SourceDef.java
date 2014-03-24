@@ -12,6 +12,12 @@ public class SourceDef
 
     private String bridge;
     
+    private String mode;
+    
+    private String host;
+    
+    private String service;
+    
     public SourceDef()
     {
         super();
@@ -56,4 +62,36 @@ public class SourceDef
         this.bridge = bridge;
     }
 
+    @XmlAttribute(name = "mode")
+    public String getMode()
+    {
+        return mode;
+    }
+
+    public void setMode(String mode)
+    {
+        this.mode = mode;
+    }
+
+    @XmlAttribute(name = "host")
+    public String getHost()
+    {
+        return host;
+    }
+
+    public void setHost(String host)
+    {
+        this.host = host;
+    }
+
+    @XmlAttribute(name = "service")
+    public String getService()
+    {
+        return service;
+    }
+
+    public void setService(String service)
+    {
+        this.service = service;
+    }
 }

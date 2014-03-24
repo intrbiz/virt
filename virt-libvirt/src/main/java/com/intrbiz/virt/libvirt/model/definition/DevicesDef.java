@@ -33,6 +33,8 @@ public class DevicesDef
     private List<VideoDef> videos = new LinkedList<VideoDef>();
 
     private List<MemballonDef> memballoons = new LinkedList<MemballonDef>();
+    
+    private List<ChannelDef> channels = new LinkedList<ChannelDef>();
 
     @XmlElement(name = "emulator")
     public String getEmulator()
@@ -155,4 +157,14 @@ public class DevicesDef
         this.memballoons = memballoons;
     }
 
+    @XmlElementRef(type = ChannelDef.class)
+    public List<ChannelDef> getChannels()
+    {
+        return channels;
+    }
+
+    public void setChannels(List<ChannelDef> channels)
+    {
+        this.channels = channels;
+    }
 }

@@ -10,9 +10,13 @@ public class AddressDef
 {
     private String type;
 
+    private String controller;
+
     private String domain;
 
     private String bus;
+    
+    private String port;
 
     private String slot;
 
@@ -27,6 +31,17 @@ public class AddressDef
     public void setType(String type)
     {
         this.type = type;
+    }
+
+    @XmlAttribute(name = "controller")
+    public String getController()
+    {
+        return controller;
+    }
+
+    public void setController(String controller)
+    {
+        this.controller = controller;
     }
 
     @XmlAttribute(name = "domain")
@@ -49,6 +64,17 @@ public class AddressDef
     public void setBus(String bus)
     {
         this.bus = bus;
+    }
+    
+    @XmlAttribute(name = "port")
+    public String getPort()
+    {
+        return port;
+    }
+
+    public void setPort(String port)
+    {
+        this.port = port;
     }
 
     @XmlAttribute(name = "slot")
