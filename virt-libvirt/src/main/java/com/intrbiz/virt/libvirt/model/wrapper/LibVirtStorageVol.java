@@ -11,11 +11,11 @@ import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 
 public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
 {
-    private final LibVirtAdapter adapter;
+    protected final LibVirtAdapter adapter;
 
-    private final StorageVol vol;
+    protected final StorageVol vol;
 
-    private final String name;
+    protected final String name;
 
     protected final LibVirtCleanupWrapper cleanup;
 
@@ -24,9 +24,8 @@ public abstract class LibVirtStorageVol implements Comparable<LibVirtStorageVol>
         this.adapter = adapter;
         this.vol = vol;
         this.cleanup = LibVirtCleanupWrapper.newStorageVolWrapper(vol);
-        this.addStorageVolToCleanUp();
-        //
         this.name = this.fetchName();
+        this.addStorageVolToCleanUp();
     }
 
     public LibVirtAdapter getLibVirtAdapter()

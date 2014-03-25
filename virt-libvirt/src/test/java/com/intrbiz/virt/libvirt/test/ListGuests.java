@@ -13,7 +13,7 @@ public class ListGuests
 {
     public static void main(String[] args) throws Exception
     {
-        try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","localhost"))
+        try (LibVirtAdapter lv = LibVirtAdapter.qemu.ssh.connect("root","vm1"))
         {
             for (int i = 0; i < 10; i++)
             {

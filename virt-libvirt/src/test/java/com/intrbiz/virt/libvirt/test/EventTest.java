@@ -1,30 +1,30 @@
 package com.intrbiz.virt.libvirt.test;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.event.LibVirtDomainLifecycleEventHandler;
-import com.intrbiz.virt.libvirt.event.LibVirtDomainRebootEventHandler;
 import com.intrbiz.virt.libvirt.model.event.LibVirtDomainLifecycle;
-import com.intrbiz.virt.libvirt.model.event.LibVirtDomainReboot;
 
 public class EventTest
 {
     public static void main(String[] args) throws Exception
     {
+        BasicConfigurator.configure();
+        Logger.getRootLogger().setLevel(Level.TRACE);
+        //
         LibVirtAdapter lv = LibVirtAdapter.qemu.tcp.connect("172.30.13.30", 5005);
-        // register for events
-        lv.registerEventHandler(new LibVirtDomainLifecycleEventHandler() {
+        System.out.println("Registering event handler");
+        lv.registerEventHandler(new LibVirtDomainLifecycleEventHandler()
+        {
             @Override
             public void onEvent(LibVirtDomainLifecycle event)
             {
-                System.out.println("Got event: " + event);
+                System.out.println("Main Got event: " + event);
             }
         });
-        lv.registerEventHandler(new LibVirtDomainRebootEventHandler() {
-            @Override
-            public void onEvent(LibVirtDomainReboot event)
-            {
-                System.out.println("Got event: " + event);
-            }
-        });
+        System.out.println("Listening");
     }
 }

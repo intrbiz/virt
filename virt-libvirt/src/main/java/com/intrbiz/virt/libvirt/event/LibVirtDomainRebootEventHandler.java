@@ -3,9 +3,10 @@ package com.intrbiz.virt.libvirt.event;
 import org.apache.log4j.Logger;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
-import org.libvirt.DomainEventHandler;
 import org.libvirt.LibvirtException;
-import org.libvirt.event.DomainRebootEventHandler;
+import org.libvirt.event.EventListener;
+import org.libvirt.event.LifecycleListener;
+import org.libvirt.event.RebootListener;
 
 import com.intrbiz.virt.libvirt.LibVirtEventHandler;
 import com.intrbiz.virt.libvirt.model.event.LibVirtDomainReboot;
@@ -15,17 +16,25 @@ public abstract class LibVirtDomainRebootEventHandler extends LibVirtEventHandle
     private Logger logger = Logger.getLogger(LibVirtDomainRebootEventHandler.class);
 
     @Override
-    protected DomainEventHandler _register(final Connect connect, Domain domain) throws LibvirtException
+    protected EventListener _register(final Connect connect, Domain domain) throws LibvirtException
     {
-        return connect.domainRebootEventRegister(new DomainRebootEventHandler()
+        RebootListener ev = new RebootListener()
         {
             @Override
-            public void onEvent(Connect connection, Domain domain) throws LibvirtException
+            public void onReboot(Domain domain)
             {
                 logger.trace("Adapting reboot event");
                 LibVirtDomainRebootEventHandler.this.onEvent(new LibVirtDomainReboot(theDomain(domain)));
             }
-        });
+        };
+        connect.addRebootListener(ev);
+        return ev;
     }
+    
 
+    @Override
+    protected void _deregister(Connect connect, Domain domain, EventListener listener) throws LibvirtException
+    {
+        connect.removeLifecycleListener((LifecycleListener) listener);
+    }
 }

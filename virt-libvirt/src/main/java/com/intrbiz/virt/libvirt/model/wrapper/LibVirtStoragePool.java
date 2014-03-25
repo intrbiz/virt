@@ -18,13 +18,13 @@ import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
 
 public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePool>
 {
-    private final LibVirtAdapter adapter;
+    protected final LibVirtAdapter adapter;
 
-    private final StoragePool pool;
+    protected final StoragePool pool;
 
-    private final String name;
+    protected final String name;
 
-    private final UUID uuid;
+    protected final UUID uuid;
 
     protected final LibVirtCleanupWrapper cleanup;
 
@@ -33,10 +33,9 @@ public abstract class LibVirtStoragePool implements Comparable<LibVirtStoragePoo
         this.adapter = adapter;
         this.pool = pool;
         this.cleanup = LibVirtCleanupWrapper.newStoragePoolWrapper(this.pool);
-        this.addStoragePoolToCleanUp();
-        //
         this.name = this.fetchName();
         this.uuid = this.fetchUUID();
+        this.addStoragePoolToCleanUp();
     }
 
     public LibVirtAdapter getLibVirtAdapter()

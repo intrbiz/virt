@@ -2,8 +2,8 @@ package com.intrbiz.virt.libvirt;
 
 import org.libvirt.Connect;
 import org.libvirt.Domain;
-import org.libvirt.DomainEventHandler;
 import org.libvirt.LibvirtException;
+import org.libvirt.event.EventListener;
 
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.model.event.LibVirtEvent;
@@ -16,7 +16,7 @@ public abstract class LibVirtEventHandler<T extends LibVirtEvent>
     
     protected LibVirtDomain domain = null;
     
-    protected DomainEventHandler handler;
+    protected EventListener handler;
     
     public LibVirtEventHandler()
     {
@@ -46,7 +46,7 @@ public abstract class LibVirtEventHandler<T extends LibVirtEvent>
             {
                 try
                 {
-                    this.handler.deregister();
+                    this._deregister(this.adapter.getLibVirtConnection(), this.domain == null ? null : this.domain.getLibVirtDomain(), this.handler);
                 }
                 catch (LibvirtException e)
                 {
@@ -61,7 +61,7 @@ public abstract class LibVirtEventHandler<T extends LibVirtEvent>
         }
     }
     
-    final DomainEventHandler register(LibVirtAdapter on, LibVirtDomain domain) throws LibvirtException
+    final EventListener register(LibVirtAdapter on, LibVirtDomain domain) throws LibvirtException
     {
         this.adapter = on;
         this.domain = domain;
@@ -69,7 +69,9 @@ public abstract class LibVirtEventHandler<T extends LibVirtEvent>
         return this.handler;
     }
     
-    protected abstract DomainEventHandler _register(Connect connect, Domain domain) throws LibvirtException;
+    protected abstract EventListener _register(Connect connect, Domain domain) throws LibvirtException;
+    
+    protected abstract void _deregister(Connect connect, Domain domain, EventListener listener) throws LibvirtException;
     
     /**
      * Handle the event

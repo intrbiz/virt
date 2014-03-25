@@ -12,6 +12,9 @@ import org.libvirt.LibvirtException;
 
 import com.intrbiz.data.DataException;
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
+import com.intrbiz.virt.libvirt.LibVirtEventHandler;
+import com.intrbiz.virt.libvirt.event.LibVirtDomainLifecycleEventHandler;
+import com.intrbiz.virt.libvirt.event.LibVirtDomainRebootEventHandler;
 import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
@@ -22,14 +25,14 @@ import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
  */
 public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
 {
-    private final LibVirtAdapter adapter;
+    protected final LibVirtAdapter adapter;
 
-    private final Domain domain;
-    
-    private final String name;
-    
-    private final UUID uuid;
-    
+    protected final Domain domain;
+
+    protected final String name;
+
+    protected final UUID uuid;
+
     protected final LibVirtCleanupWrapper cleanup;
 
     public LibVirtDomain(LibVirtAdapter adapter, Domain domain)
@@ -37,10 +40,9 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         this.adapter = adapter;
         this.domain = domain;
         this.cleanup = LibVirtCleanupWrapper.newDomainWrapper(this.domain);
-        this.addDomainToCleanUp();
-        //
         this.name = this.fetchName();
         this.uuid = this.fetchUUID();
+        this.addDomainToCleanUp();
     }
 
     public LibVirtAdapter getLibVirtAdapter()
@@ -52,7 +54,7 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
     {
         return this.domain;
     }
-    
+
     /**
      * Get the name of this guest (NB: this is cached)
      */
@@ -73,9 +75,10 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException(e);
         }
     }
-    
+
     /**
      * Get the UUID of this guest (NB: this is cached)
+     * 
      * @return
      */
     public UUID getUUID()
@@ -271,6 +274,7 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return null;
     }
+
     public LibVirtDiskInfo getDiskInfo(LibVirtDisk disk)
     {
         this.adapter.checkOpen();
@@ -374,6 +378,21 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         return ifaces;
     }
 
+    public LibVirtDomainLifecycleEventHandler registerLifecycleEventHandler(LibVirtDomainLifecycleEventHandler handler)
+    {
+        return this.adapter.registerEventHandler(this, handler);
+    }
+
+    public LibVirtDomainRebootEventHandler registerRebootEventHandler(LibVirtDomainRebootEventHandler handler)
+    {
+        return this.adapter.registerEventHandler(this, handler);
+    }
+
+    public <T extends LibVirtEventHandler<?>> T registerEventHandler(T handler)
+    {
+        return this.adapter.registerEventHandler(this, handler);
+    }
+
     @Override
     public int compareTo(LibVirtDomain o)
     {
@@ -405,8 +424,8 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
             this.removeDomainFromCleanUp();
         }
     }
-    
+
     protected abstract void addDomainToCleanUp();
-    
+
     protected abstract void removeDomainFromCleanUp();
 }

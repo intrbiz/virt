@@ -10,10 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.log4j.Logger;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
 import org.libvirt.Error.ErrorNumber;
 import org.libvirt.Interface;
+import org.libvirt.Library;
 import org.libvirt.LibvirtException;
 import org.libvirt.NodeInfo;
 import org.libvirt.StoragePool;
@@ -21,6 +23,8 @@ import org.libvirt.StorageVol;
 
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
+import com.intrbiz.virt.libvirt.event.LibVirtDomainLifecycleEventHandler;
+import com.intrbiz.virt.libvirt.event.LibVirtDomainRebootEventHandler;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
 import com.intrbiz.virt.libvirt.model.util.IdedWeakReference;
 import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
@@ -49,7 +53,43 @@ public class LibVirtAdapter implements DataAdapter
 {
     static
     {
-        System.setProperty("jna.library.path", "/usr/lib/");
+        // setup libvirt
+        System.setProperty("jna.library.path", "/usr/lib");
+        try
+        {
+            // init the event loop
+            try
+            {
+                Library.initEventLoop();
+            }
+            catch (LibvirtException e)
+            {
+                throw new RuntimeException("Failed to initialise the libvirt event loop!", e);
+            }
+            // launch the event loop
+            final Logger logger = Logger.getLogger(LibVirtAdapter.class);
+            new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        Library.runEventLoop();
+                    }
+                    catch (LibvirtException e)
+                    {
+                        logger.error("Exception thrown whilst processing the libvirt event loop", e);
+                    }
+                    catch (InterruptedException e)
+                    {
+                    }
+                }
+            }, "LibVirt Eventloop").start();
+        }
+        catch (Throwable e)
+        {
+            throw new RuntimeException("Failed to initialise libvirt", e);
+        }
     }
 
     public static final LibVirtAdapter connect(String url)
@@ -145,11 +185,11 @@ public class LibVirtAdapter implements DataAdapter
 
     private AtomicInteger cleanUpId = new AtomicInteger();
 
-    private ConcurrentMap<Integer, IdedWeakReference<Object>> wrappersToCleanUp = new ConcurrentHashMap<Integer, IdedWeakReference<Object>>();
+    private ConcurrentMap<Integer, IdedWeakReference<Object>> underlyingObjectsToCleanUp = new ConcurrentHashMap<Integer, IdedWeakReference<Object>>();
 
     private ReferenceQueue<Object> cleanUpRefQueue = new ReferenceQueue<Object>();
 
-    private ConcurrentMap<Integer, LibVirtCleanupWrapper> objectsToCleanUp = new ConcurrentHashMap<Integer, LibVirtCleanupWrapper>();
+    private ConcurrentMap<Integer, LibVirtCleanupWrapper> wrappersToCleanUp = new ConcurrentHashMap<Integer, LibVirtCleanupWrapper>();
 
     //
 
@@ -159,6 +199,7 @@ public class LibVirtAdapter implements DataAdapter
         try
         {
             this.connection = new Connect(url);
+            this.connection.setKeepAlive(5, 3);
         }
         catch (LibvirtException e)
         {
@@ -545,6 +586,16 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
+    public LibVirtDomainLifecycleEventHandler registerLifecycleEventHandler(LibVirtDomainLifecycleEventHandler handler)
+    {
+        return this.registerEventHandler(handler);
+    }
+
+    public LibVirtDomainRebootEventHandler registerRebootEventHandler(LibVirtDomainRebootEventHandler handler)
+    {
+        return this.registerEventHandler(handler);
+    }
+
     public <T extends LibVirtEventHandler<?>> T registerEventHandler(T handler)
     {
         return this.registerEventHandler(null, handler);
@@ -574,12 +625,12 @@ public class LibVirtAdapter implements DataAdapter
             try
             {
                 // clean up objects
-                for (LibVirtCleanupWrapper e : this.objectsToCleanUp.values())
+                for (LibVirtCleanupWrapper e : this.wrappersToCleanUp.values())
                 {
                     e.free();
                 }
+                this.underlyingObjectsToCleanUp.clear();
                 this.wrappersToCleanUp.clear();
-                this.objectsToCleanUp.clear();
             }
             finally
             {
@@ -609,7 +660,7 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addDomainToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this.domain, this.cleanup);
             }
 
             @Override
@@ -630,7 +681,7 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addStoragePoolToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this.pool, this.cleanup);
             }
 
             @Override
@@ -657,7 +708,7 @@ public class LibVirtAdapter implements DataAdapter
             @Override
             protected void addStorageVolToCleanUp()
             {
-                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this, this.cleanup);
+                this.cleanUpId = LibVirtAdapter.this.addObjectToCleanUp(this.vol, this.cleanup);
             }
 
             @Override
@@ -675,22 +726,22 @@ public class LibVirtAdapter implements DataAdapter
     }
 
     @SuppressWarnings("unchecked")
-    protected int addObjectToCleanUp(Object wrapper, LibVirtCleanupWrapper cleanup)
+    protected int addObjectToCleanUp(Object underlying, LibVirtCleanupWrapper cleanup)
     {
         int id = this.cleanUpId.incrementAndGet();
-        this.wrappersToCleanUp.put(id, new IdedWeakReference<Object>(id, wrapper, this.cleanUpRefQueue));
-        this.objectsToCleanUp.put(id, cleanup);
+        this.underlyingObjectsToCleanUp.put(id, new IdedWeakReference<Object>(id, underlying, this.cleanUpRefQueue));
+        this.wrappersToCleanUp.put(id, cleanup);
         // process the reference queue
         Reference<? extends Object> ref;
         while ((ref = this.cleanUpRefQueue.poll()) != null)
         {
-            this.objectsToCleanUp.remove(((IdedWeakReference<Object>) ref).getId());
+            this.wrappersToCleanUp.remove(((IdedWeakReference<Object>) ref).getId());
         }
         return id;
     }
 
     protected void removeObjectFromCleanUp(int id)
     {
-        this.objectsToCleanUp.remove(id);
+        this.wrappersToCleanUp.remove(id);
     }
 }
