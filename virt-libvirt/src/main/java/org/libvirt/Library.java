@@ -2,24 +2,28 @@ package org.libvirt;
 
 import org.libvirt.jna.Libvirt;
 
+import static org.libvirt.ErrorHandler.processError;
+
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.ptr.PointerByReference;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class represents an instance of the JNA mapped libvirt
  * library.
  *
  * The library will get loaded when first accessing this class.
- * By default the Libvirt event loop will be setup and laucnhed 
- * in a separate thread, this is to permit the usage of DomainEvents.
  *
  * Additionally, this class contains internal methods to ease
  * implementing the public API.
  */
-final class Library {
+public final class Library {
+    private static AtomicBoolean runLoop = new AtomicBoolean();
+
     final static Libvirt libvirt;
-    
-    static EventLoop eventloop; 
 
     // an empty string array constant
     // prefer this over creating empty arrays dynamically.
@@ -27,58 +31,33 @@ final class Library {
 
     // Load the native part
     static {
-        Libvirt.INSTANCE.virInitialize();
         libvirt = Libvirt.INSTANCE;
         try {
-            ErrorHandler.processError(Libvirt.INSTANCE);
+            processError(libvirt.virInitialize());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // by default start the event loop
-        startEventLoop();
     }
 
     private Library() {}
-    
-    /**
-     * Setup and start the Libvirt event loop,
-     * the event loop is required to use domain 
-     * events
-     */
-    static synchronized void startEventLoop() {
-        try {
-            if (eventloop == null) {
-                // setup the event loop
-                if (libvirt.virEventRegisterDefaultImpl() < 0) {
-                    ErrorHandler.processError(libvirt);
-                }
-                // start the event loop
-                (eventloop = new EventLoop()).start();
-            }
-        }
-        catch (Exception e) {
-            System.err.println("Error setting up event loop:");
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Shutdown the Libvirt event loop
-     */
-    static synchronized void shutdownEventLoop() {
 
-        if (eventloop != null) {
-            eventloop.shutdown();
-        }
-        eventloop = null;
+    /**
+     * Returns the version of the native libvirt library.
+     *
+     * @return major * 1,000,000 + minor * 1,000 + release
+     * @throws LibvirtException
+     */
+    public static long getVersion() throws LibvirtException {
+        LongByReference libVer = new LongByReference();
+        processError(libvirt.virGetVersion(libVer, null, null));
+        return libVer.getValue();
     }
 
     /**
      * Free memory pointed to by ptr.
      */
     static void free(Pointer ptr) {
-        Native.free(Pointer.nativeValue(ptr));
-        Pointer.nativeValue(ptr, 0L);
+        libvirt.virFree(new PointerByReference(ptr));
     }
 
     /**
@@ -124,38 +103,113 @@ final class Library {
             }
         }
     }
-    
+
     /**
-     * Execute the Libvirt event loop to process events 
-     * and dispatch callbacks
+     * Initialize the event loop.
+     *
+     * Registers a default event loop implementation based on the
+     * poll() system call.
+     * <p>
+     * Once registered, the application has to invoke
+     * { link #processEvent} in a loop or call { link #runEventLoop}
+     * in another thread.
+     * <p>
+     * Note: You must call this function <em>before</em> connecting to
+     *       the hypervisor.
+     *
+     * @throws LibvirtException on failure
+     *
+     * @see #processEvent
+     * @see #runLoop
      */
-    static class EventLoop implements Runnable {
-        
-        private volatile boolean run = true;
-        
-        public void run() {
-            Libvirt lv = libvirt;
-            while (this.run) {
-                try {
-                    if (lv.virEventRunDefaultImpl() < 0) {
-                        // should we bomb the run loop?
-                        ErrorHandler.processError(lv);
+    public static void initEventLoop() throws LibvirtException {
+        processError(libvirt.virEventRegisterDefaultImpl());
+    }
+
+    /**
+     * Run one iteration of the event loop.
+     * <p>
+     * Applications will generally want to have a thread which invokes
+     * this method in an infinite loop:
+     * <pre>
+     * { code while (true) connection.processEvent(); }
+     * </pre>
+     * <p>
+     * Failure to do so may result in connections being closed
+     * unexpectedly as a result of keepalive timeout.
+     *
+     * @throws LibvirtException on failure
+     *
+     * @see #initEventLoop()
+     */
+    public static void processEvent() throws LibvirtException {
+        // System.out.println("Enter process event");
+        processError(libvirt.virEventRunDefaultImpl());
+        // System.out.println("Exit process event");
+    }
+
+    /**
+     * Runs the event loop.
+     *
+     * This method blocks until { link #stopEventLoop} is called or an
+     * exception is thrown.
+     * <p>
+     * Usually, this method is run in another thread.
+     *
+     * @throws LibvirtException     if there was an error during the call of a
+     *                              native libvirt function
+     * @throws InterruptedException if this thread was interrupted by a call to
+     *                              { link java.lang.Thread#interrupt() Thread.interrupt()}
+     */
+    public static void runEventLoop() throws LibvirtException, InterruptedException {
+        runLoop.set(true);
+        do {
+            processEvent();
+            if (Thread.interrupted())
+                throw new InterruptedException();
+        } while (runLoop.get());
+    }
+
+    /**
+     * Stops the event loop.
+     *
+     * This methods stops an event loop when an event loop is
+     * currently running, otherwise it does nothing.
+     *
+     * @see #runEventLoop
+     */
+    public static void stopEventLoop() throws LibvirtException {
+        if (runLoop.getAndSet(false)) {
+            // add a timeout which fires immediately so that the processEvent
+            // method returns if it is waiting
+            libvirt.virEventAddTimeout(0, new org.libvirt.jna.Libvirt.VirEventTimeoutCallback() {
+                    @Override
+                    public void tick(int id, Pointer p) {
+                        // remove itself right after it served its purpose
+                        libvirt.virEventRemoveTimeout(id);
                     }
-                }
-                catch (LibvirtException e) {
-                    System.err.println("Error processing libvirt event loop");
-                    e.printStackTrace();
-                }
-            }
+                },
+                null, null);
         }
-        
-        public void start() {
-            Thread t = new Thread(this, "Libvirt Event Loop");
-            t.start();
-        }
-        
-        public void shutdown() {
-            this.run = false;
-        }
+    }
+
+    /**
+     * Look up a constant of an enum by its ordinal number.
+     *
+     * @return the corresponding enum constant when such a constant exists,
+     *         otherwise the element which has the biggest ordinal number
+     *         assigned.
+     *
+     * @throws IllegalArgumentException if { code ordinal} is negative
+     */
+    static <T extends Enum<T>> T getConstant(final Class<T> c, final int ordinal) {
+        if (ordinal < 0)
+            throw new IllegalArgumentException("ordinal must be >= 0");
+
+        T[] a = c.getEnumConstants();
+
+        assert a.length > 0 : "there must be at least one enum constant";
+
+        return a[Math.min(ordinal, a.length - 1)];
     }
 }

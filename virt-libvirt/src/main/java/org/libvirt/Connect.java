@@ -1,13 +1,27 @@
 package org.libvirt;
 
+import static org.libvirt.BitFlagsHelper.*;
+import static org.libvirt.ErrorHandler.*;
 import static org.libvirt.Library.*;
 
+import java.net.URI;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.libvirt.event.DomainLifecycleEventHandler;
-import org.libvirt.event.DomainRTCChangeEventHandler;
-import org.libvirt.event.DomainRebootEventHandler;
+import org.libvirt.event.ConnectionCloseListener;
+import org.libvirt.event.ConnectionCloseReason;
+import org.libvirt.event.DomainEvent;
+import org.libvirt.event.DomainEventType;
+import org.libvirt.event.EventListener;
+import org.libvirt.event.IOErrorAction;
+import org.libvirt.event.IOErrorListener;
+import org.libvirt.event.LifecycleListener;
+import org.libvirt.event.PMSuspendListener;
+import org.libvirt.event.PMSuspendReason;
+import org.libvirt.event.PMWakeupListener;
+import org.libvirt.event.PMWakeupReason;
+import org.libvirt.event.RebootListener;
 import org.libvirt.jna.ConnectionPointer;
 import org.libvirt.jna.DevicePointer;
 import org.libvirt.jna.DomainPointer;
@@ -34,6 +48,88 @@ import com.sun.jna.ptr.LongByReference;
  * @author stoty
  */
 public class Connect {
+    
+    public ConnectionPointer getVCP()
+    {
+        return this.VCP;
+    }
+    
+    // registered event listeners by DomainEventID
+    private Map<EventListener, RegisteredEventListener>[] eventListeners = makeHashMapArray(DomainEventID.LAST);
+    
+    private class RegisteredEventListener
+    {
+        public final int callbackId;
+        
+        // We need to keep a reference to the callback to prevent it from being GCed
+        @SuppressWarnings("unused")
+        public final Libvirt.VirDomainEventCallback callback;
+        
+        public RegisteredEventListener(Libvirt.VirDomainEventCallback callback, int callbackId)
+        {
+            this.callback = callback;
+            this.callbackId = callbackId;
+        }
+    }
+    @SuppressWarnings("unchecked")
+    private static <K, V> IdentityHashMap<K, V>[] makeHashMapArray(int size) {
+        return new IdentityHashMap[size];
+    }
+
+    private class CloseFunc implements Libvirt.VirConnectCloseFunc {
+        final ConnectionCloseListener listener;
+
+        CloseFunc(ConnectionCloseListener l) {
+            this.listener = l;
+        }
+
+        @Override
+        public void callback(ConnectionPointer VCP, int reason, Pointer opaque) {
+            this.listener.onClose(Connect.this,
+                                  getConstant(ConnectionCloseReason.class, reason));
+        }
+    }
+
+    private CloseFunc registeredCloseFunc = null;
+
+    /**
+     * Event IDs.
+     */
+    @SuppressWarnings("unused")
+    private interface DomainEventID {
+        static final int LIFECYCLE = 0;
+        static final int REBOOT = 1;
+        static final int RTC_CHANGE = 2;
+        static final int WATCHDOG = 3;
+        static final int IO_ERROR = 4;
+        static final int GRAPHICS = 5;
+        static final int IO_ERROR_REASON = 6;
+        static final int CONTROL_ERROR = 7;
+        static final int BLOCK_JOB = 8;
+        static final int DISK_CHANGE = 9;
+        static final int TRAY_CHANGE = 10;
+        static final int PMWAKEUP = 11;
+        static final int PMSUSPEND = 12;
+        static final int LAST = 13;
+    }
+
+    public enum OpenFlags implements BitFlags {
+        /** Open a connection in read-only mode */
+        READONLY(1),
+
+        /** Don't try to resolve URI aliases */
+        NO_ALIASES(2);
+
+        OpenFlags(int v) {
+            this.value = v;
+        }
+
+        @Override
+        public int getBit() {
+            return value;
+        }
+        private final int value;
+    }
 
     /**
      * Get the version of a connection.
@@ -45,7 +141,9 @@ public class Connect {
      *            the connection to use.
      * @return -1 in case of failure, versions have the format major * 1,000,000
      *         + minor * 1,000 + release.
+     * @deprecated Use { link #getLibVersion} instead.
      */
+    @Deprecated
     public static long connectionVersion(Connect conn) {
         LongByReference libVer = new LongByReference();
         int result = Libvirt.INSTANCE.virConnectGetLibVersion(conn.VCP, libVer);
@@ -77,6 +175,22 @@ public class Connect {
     }
 
     /**
+     * Get the libvirt library version of this connection.
+     *
+     * @see <a
+     *      href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectGetLibVersion">Libvirt
+     *      Documentation</a>
+     * @return The version of libvirt used by the daemon running on
+     *         the connected host in the format { code major *
+     *         1,000,000 + minor * 1,000 + release}.
+     */
+    public long getLibVersion() throws LibvirtException {
+        LongByReference libVer = new LongByReference();
+        processError(libvirt.virConnectGetLibVersion(this.VCP, libVer));
+        return libVer.getValue();
+    }
+
+    /**
      * Sets the error function to a user defined callback
      *
      * @param callback
@@ -84,17 +198,47 @@ public class Connect {
      */
     public static void setErrorCallback(Libvirt.VirErrorCallback callback) throws LibvirtException {
         Libvirt.INSTANCE.virSetErrorFunc(null, callback);
-        ErrorHandler.processError(Libvirt.INSTANCE);
     }
 
     /**
      * The native virConnectPtr.
      */
     protected ConnectionPointer VCP;
-    
-    protected ConcurrentHashMap<Integer, DomainEventHandler> registeredEventHandlers = new ConcurrentHashMap<Integer, DomainEventHandler>();
-    
-    protected DomainEventUncaughtErrorHandler  eventUncaughtErrorHandler = new DomainEventUncaughtErrorHandler();
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((VCP == null) ? 0 : VCP.hashCode());
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof Connect))
+            return false;
+        Connect other = (Connect) obj;
+        if (VCP == null)
+            return (other.VCP == null);
+        else if (VCP.equals(other.VCP))
+            return true;
+
+        try {
+            return getURI().equals(other.getURI());
+        } catch (LibvirtException e) {
+            throw new RuntimeException("libvirt error testing connect equality", e);
+        }
+    }
 
     /**
      * Protected constructor to return a Connection with ConnectionPointer
@@ -125,10 +269,20 @@ public class Connect {
      * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
      */
     public Connect(String uri) throws LibvirtException {
-        VCP = libvirt.virConnectOpen(uri);
-        // Check for an error
-        processError(VCP);
-        ErrorHandler.processError(Libvirt.INSTANCE);
+        this(uri, null, 0);
+    }
+
+
+    /**
+     * Constructs a read-write Connect object from the supplied URI.
+     *
+     * @param uri
+     *            The connection URI
+     * @throws LibvirtException
+     * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
+     */
+    public Connect(URI uri, OpenFlags... flags) throws LibvirtException {
+        this(uri, null, flags);
     }
 
     /**
@@ -142,14 +296,7 @@ public class Connect {
      * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
      */
     public Connect(String uri, boolean readOnly) throws LibvirtException {
-        if (readOnly) {
-            VCP = libvirt.virConnectOpenReadOnly(uri);
-        } else {
-            VCP = libvirt.virConnectOpen(uri);
-        }
-        // Check for an error
-        processError(VCP);
-        ErrorHandler.processError(Libvirt.INSTANCE);
+        this(uri, null, readOnly ? OpenFlags.READONLY.getBit() : 0);
     }
 
     /**
@@ -165,24 +312,58 @@ public class Connect {
      * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
      */
     public Connect(String uri, ConnectAuth auth, int flags) throws LibvirtException {
-        virConnectAuth vAuth = new virConnectAuth();
-        vAuth.cb = auth;
-        vAuth.cbdata = null;
-        vAuth.ncredtype = auth.credType.length;
-        int[] authInts = new int[vAuth.ncredtype];
+        virConnectAuth vAuth = null;
 
-        for (int x = 0; x < vAuth.ncredtype; x++) {
-            authInts[x] = auth.credType[x].mapToInt();
+        if (auth != null) {
+            vAuth = new virConnectAuth();
+            vAuth.cb = auth;
+            vAuth.cbdata = null;
+            vAuth.ncredtype = auth.credType.length;
+            int[] authInts = new int[vAuth.ncredtype];
+
+            for (int x = 0; x < vAuth.ncredtype; x++) {
+                authInts[x] = auth.credType[x].mapToInt();
+            }
+
+            Memory mem = new Memory(4 * vAuth.ncredtype);
+            mem.write(0, authInts, 0, vAuth.ncredtype);
+            vAuth.credtype = mem.share(0);
         }
-
-        Memory mem = new Memory(4 * vAuth.ncredtype);
-        mem.write(0, authInts, 0, vAuth.ncredtype);
-        vAuth.credtype = mem.share(0);
 
         VCP = libvirt.virConnectOpenAuth(uri, vAuth, flags);
         // Check for an error
         processError(VCP);
-        ErrorHandler.processError(Libvirt.INSTANCE);
+    }
+
+    /**
+     * Constructs a Connect object from the supplied URI, using the supplied
+     * authentication callback
+     *
+     * @param uri
+     *            The connection URI
+     * @param auth
+     *            a ConnectAuth object
+     * @param flags
+     * @throws LibvirtException
+     * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
+     */
+    public Connect(URI uri, ConnectAuth auth, OpenFlags... flags) throws LibvirtException {
+        this(uri.toString(), auth, OR(flags));
+    }
+
+    /**
+     * Constructs a Connect object from the supplied URI, using the supplied
+     * authentication callback
+     *
+     * @param uri
+     *            The connection URI
+     * @param auth
+     *            a ConnectAuth object
+     * @throws LibvirtException
+     * @see <a href="http://libvirt.org/uri.html">The URI documentation</a>
+     */
+    public Connect(URI uri, ConnectAuth auth) throws LibvirtException {
+        this(uri.toString(), auth, 0);
     }
 
     /**
@@ -208,16 +389,12 @@ public class Connect {
     public int close() throws LibvirtException {
         int success = 0;
         if (VCP != null) {
-            // deregister any events
-            for (DomainEventHandler handler : this.registeredEventHandlers.values()) {
-        	try {
-        	    handler.deregister();
-        	}
-        	catch (LibvirtException e){
-        	}
-            }
-            // close the underlying connection
             success = libvirt.virConnectClose(VCP);
+
+            // if the connection has been closed (i.e. the reference count is
+            // down to zero), forget about the registered close function
+            if (success == 0) registeredCloseFunc = null;
+
             // If leave an invalid pointer dangling around JVM crashes and burns
             // if someone tries to call a method on us
             // We rely on the underlying libvirt error handling to detect that
@@ -225,6 +402,42 @@ public class Connect {
             VCP = null;
         }
         return processError(success);
+    }
+
+    /**
+     * Register the specified connection close listener to receive notifications
+     * when this connection is closed.
+     * <p>
+     * <strong>Note:</strong> There can only be at most one registered listener
+     *                        at a time.
+     * @param   l  the connection close listener
+     * @throws  LibvirtException on failure
+     * @see #unregisterCloseListener
+     */
+    public void registerCloseListener(final ConnectionCloseListener l) throws LibvirtException {
+        CloseFunc cf = new CloseFunc(l);
+
+        processError(libvirt.virConnectRegisterCloseCallback(this.VCP,
+                                                             cf,
+                                                             null,
+                                                             null));
+        this.registeredCloseFunc = cf;
+    }
+
+    /**
+     * Unregister the previously registered close listener.
+     *
+     * When there currently is no registered close listener, this method
+     * does nothing.
+     *
+     * @see #registerCloseListener
+     */
+    public void unregisterCloseListener() throws LibvirtException {
+        if (this.registeredCloseFunc != null) {
+            processError(libvirt.virConnectUnregisterCloseCallback(this.VCP,
+                                                                   this.registeredCloseFunc));
+            this.registeredCloseFunc = null;
+        }
     }
 
     /**
@@ -238,8 +451,7 @@ public class Connect {
      * @throws LibvirtException
      */
     public CPUCompareResult compareCPU(String xmlDesc) throws LibvirtException {
-        int rawResult = libvirt.virConnectCompareCPU(VCP, xmlDesc, 0);
-        processError();
+        int rawResult = processError(libvirt.virConnectCompareCPU(VCP, xmlDesc, 0));
         return CPUCompareResult.get(rawResult);
     }
 
@@ -319,103 +531,340 @@ public class Connect {
     }
 
     /**
-     * Use DomainEventHandler.deregister to remove an event handler
+     * Removes the event listener for the given eventID parameter so
+     * that it no longer receives events.
+     *
+     * @param eventID    the domain event identifier
+     * @param l          the event listener
+     * @throws           LibvirtException
+     *
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventDeregisterAny";
+     *      >virConnectDomainEventDeregisterAny</a>
      */
-    public int domainEventDeregisterAny(int callbackID) throws LibvirtException {
-	this.registeredEventHandlers.remove(callbackID);
-        return processError(libvirt.virConnectDomainEventDeregisterAny(VCP, callbackID));
+    private void domainEventDeregister(int eventID, EventListener l) throws LibvirtException {
+        if (l == null)
+            return;
+
+        Map<EventListener, RegisteredEventListener> handlers = eventListeners[eventID];
+
+        if (handlers == null) return;
+
+        RegisteredEventListener listenerID = handlers.remove(l);
+
+        if (listenerID != null)
+            processError(libvirt.virConnectDomainEventDeregisterAny(VCP, listenerID.callbackId));
     }
-    
-    /**
-     * Register to receive events, invoking the given handler when they occur
-     * <p>
-     * Generically subscribe to any event, optionally restricted to the domain specified.
-     * It is best to use the specific method on this class to subscribe for events, see:
-     * </p>
-     * <ul>
-     *   <li><code>domainLifecycleEventRegister</code></li>
-     *   <li><code>domainRebootEventRegister</code></li>
-     *   <li><code>domainRTCChangeEventRegister</code></li>
-     * </ul>
-     * <p>
-     * It is also possible to subscribe to events for a specific domain from the <code>Domain</code> 
-     * object.
-     * </p>
-     * <p>
-     * It is possible to provide a custom <code>DomainEventHandler</code> which can subscribe 
-     * to a Libvirt domain event not yet supported by these bindings, since the <code>DomainEventHandler</code>
-     * encapsulates all the logic required to subscribe to an event. 
-     * </p>
-     * @param domain (optional) the domain to restrict observing event too
-     * @param handler the handler for the event
-     * @return the given event handler
-     * @throws LibvirtException if for some reason the event handler could not be registered
-     */
-    public <T extends DomainEventHandler> T domainEventRegister(Domain domain, T handler)  throws LibvirtException {
-	if (handler == null) throw new IllegalArgumentException("Cannot listen for events with a null event handler");
-	if (handler.getEventId() == null) throw new IllegalArgumentException("Cannot listen for event of null event type");
-	// register for the event
-        int callbackId = this.processError(libvirt.virConnectDomainEventRegisterAny(VCP, domain == null ? null : domain.VDP, handler.getEventId().id, handler.adapt(this, domain), null, null));
-        // store the handler so we can clean up later
-        this.registeredEventHandlers.put(callbackId, handler);
-        handler.registered(this, callbackId);
-        return handler;
-    }
-    
-    /**
-     * Register to receive events, invoking the given handler when they occur
-     * @param handler the handler for the event
-     * @return the given event handler
-     * @throws LibvirtException if for some reason the event handler could not be registered
-     */
-    public <T extends DomainEventHandler> T domainEventRegister(T handler)  throws LibvirtException {
-	return this.domainEventRegister(null, handler);
-    }
-    
-    /**
-     * Register to receive domain lifecycle events, eg: Started, Stopped, Defined, Undefined
-     * @param handler the handler which will receive the events
-     * @return the handler
-     * @throws LibvirtException if for some reason the event handler could not be registered
-     */
-    public DomainLifecycleEventHandler domainLifecycleEventRegister(DomainLifecycleEventHandler handler) throws LibvirtException {
-	return this.domainEventRegister(handler);
-    }
-    
-    /**
-     * Register to receive domain reboot events
-     * @param handler the handler which will receive the events
-     * @return the handler
-     * @throws LibvirtException if for some reason the event handler could not be registered
-     */
-    public DomainRebootEventHandler domainRebootEventRegister(DomainRebootEventHandler handler) throws LibvirtException {
-	return this.domainEventRegister(handler);
-    }
-    
-    /**
-     * Register to receive domain RTC Change events
-     * @param handler the handler which will receive the events
-     * @return the handler
-     * @throws LibvirtException if for some reason the event handler could not be registered
-     */
-    public DomainRTCChangeEventHandler domainRTCChangeEventRegister(DomainRTCChangeEventHandler handler) throws LibvirtException {
-	return this.domainEventRegister(handler);
-    }
-    
-    /**
-     * Set the uncaught error handler to handle error which are thrown by event handlers.
-     * 
-     * @param errorHandler the error handler to use, must not be null
-     */
-    public void setDomainEventUncaughtErrorHandler(DomainEventUncaughtErrorHandler errorHandler)
+
+    private void domainEventRegister(Domain domain, int eventID, Libvirt.VirDomainEventCallback cb, EventListener l)
+        throws LibvirtException
     {
-	if (errorHandler == null) throw new IllegalArgumentException("Cannot set the error handler to null");
-	this.eventUncaughtErrorHandler = errorHandler;
+        Map<EventListener, RegisteredEventListener> handlers = eventListeners[eventID];
+
+        if (handlers == null) {
+            handlers = new IdentityHashMap<EventListener, RegisteredEventListener>();
+            eventListeners[eventID] = handlers;
+        } else if (handlers.containsKey(l)) {
+            return;
+        }
+
+        DomainPointer ptr = domain == null ? null : domain.VDP;
+        int ret = processError(libvirt.virConnectDomainEventRegisterAny(VCP, ptr, eventID, cb, null, null));
+        // track the handler,
+        // Note: it is important that the callback does not get GCed
+        handlers.put(l, new RegisteredEventListener(cb, ret));
     }
-    
-    void processDomainEventUncaughtErrorHandler(Throwable t)
+
+    void domainEventRegister(Domain domain, final IOErrorListener cb) throws LibvirtException {
+        if (cb == null)
+            throw new IllegalArgumentException("IOError callback cannot be null");
+
+        Libvirt.VirConnectDomainEventIOErrorCallback virCB = new Libvirt.VirConnectDomainEventIOErrorCallback() {
+                @Override
+                public void eventCallback(ConnectionPointer virConnectPtr, DomainPointer virDomainPointer,
+                                          String srcPath,
+                                          String devAlias,
+                                          int action,
+                                          Pointer opaque) {
+                    assert VCP.equals(virConnectPtr);
+
+                    try {
+                        Domain d = Domain.constructIncRef(Connect.this, virDomainPointer);
+                        cb.onIOError(d,
+                                     srcPath,
+                                     devAlias,
+                                     getConstant(IOErrorAction.class, action));
+                    } catch (LibvirtException e) {
+                        throw new RuntimeException("libvirt error in IOError callback", e);
+                    }
+                }
+            };
+
+        domainEventRegister(domain, DomainEventID.IO_ERROR, virCB, cb);
+    }
+
+    /**
+     * Adds the specified I/O error listener to receive I/O error events
+     * for domains of this connection.
+     *
+     * @see <a
+     *      href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventRegisterAny">Libvirt
+     *      Documentation</a>
+     * @param l
+     *            the I/O error listener
+     * @throws LibvirtException on failure
+     */
+    public void addIOErrorListener(final IOErrorListener l) throws LibvirtException {
+        domainEventRegister(null, l);
+    }
+
+    void domainEventRegister(Domain domain, final RebootListener cb) throws LibvirtException {
+        if (cb == null)
+            throw new IllegalArgumentException("RebootCallback cannot be null");
+
+        Libvirt.VirConnectDomainEventGenericCallback virCB = new Libvirt.VirConnectDomainEventGenericCallback() {
+                @Override
+                public void eventCallback(ConnectionPointer virConnectPtr,
+                                          DomainPointer virDomainPointer,
+                                          Pointer opaque) {
+                    assert VCP.equals(virConnectPtr);
+
+                    try {
+                        Domain d = Domain.constructIncRef(Connect.this, virDomainPointer);
+                        cb.onReboot(d);
+                    } catch (LibvirtException e) {
+                        throw new RuntimeException("libvirt error in reboot callback", e);
+                    }
+                }
+            };
+
+        domainEventRegister(domain, DomainEventID.REBOOT, virCB, cb);
+    }
+
+    void domainEventRegister(Domain domain, final LifecycleListener cb) throws LibvirtException {
+        if (cb == null)
+            throw new IllegalArgumentException("LifecycleCallback cannot be null");
+
+        Libvirt.VirConnectDomainEventCallback virCB = new Libvirt.VirConnectDomainEventCallback() {
+                @Override
+                public int eventCallback(ConnectionPointer virConnectPtr, DomainPointer virDomainPointer,
+                                         final int eventCode,
+                                         final int detailCode,
+                                         Pointer opaque) {
+                    try
+                    {
+                    assert VCP.equals(virConnectPtr);
+
+                    try {
+                        Domain dom = Domain.constructIncRef(Connect.this, virDomainPointer);
+                        DomainEventType type = getConstant(DomainEventType.class, eventCode);
+                        DomainEvent event = new DomainEvent(type, detailCode);
+
+                        cb.onLifecycleChange(dom, event);
+                    } catch (LibvirtException e) {
+                        throw new RuntimeException("libvirt error in lifecycle callback", e);
+                    }
+
+                    // always return 0, regardless of what the
+                    // callback method returned. This may need to be
+                    // changed in the future, in case the return value
+                    // is used for something by libvirt.
+                    }
+                    catch (Throwable t)
+                    {
+                        t.printStackTrace();
+                    }
+                    return 0;
+                }
+                
+                public void finalize()
+                {
+                    System.out.println("Callback has been GCed!");
+                }
+            };
+
+        domainEventRegister(domain, DomainEventID.LIFECYCLE, virCB, cb);
+    }
+
+    /**
+     * Adds the specified listener to receive lifecycle events for
+     * domains of this connections.
+     *
+     * @param  l  the lifecycle listener
+     * @throws    LibvirtException on failure
+     *
+     * @see #removeLifecycleListener
+     * @see Domain#addLifecycleListener
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventRegisterAny";
+     *      >virConnectDomainEventRegisterAny</a>
+     */
+    public void addLifecycleListener(final LifecycleListener l) throws LibvirtException
     {
-	this.eventUncaughtErrorHandler.uncaughtError(t);
+        domainEventRegister(null, l);
+    }
+
+    void domainEventRegister(Domain domain, final PMWakeupListener cb) throws LibvirtException {
+        if (cb == null)
+            throw new IllegalArgumentException("PMWakeupCallback cannot be null");
+
+        Libvirt.VirDomainEventCallback virCB =
+            new Libvirt.VirConnectDomainEventPMChangeCallback() {
+                @Override
+                public void eventCallback(ConnectionPointer virConnectPtr, DomainPointer virDomainPointer,
+                                          int reason, Pointer opaque) {
+                    assert VCP.equals(virConnectPtr);
+
+                    try {
+                        Domain d = Domain.constructIncRef(Connect.this, virDomainPointer);
+                        cb.onPMWakeup(d, getConstant(PMWakeupReason.class, reason));
+                    } catch (LibvirtException e) {
+                        throw new RuntimeException("libvirt error handling PMWakeup callback", e);
+                    }
+                }
+            };
+
+        domainEventRegister(domain, DomainEventID.PMWAKEUP, virCB, cb);
+    }
+
+    void domainEventRegister(Domain domain, final PMSuspendListener cb) throws LibvirtException {
+        if (cb == null)
+            throw new IllegalArgumentException("PMSuspendCallback cannot be null");
+
+        Libvirt.VirDomainEventCallback virCB =
+            new Libvirt.VirConnectDomainEventPMChangeCallback() {
+                @Override
+                public void eventCallback(ConnectionPointer virConnectPtr, DomainPointer virDomainPointer,
+                                          int reason, Pointer opaque) {
+                    assert VCP.equals(virConnectPtr);
+
+                    try {
+                        Domain d = Domain.constructIncRef(Connect.this, virDomainPointer);
+                        cb.onPMSuspend(d, getConstant(PMSuspendReason.class, reason));
+                    } catch (LibvirtException e) {
+                        throw new RuntimeException("libvirt error in PMSuspend callback", e);
+                    }
+                }
+            };
+
+        domainEventRegister(domain, DomainEventID.PMSUSPEND, virCB, cb);
+    }
+
+    /**
+     * Adds the specified listener to receive PMSuspend events for
+     * domains of this connection.
+     *
+     * @param  l   the PMSuspend listener
+     * @throws     LibvirtException on failure
+     *
+     * @see #removePMSuspendListener
+     * @see Domain#addPMSuspendListener
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventRegisterAny";
+     *      >virConnectDomainEventRegisterAny</a>
+     *
+     * @since 1.5.2
+     */
+    public void addPMSuspendListener(final PMSuspendListener l) throws LibvirtException {
+        domainEventRegister(null, l);
+    }
+
+    /**
+     * Removes the specified PMSuspend listener so that it no longer
+     * receives PMSuspend events.
+     *
+     * @param l    the PMSuspend listener
+     * @throws     LibvirtException
+     *
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventDeregisterAny";
+     *      >virConnectDomainEventDeregisterAny</a>
+     *
+     * @since 1.5.2
+     */
+    public void removePMSuspendListener(final PMSuspendListener l) throws LibvirtException {
+        domainEventDeregister(DomainEventID.PMWAKEUP, l);
+    }
+
+    /**
+     * Adds the specified listener to receive PMWakeup events for
+     * domains of this connection.
+     *
+     * @param  l   the PMWakeup listener
+     * @throws     LibvirtException on failure
+     *
+     * @see #removePMWakeupListener
+     * @see Domain#addPMWakeupListener
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventRegisterAny";
+     *      >virConnectDomainEventRegisterAny</a>
+     *
+     * @since 1.5.2
+     */
+    public void addPMWakeupListener(final PMWakeupListener l) throws LibvirtException {
+        domainEventRegister(null, l);
+    }
+
+    /**
+     * Removes the specified PMWakeup listener so that it no longer
+     * receives PMWakeup events.
+     *
+     * @param l    the PMWakeup listener
+     * @throws     LibvirtException
+     *
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventDeregisterAny";
+     *      >virConnectDomainEventDeregisterAny</a>
+     */
+    public void removePMWakeupListener(final PMWakeupListener l) throws LibvirtException {
+        domainEventDeregister(DomainEventID.PMWAKEUP, l);
+    }
+
+    /**
+     * Removes the specified I/O error listener so that it no longer
+     * receives I/O error events.
+     *
+     * @param l    the I/O error listener
+     * @throws     LibvirtException
+     *
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventDeregisterAny";
+     *      >virConnectDomainEventDeregisterAny</a>
+     */
+    public void removeLifecycleListener(LifecycleListener l) throws LibvirtException {
+        domainEventDeregister(DomainEventID.LIFECYCLE, l);
+    }
+
+    /**
+     * Adds the specified reboot listener to receive reboot events for
+     * domains of this connection.
+     *
+     * @param l   the reboot listener
+     * @throws    LibvirtException on failure
+     *
+     * @see Domain#addRebootListener
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventRegisterAny";
+     *      >virConnectDomainEventRegisterAny</a>
+     * @since 1.5.2
+     */
+    public void addRebootListener(final RebootListener l) throws LibvirtException {
+        domainEventRegister(null, l);
+    }
+
+    /**
+     * Removes the specified I/O error listener so that it no longer
+     * receives I/O error events.
+     *
+     * @param l    the I/O error listener
+     * @throws     LibvirtException
+     *
+     * @see <a
+     *       href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectDomainEventDeregisterAny";
+     *      >virConnectDomainEventDeregisterAny</a>
+     */
+    public void removeIOErrorListener(IOErrorListener l) throws LibvirtException {
+        domainEventDeregister(DomainEventID.IO_ERROR, l);
     }
 
     /**
@@ -573,10 +1022,7 @@ public class Connect {
      * Returns the free memory for the connection
      */
     public long getFreeMemory() throws LibvirtException {
-        long returnValue = 0;
-        returnValue = libvirt.virNodeGetFreeMemory(VCP);
-        if (returnValue == 0) processError();
-        return returnValue;
+        return processErrorIfZero(libvirt.virNodeGetFreeMemory(VCP));
     }
 
     /**
@@ -598,13 +1044,18 @@ public class Connect {
 
     /**
      * Returns the version of the hypervisor against which the library was
-     * compiled. The type parameter specified which hypervisor's version is
-     * returned
+     * compiled.
      *
-     * @param type
+     * Since libvirt 0.9.3 this simply returns the same version number
+     * as { link Library#getVersion}.
+     * @param type The type of connection/driver to look at. See
+     *             { link #getType()}. May be { code null}.
      * @return major * 1,000,000 + minor * 1,000 + release
      * @throws LibvirtException
+     * @deprecated To get the version of the running hypervisor use
+     *             { link #getVersion()} instead.
      */
+    @Deprecated
     public long getHypervisorVersion(String type) throws LibvirtException {
         LongByReference libVer = new LongByReference();
         LongByReference typeVer = new LongByReference();
@@ -618,11 +1069,12 @@ public class Connect {
      *
      * @return major * 1,000,000 + minor * 1,000 + release
      * @throws LibvirtException
+     * @deprecated use { link Library#getVersion} instead
      */
+    @Deprecated
     public long getLibVirVersion() throws LibvirtException {
         LongByReference libVer = new LongByReference();
-        LongByReference typeVer = new LongByReference();
-        processError(libvirt.virGetVersion(libVer, null, typeVer));
+        processError(libvirt.virGetVersion(libVer, null, null));
         return libVer.getValue();
     }
 
@@ -637,6 +1089,27 @@ public class Connect {
      */
     public int getMaxVcpus(String type) throws LibvirtException {
         return processError(libvirt.virConnectGetMaxVcpus(VCP, type));
+    }
+
+    /**
+     * Returns the XML description of the sysinfo details for the host
+     * on which the hypervisor is running.
+     * <p>
+     * This information is generally available only for hypervisors
+     * running with root privileges.
+     *
+     * @return sysinfo details in the same format as the { code
+     *         <sysinfo>} element of a domain XML.
+     * @since 1.5.2
+     */
+    public String getSysinfo() throws LibvirtException {
+        Pointer p = processError(libvirt.virConnectGetSysinfo(this.VCP, 0));
+
+        try {
+            return Library.getString(p);
+        } finally {
+            Library.free(p);
+        }
     }
 
     /**
@@ -716,13 +1189,11 @@ public class Connect {
      * @see <a
      *      href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectIsEncrypted">Libvirt
      *      Documentation</a>
-     * @return 1 if encrypted, 0 if not encrypted, -1 on error
+     * @return 1 if encrypted, 0 if not encrypted
      * @throws LibvirtException
      */
     public int isEncrypted() throws LibvirtException {
-        int returnValue = libvirt.virConnectIsEncrypted(VCP);
-        processError();
-        return returnValue;
+        return processError(libvirt.virConnectIsEncrypted(VCP));
     }
 
     /**
@@ -731,13 +1202,11 @@ public class Connect {
      * @see <a
      *      href="http://www.libvirt.org/html/libvirt-libvirt.html#virConnectIsSecure">Libvirt
      *      Documentation</a>
-     * @return 1 if secure, 0 if not secure, -1 on error
+     * @return 1 if secure, 0 if not secure
      * @throws LibvirtException
      */
     public int isSecure() throws LibvirtException {
-        int returnValue = libvirt.virConnectIsSecure(VCP);
-        processError();
-        return returnValue;
+        return processError(libvirt.virConnectIsSecure(VCP));
     }
 
     /**
@@ -1218,41 +1687,6 @@ public class Connect {
     }
 
     /**
-     * call the error handling logic. Should be called after every libvirt call
-     *
-     * @throws LibvirtException
-     */
-    protected void processError() throws LibvirtException {
-        ErrorHandler.processError(libvirt);
-    }
-
-    /**
-     * Calls {@link #processError()} when the given libvirt return code
-     * indicates an error.
-     *
-     * @param  ret libvirt return code, indicating error if negative.
-     * @return {@code ret}
-     * @throws LibvirtException
-     */
-    protected final int processError(int ret) throws LibvirtException {
-        if (ret < 0) processError();
-        return ret;
-    }
-
-    /**
-     * Calls {@link #processError()} if {@code arg} is null.
-     *
-     * @param  arg  An arbitrary object returned by libvirt.
-     * @return {@code arg}
-     * @throws LibvirtException
-     */
-    protected final <T> T processError(T arg) throws LibvirtException {
-        if (arg == null) processError();
-        return arg;
-    }
-
-
-    /**
      * Restores a domain saved to disk by Domain.save().
      *
      * @param from
@@ -1323,7 +1757,6 @@ public class Connect {
 
     public void setConnectionErrorCallback(Libvirt.VirErrorCallback callback) throws LibvirtException {
         libvirt.virConnSetErrorFunc(VCP, null, callback);
-        processError();
     }
 
     /**
@@ -1471,5 +1904,51 @@ public class Connect {
      */
     public boolean isConnected() throws LibvirtException {
         return ( ( VCP != null ) ? true : false );
+    }
+
+    /**
+     * Determine if the connection to the hypervisor is still alive.
+     * <p>
+     * A connection will be classed as alive if it is either local,
+     * or running over a channel (TCP or UNIX socket) which is not closed.
+     *
+     * @return { code true} if alive, { code false} otherwise.
+     */
+    public boolean isAlive() throws LibvirtException {
+        return (1 == processError(libvirt.virConnectIsAlive(VCP)));
+    }
+
+    /**
+     * Start sending keepalive messages.
+     *
+     * After { code interval} seconds of inactivity, consider the
+     * connection to be broken when no response is received after
+     * { code count} keepalive messages sent in a row.
+     * <p>
+     * In other words, sending { code count + 1} keepalive message
+     * results in closing the connection.
+     * <p>
+     * When interval is <= 0, no keepalive messages will be sent.
+     * <p>
+     * When count is 0, the connection will be automatically closed after
+     * interval seconds of inactivity without sending any keepalive
+     * messages.
+     * <p>
+     * <em>Note</em>: client has to implement and run event loop to be
+     * able to use keepalive messages. Failure to do so may result in
+     * connections being closed unexpectedly.
+     * <p>
+     * <em>Note</em>: This API function controls only keepalive messages sent by
+     * the client. If the server is configured to use keepalive you still
+     * need to run the event loop to respond to them, even if you disable
+     * keepalives by this function.
+     *
+     * @param interval  number of seconds of inactivity before a keepalive
+     *                  message is sent
+     * @param count     number of messages that can be sent in a row
+     * @return { code true} when successful, { code false} otherwise.
+     */
+    public boolean setKeepAlive(int interval, int count) throws LibvirtException {
+        return (0 == processError(libvirt.virConnectSetKeepAlive(VCP, interval, count)));
     }
 }

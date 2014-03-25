@@ -2,6 +2,11 @@ package org.libvirt;
 
 import org.libvirt.jna.DevicePointer;
 import static org.libvirt.Library.libvirt;
+import static org.libvirt.ErrorHandler.processError;
+
+import com.sun.jna.Pointer;
+
+import com.sun.jna.Pointer;
 
 /**
  * A device which is attached to a node
@@ -41,8 +46,7 @@ public class Device {
     public int destroy() throws LibvirtException {
         int success = 0;
         if (VDP != null) {
-            success = libvirt.virNodeDeviceDestroy(VDP);
-            processError();
+            success = processError(libvirt.virNodeDeviceDestroy(VDP));
             VDP = null;
         }
 
@@ -56,9 +60,7 @@ public class Device {
      * @throws LibvirtException
      */
     public int detach() throws LibvirtException {
-        int num = libvirt.virNodeDeviceDettach(VDP);
-        processError();
-        return num;
+        return processError(libvirt.virNodeDeviceDettach(VDP));
     }
 
     @Override
@@ -76,8 +78,7 @@ public class Device {
     public int free() throws LibvirtException {
         int success = 0;
         if (VDP != null) {
-            success = libvirt.virNodeDeviceFree(VDP);
-            processError();
+            success = processError(libvirt.virNodeDeviceFree(VDP));
             VDP = null;
         }
 
@@ -90,9 +91,7 @@ public class Device {
      * @throws LibvirtException
      */
     public String getName() throws LibvirtException {
-        String name = libvirt.virNodeDeviceGetName(VDP);
-        processError();
-        return name;
+        return processError(libvirt.virNodeDeviceGetName(VDP));
     }
 
     /**
@@ -101,9 +100,7 @@ public class Device {
      * @throws LibvirtException
      */
     public int getNumberOfCapabilities() throws LibvirtException {
-        int num = libvirt.virNodeDeviceNumOfCaps(VDP);
-        processError();
-        return num;
+        return processError(libvirt.virNodeDeviceNumOfCaps(VDP));
     }
 
     /**
@@ -112,9 +109,7 @@ public class Device {
      * @throws LibvirtException
      */
     public String getParent() throws LibvirtException {
-        String parent = libvirt.virNodeDeviceGetParent(VDP);
-        processError();
-        return parent;
+        return processError(libvirt.virNodeDeviceGetParent(VDP));
     }
 
     /**
@@ -123,9 +118,7 @@ public class Device {
      * @throws LibvirtException
      */
     public String getXMLDescription() throws LibvirtException {
-        String desc = libvirt.virNodeDeviceGetXMLDesc(VDP);
-        processError();
-        return desc;
+        return processError(libvirt.virNodeDeviceGetXMLDesc(VDP));
     }
 
     /**
@@ -135,21 +128,15 @@ public class Device {
      */
     public String[] listCapabilities() throws LibvirtException {
         int maxCaps = getNumberOfCapabilities();
-        String[] names = new String[maxCaps];
 
         if (maxCaps > 0) {
-            libvirt.virNodeDeviceListCaps(VDP, names, maxCaps);
-            processError();
-        }
-        return names;
-    }
+            Pointer[] ptrs = new Pointer[maxCaps];
+            int got = processError(libvirt.virNodeDeviceListCaps(VDP, ptrs, maxCaps));
 
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
+            return Library.toStringArray(ptrs, got);
+        } else {
+            return Library.NO_STRINGS;
+        }
     }
 
     /**
@@ -158,9 +145,7 @@ public class Device {
      * @throws LibvirtException
      */
     public int reAttach() throws LibvirtException {
-        int num = libvirt.virNodeDeviceReAttach(VDP);
-        processError();
-        return num;
+        return processError(libvirt.virNodeDeviceReAttach(VDP));
     }
 
     /**
@@ -170,8 +155,6 @@ public class Device {
      * @throws LibvirtException
      */
     public int reset() throws LibvirtException {
-        int num = libvirt.virNodeDeviceReset(VDP);
-        processError();
-        return num;
+        return processError(libvirt.virNodeDeviceReset(VDP));
     }
 }

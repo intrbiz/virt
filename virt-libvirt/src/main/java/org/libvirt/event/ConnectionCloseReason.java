@@ -1,0 +1,8 @@
+package org.libvirt.event;
+
+public enum ConnectionCloseReason {
+    VIR_CONNECT_CLOSE_REASON_ERROR,
+    VIR_CONNECT_CLOSE_REASON_EOF,
+    VIR_CONNECT_CLOSE_REASON_KEEPALIVE,
+    VIR_CONNECT_CLOSE_REASON_CLIENT;
+}
