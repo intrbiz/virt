@@ -20,6 +20,8 @@ import org.libvirt.LibvirtException;
 import org.libvirt.NodeInfo;
 import org.libvirt.StoragePool;
 import org.libvirt.StorageVol;
+import org.libvirt.event.ConnectionCloseListener;
+import org.libvirt.event.ConnectionCloseReason;
 
 import com.intrbiz.data.DataAdapter;
 import com.intrbiz.data.DataException;
@@ -175,7 +177,7 @@ public class LibVirtAdapter implements DataAdapter
         }
     }
 
-    // private Logger logger = Logger.getLogger(LibvirtAdapter.class);
+    private Logger logger = Logger.getLogger(LibVirtAdapter.class);
 
     private Connect connection;
 
@@ -192,6 +194,8 @@ public class LibVirtAdapter implements DataAdapter
     private ConcurrentMap<Integer, LibVirtCleanupWrapper> wrappersToCleanUp = new ConcurrentHashMap<Integer, LibVirtCleanupWrapper>();
 
     //
+    
+    private List<CloseListener> closeListeners = new LinkedList<CloseListener>();
 
     protected LibVirtAdapter(String url) throws DataException
     {
@@ -199,7 +203,24 @@ public class LibVirtAdapter implements DataAdapter
         try
         {
             this.connection = new Connect(url);
+            // setup keep alive
             this.connection.setKeepAlive(5, 3);
+            // setup close listener
+            this.connection.registerCloseListener(new ConnectionCloseListener()
+            {
+                @Override
+                public void onClose(Connect connection, ConnectionCloseReason reason)
+                {
+                    logger.trace("Libvirt connection closed, reason: " + reason);
+                    synchronized (closeListeners)
+                    {
+                        for (CloseListener listener : closeListeners)
+                        {
+                            listener.onClose(LibVirtAdapter.this);
+                        }
+                    }
+                }
+            });
         }
         catch (LibvirtException e)
         {
@@ -627,6 +648,22 @@ public class LibVirtAdapter implements DataAdapter
         catch (LibvirtException e)
         {
             throw new DataException("Failed to register for event", e);
+        }
+    }
+    
+    public void addCloseListener(CloseListener listener)
+    {
+        synchronized (this.closeListeners)
+        {
+            this.closeListeners.add(listener);
+        }
+    }
+    
+    public void removeCloseListener(CloseListener listener)
+    {
+        synchronized (this.closeListeners)
+        {
+            this.closeListeners.remove(listener);
         }
     }
 
