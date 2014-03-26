@@ -245,6 +245,22 @@ public class LibVirtAdapter implements DataAdapter
         }
         return false;
     }
+    
+    /**
+     * Is this adapter still alive
+     */
+    public boolean isAlive()
+    {
+        this.checkOpen();
+        try
+        {
+            return this.connection != null && this.connection.isAlive();
+        }
+        catch (LibvirtException e)
+        {
+        }
+        return false;
+    }
 
     /**
      * Get the connection URL
