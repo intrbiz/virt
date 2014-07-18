@@ -18,7 +18,7 @@ import com.intrbiz.virt.dash.App;
 import com.intrbiz.virt.dash.cfg.VirtDashUser;
 
 @Prefix("/")
-public class LoginRouter extends Router
+public class LoginRouter extends Router<App>
 {
     @Get("/login")
     public void login(@Param("redirect") String redirect)

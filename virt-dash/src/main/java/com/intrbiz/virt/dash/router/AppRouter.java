@@ -17,8 +17,8 @@ import com.intrbiz.virt.dash.App;
 import com.intrbiz.virt.dash.cfg.VirtGuestImage;
 import com.intrbiz.virt.dash.image.VirtGuestImager;
 import com.intrbiz.virt.dash.model.VirtGuest;
-import com.intrbiz.virt.dash.model.VirtGuest.GuestState;
 import com.intrbiz.virt.dash.model.VirtHost;
+import com.intrbiz.virt.dash.model.VirtGuest.GuestState;
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.model.definition.GraphicsDef;
 import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
@@ -27,7 +27,7 @@ import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
 @Prefix("/")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class AppRouter extends Router
+public class AppRouter extends Router<App>
 {
     @Any("/")
     public void index()
@@ -62,9 +62,9 @@ public class AppRouter extends Router
             LibVirtDomain dom = lv.lookupDomainByName(guest);
             if (dom != null)
             {
-                dom.start();
                 virtGuest.setState(GuestState.STARTING);
-                // vnc
+                dom.start();
+                // TODO
                 for (GraphicsDef gfx : dom.getDomainDef().getDevices().getGraphics())
                 {
                     if ("vnc".equals(gfx.getType()))
@@ -72,7 +72,7 @@ public class AppRouter extends Router
                         virtGuest.setVncPort(gfx.getPort());
                     }
                 }
-                ((App) this.app()).writeWebsockifyConfig();
+                this.app().writeWebsockifyConfig();
             }
         }
         //
@@ -92,10 +92,11 @@ public class AppRouter extends Router
             LibVirtDomain dom = lv.lookupDomainByName(guest);
             if (dom != null)
             {
-                dom.powerOff();
                 virtGuest.setState(GuestState.STOPPING);
+                dom.powerOff();
+                // TODO
                 virtGuest.setVncPort(-1);
-                ((App) this.app()).writeWebsockifyConfig();
+                this.app().writeWebsockifyConfig();
             }
         }
         //
@@ -115,10 +116,11 @@ public class AppRouter extends Router
             LibVirtDomain dom = lv.lookupDomainByName(guest);
             if (dom != null)
             {
+                virtGuest.setState(GuestState.STOPPING);
                 dom.terminate();
-                virtGuest.setState(GuestState.DEFINED);
+                // TODO
                 virtGuest.setVncPort(-1);
-                ((App) this.app()).writeWebsockifyConfig();
+                this.app().writeWebsockifyConfig();
             }
         }
         //
@@ -140,7 +142,7 @@ public class AppRouter extends Router
             {
                 dom.remove();
                 virtHost.removeGuest(virtGuest.getName());
-                ((App) this.app()).writeWebsockifyConfig();
+                this.app().writeWebsockifyConfig();
             }
         }
         //
@@ -183,8 +185,6 @@ public class AppRouter extends Router
         imager.setStoragePool(UUID.fromString(pool));
         // image
         imager.image();
-        // force a poll of the host
-        ((App) this.app()).getPoller().pollHost(virtHost);
         // redirect to the host
         redirect(path("/host/" + virtHost.getName()));
     }

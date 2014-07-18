@@ -17,7 +17,6 @@ import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 import com.intrbiz.virt.dash.cfg.VirtHostCfg;
 import com.intrbiz.virt.dash.model.VirtGuest;
 import com.intrbiz.virt.dash.model.VirtHost;
-import com.intrbiz.virt.dash.poller.LibVirtPoller;
 import com.intrbiz.virt.dash.router.AppRouter;
 import com.intrbiz.virt.dash.router.LoginRouter;
 import com.intrbiz.virt.dash.security.VirtDashSecurityEngine;
@@ -29,8 +28,6 @@ public class App extends BalsaApplication
     private VirtDashCfg config;
     
     private ConcurrentMap<String, VirtHost> hosts = new ConcurrentHashMap<String, VirtHost>();
-    
-    private LibVirtPoller poller;
     
     @Override
     protected void setup() throws Exception
@@ -46,10 +43,11 @@ public class App extends BalsaApplication
             host.getImages().addAll(hostCfg.getGuestImages());
             this.addHost(host);
         }
-        // start the poller
-        this.poller = new LibVirtPoller(this);
-        this.poller.setSleepTime(this.config.getPollPeriod() * 1000);
-        this.poller.start();
+        // connect the hosts
+        for (VirtHost host : this.getHosts())
+        {
+            host.connect();
+        }
         // security engine
         securityEngine(new VirtDashSecurityEngine());
         // Setup the application routers
@@ -94,11 +92,6 @@ public class App extends BalsaApplication
     public void addHost(VirtHost host)
     {
         this.hosts.put(host.getName(), host);
-    }
-    
-    public LibVirtPoller getPoller()
-    {
-        return this.poller;
     }
     
     //

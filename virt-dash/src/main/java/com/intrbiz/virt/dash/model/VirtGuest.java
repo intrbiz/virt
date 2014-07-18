@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
+import com.intrbiz.virt.libvirt.model.wrapper.LibVirtDomain;
 
 public class VirtGuest implements Comparable<VirtGuest>
 {
@@ -30,6 +31,8 @@ public class VirtGuest implements Comparable<VirtGuest>
     private List<VirtGuestDisk> disks = new LinkedList<VirtGuestDisk>();
     
     private List<VirtGuestInterface> interfaces = new LinkedList<VirtGuestInterface>();
+    
+    private LibVirtDomain domain;
 
     public VirtGuest()
     {
@@ -142,6 +145,16 @@ public class VirtGuest implements Comparable<VirtGuest>
     public boolean isDefined()
     {
         return this.state == GuestState.DEFINED;
+    }
+
+    public LibVirtDomain getDomain()
+    {
+        return domain;
+    }
+
+    public void setDomain(LibVirtDomain domain)
+    {
+        this.domain = domain;
     }
 
     @Override
