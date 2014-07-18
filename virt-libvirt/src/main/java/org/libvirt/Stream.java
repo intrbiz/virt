@@ -53,6 +53,8 @@ public class Stream implements ByteChannel {
      * The Connect Object that represents the Hypervisor of this Domain
      */
     private Connect virConnect;
+    
+    private Libvirt.VirStreamEventCallback callback;
 
     private final static int CLOSED   =  0;
     private final static int READABLE =  1;
@@ -75,16 +77,12 @@ public class Stream implements ByteChannel {
     private int state = CLOSED;
 
     void markReadable() {
-        assert !isWritable()
-            : "A Stream cannot be readable and writable at the same time";
-
+        //assert !isWritable() : "A Stream cannot be readable and writable at the same time";
         state |= READABLE;
     }
 
     void markWritable() {
-        assert !isReadable()
-            : "A Stream cannot be readable and writable at the same time";
-
+        //assert !isReadable() : "A Stream cannot be readable and writable at the same time";
         state |= WRITABLE;
     }
 
@@ -136,6 +134,7 @@ public class Stream implements ByteChannel {
      * @throws LibvirtException
      */
     public int addCallback(int events, Libvirt.VirStreamEventCallback cb) throws LibvirtException {
+        this.callback = cb;
         return processError(libvirt.virStreamEventAddCallback(VSP, events, cb, null, null));
     }
 

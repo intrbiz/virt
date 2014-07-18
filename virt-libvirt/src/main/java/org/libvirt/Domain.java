@@ -1,13 +1,23 @@
 package org.libvirt;
 
+import static org.libvirt.ErrorHandler.*;
+import static org.libvirt.Library.*;
+
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.libvirt.event.IOErrorListener;
+import org.libvirt.event.LifecycleListener;
+import org.libvirt.event.PMSuspendListener;
+import org.libvirt.event.PMWakeupListener;
+import org.libvirt.event.RebootListener;
 import org.libvirt.jna.DomainPointer;
 import org.libvirt.jna.DomainSnapshotPointer;
 import org.libvirt.jna.Libvirt;
+import org.libvirt.jna.Libvirt.VirStreamEventCallback;
 import org.libvirt.jna.SizeT;
+import org.libvirt.jna.StreamPointer;
 import org.libvirt.jna.virDomainBlockInfo;
 import org.libvirt.jna.virDomainBlockStats;
 import org.libvirt.jna.virDomainInfo;
@@ -16,20 +26,11 @@ import org.libvirt.jna.virDomainJobInfo;
 import org.libvirt.jna.virDomainMemoryStats;
 import org.libvirt.jna.virSchedParameter;
 import org.libvirt.jna.virVcpuInfo;
-import org.libvirt.event.RebootListener;
-import org.libvirt.event.LifecycleListener;
-import org.libvirt.event.PMWakeupListener;
-import org.libvirt.event.PMSuspendListener;
-import static org.libvirt.Library.libvirt;
-import static org.libvirt.ErrorHandler.processError;
-import static org.libvirt.ErrorHandler.processErrorIfZero;
 
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
-
-import java.util.Arrays;
 
 /**
  * A virtual machine defined within libvirt.
@@ -1551,4 +1552,17 @@ public class Domain {
         return processError(libvirt.virDomainUpdateDeviceFlags(VDP, xml, flags));
     }
 
+    public Stream openConsole() throws LibvirtException
+    {
+        return this.openConsole(null);
+    }
+    
+    public Stream openConsole(String devName) throws LibvirtException
+    {
+        final Stream stream = this.virConnect.streamNew(0 /*Stream.VIR_STREAM_NONBLOCK*/);
+        stream.markReadable();
+        stream.markWritable();
+        processError(libvirt.virDomainOpenConsole(this.VDP, devName, stream.getVSP(), 2));
+        return stream;
+    }
 }

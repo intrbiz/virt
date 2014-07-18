@@ -471,4 +471,6 @@ public interface Libvirt extends Library {
     // Event functions
     int virEventAddTimeout(int milliSeconds, VirEventTimeoutCallback cb, Pointer opaque, Pointer ff);
     int virEventRemoveTimeout(int timer);
+    
+    int virDomainOpenConsole(DomainPointer domain, String devName, StreamPointer stream, int flags);
 }
