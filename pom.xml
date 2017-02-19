@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.intrbiz.virt</groupId>
@@ -53,8 +54,8 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-			                <additionalparam>-Xdoclint:none</additionalparam>
-			            </configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -62,8 +63,8 @@
 	</build>
 	<modules>
 		<module>virt-libvirt</module>
-    <module>virt-dash</module>
-  </modules>
+		<module>virt-dash</module>
+	</modules>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -93,4 +94,46 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+	<repositories>
+		<repository>
+			<id>snapshots</id>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>snapshots</id>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+		</repository>
+	</distributionManagement>
 </project>
