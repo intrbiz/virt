@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.xml.bind.JAXBException;
 
 import com.intrbiz.balsa.BalsaApplication;
+import com.intrbiz.configuration.Configurable;
 import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 import com.intrbiz.virt.dash.cfg.VirtHostCfg;
 import com.intrbiz.virt.dash.model.VirtGuest;
@@ -21,21 +22,20 @@ import com.intrbiz.virt.dash.router.AppRouter;
 import com.intrbiz.virt.dash.router.LoginRouter;
 import com.intrbiz.virt.dash.security.VirtDashSecurityEngine;
 
-public class App extends BalsaApplication
+public class App extends BalsaApplication implements Configurable<VirtDashCfg>
 {
-    private File configFile;
-    
     private VirtDashCfg config;
-    
+
     private ConcurrentMap<String, VirtHost> hosts = new ConcurrentHashMap<String, VirtHost>();
     
-    @Override
-    protected void setup() throws Exception
+    public App()
     {
-        this.configFile = new File(System.getProperty("virt-dash.config", "/etc/virt-dash/virt-dash.xml"));
-        if (! this.configFile.exists()) VirtDashCfg.write(this.configFile, VirtDashCfg.defaults());
-        // load the application configuation
-        this.config = VirtDashCfg.read(this.configFile);
+        super();
+    }
+    
+    public void configure(VirtDashCfg config) throws Exception
+    {
+        this.config = config;
         // load the config
         for (VirtHostCfg hostCfg : this.config.getHosts())
         {
@@ -43,26 +43,51 @@ public class App extends BalsaApplication
             host.getImages().addAll(hostCfg.getGuestImages());
             this.addHost(host);
         }
+    }
+    
+    public VirtDashCfg getConfiguration()
+    {
+        return this.config;
+    }
+
+    @Override
+    protected void setupEngines() throws Exception
+    {
+        // security engine
+        securityEngine(new VirtDashSecurityEngine());
+    }
+
+    @Override
+    protected void setupFunctions() throws Exception
+    {
+    }
+
+    @Override
+    protected void setupActions() throws Exception
+    {
+    }
+
+    @Override
+    protected void setupRouters() throws Exception
+    {
+        // Setup the application routers
+        router(new LoginRouter());
+        router(new AppRouter());
+    }
+
+    @Override
+    protected void startApplication() throws Exception
+    {
         // connect the hosts
         for (VirtHost host : this.getHosts())
         {
             host.connect();
         }
-        // security engine
-        securityEngine(new VirtDashSecurityEngine());
-        // Setup the application routers
-        router(new LoginRouter());
-        router(new AppRouter());
     }
-    
+
     public VirtDashCfg getConfig()
     {
         return this.config;
-    }
-    
-    public File getConfigFile()
-    {
-        return this.configFile;
     }
 
     public List<VirtHost> getHosts()
@@ -72,7 +97,7 @@ public class App extends BalsaApplication
         Collections.sort(l);
         return l;
     }
-    
+
     public List<VirtHost> getRunningHosts()
     {
         List<VirtHost> l = new LinkedList<VirtHost>();
@@ -83,19 +108,17 @@ public class App extends BalsaApplication
         Collections.sort(l);
         return l;
     }
-    
+
     public VirtHost getHost(String name)
     {
         return this.hosts.get(name);
     }
-    
+
     public void addHost(VirtHost host)
     {
         this.hosts.put(host.getName(), host);
     }
-    
-    //
-    
+
     public synchronized void writeWebsockifyConfig()
     {
         try (BufferedWriter fw = new BufferedWriter(new FileWriter(this.getConfig().getWebsockifyConfigFile())))
@@ -113,12 +136,12 @@ public class App extends BalsaApplication
             e.printStackTrace();
         }
     }
-    
+
     public synchronized void writeConfig()
     {
         try
         {
-            VirtDashCfg.write(this.getConfigFile(), this.getConfig());
+            VirtDashCfg.write(getConfigFile(), this.getConfig());
         }
         catch (JAXBException e)
         {
@@ -126,9 +149,21 @@ public class App extends BalsaApplication
         }
     }
     
+    public static File getConfigFile()
+    {
+        return new File(System.getProperty("virt-dash.config", "/etc/virt-dash/virt-dash.xml"));
+    }
+
     public static void main(String[] args) throws Exception
     {
+        // load the configuration
+        File configFile = getConfigFile();
+        if (! configFile.exists()) VirtDashCfg.write(configFile, VirtDashCfg.defaults());
+        // load the application configuation
+        VirtDashCfg config = VirtDashCfg.read(configFile);
+        // create the application
         App app = new App();
+        app.configure(config);
         app.start();
     }
 }

@@ -68,7 +68,7 @@
 		        'view_only':    false,
 		        'updateState':  updateState,
 		        'connectTimeout': 30
-		    })).connect(#{'"' + balsa().request().getServerAddress() + '"'}, 8558, '', 'websockify?token=' + #{'"' + urlencode(host.name + '-' + guest.name) + '"'});
+		    })).connect(#{'"' + host.address + '"'}, #{'"' + guest.vncWebsocketPort + '"'}, '', '');
 		};
 		/* ]]> */
 	</script>

@@ -12,19 +12,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	<!-- <repositories>
-		<repository>
-			<id>snapshots</id>
-			<url>http://build.intrbiz.net/nexus/content/repositories/snapshots</url>
-			<snapshots>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>intrbiz</id>
-			<name>Intrbiz</name>
-			<url>http://build.intrbiz.net/nexus/content/repositories/releases</url>
-		</repository>
-	</repositories> -->
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -34,7 +21,7 @@
 		<dependency>
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-core</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${intrbiz.balsa.version}</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
@@ -46,7 +33,7 @@
 		<dependency>
 			<groupId>com.intrbiz.virt</groupId>
 			<artifactId>virt-libvirt</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -66,9 +53,25 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.intrbiz.balsa</groupId>
-				<artifactId>balsa-packaging</artifactId>
-				<version>4.0.0-SNAPSHOT</version>
+                <groupId>com.intrbiz.balsa</groupId>
+                <artifactId>balsa-executor-compiler-plugin</artifactId>
+                <version>${intrbiz.balsa.version}</version>
+                <configuration>
+                	<appClass>com.intrbiz.bergamot.ui.BergamotApp</appClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>balsa-executor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<groupId>com.intrbiz.util</groupId>
+				<artifactId>packaging</artifactId>
+				<version>${intrbiz.util.version}</version>
 				<configuration>
 					<appClass>com.intrbiz.virt.dash.App</appClass>
 				</configuration>
@@ -76,7 +79,7 @@
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>balsa</goal>
+							<goal>intrbiz-package</goal>
 						</goals>
 					</execution>
 				</executions>

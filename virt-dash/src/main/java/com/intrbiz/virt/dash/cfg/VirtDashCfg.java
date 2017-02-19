@@ -14,10 +14,14 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.intrbiz.configuration.Configuration;
+
 @XmlRootElement(name = "virt-dash")
 @XmlType(name = "virt-dash")
-public class VirtDashCfg
+public class VirtDashCfg extends Configuration
 {
+    private static final long serialVersionUID = 1L;
+
     private String websockifyConfigFile;
 
     private int pollPeriod;

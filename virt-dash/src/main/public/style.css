@@ -235,3 +235,29 @@ h1 { margin: 10px 0px; }
 	margin-left: 265px;
 	padding: 5px;
 }
+
+table tr.multi-row-header-top {
+	border-bottom: 0px solid #fff !important;
+}
+
+table tr.multi-row-header-top th {
+	border-bottom:  0px solid #fff !important;
+}
+
+table tr.multi-row-header-bot {
+	border-top:  0px solid #fff !important;
+}
+
+table tr.multi-row-header-bot th {
+	border-top:  0px solid #fff !important;
+}
+
+table tr.multi-row-header-top th.split-header-l,
+table tr.multi-row-header-bot th.split-header-l {
+	border-right: 0px solid #fff !important;
+}
+
+table tr.multi-row-header-top th.split-header-r,
+table tr.multi-row-header-bot th.split-header-r {
+	border-left: 0px solid #fff !important;
+}

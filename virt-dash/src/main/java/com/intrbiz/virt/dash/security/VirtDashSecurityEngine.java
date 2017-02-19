@@ -6,8 +6,6 @@ import org.apache.log4j.Logger;
 
 import com.intrbiz.Util;
 import com.intrbiz.balsa.engine.impl.security.SecurityEngineImpl;
-import com.intrbiz.balsa.engine.security.Credentials;
-import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.virt.dash.App;
 import com.intrbiz.virt.dash.cfg.VirtDashCfg;
@@ -29,26 +27,22 @@ public class VirtDashSecurityEngine extends SecurityEngineImpl
     }
 
     @Override
-    public Principal authenticate(Credentials credentials) throws BalsaSecurityException
+    public Principal doPasswordLogin(String username, char[] password) throws BalsaSecurityException
     {
-        if (credentials instanceof PasswordCredentials)
+        VirtDashCfg cfg = ((App) this.getBalsaApplication()).getConfig();
+        VirtDashUser user = cfg.getUser(username);
+        if (user != null)
         {
-            PasswordCredentials pw = (PasswordCredentials) credentials;
-            VirtDashCfg cfg = ((App) this.getBalsaApplication()).getConfig();
-            VirtDashUser user = cfg.getUser(pw.getPrincipalName());
-            if (user != null)
+            // a blank password means we don't bother checking
+            // this is a lazy way to make it easy to add users
+            if (Util.isEmpty(user.getPasswordHash()))
             {
-                // a blank password means we don't bother checking
-                // this is a lazy way to make it easy to add users
-                if (Util.isEmpty(user.getPasswordHash()))
-                {
-                    logger.warn("Authenticated user " + user.getUsername() + " with blank password, please change the password for " + user.getUsername());
-                    return user;
-                }
-                // verify the password, erroring or returning the principal
-                if (!user.verifyPassword(new String(pw.getPassword()))) throw new BalsaSecurityException("Invalid password");
+                logger.warn("Authenticated user " + user.getUsername() + " with blank password, please change the password for " + user.getUsername());
                 return user;
             }
+            // verify the password, erroring or returning the principal
+            if (!user.verifyPassword(new String(password))) throw new BalsaSecurityException("Invalid password");
+            return user;
         }
         throw new BalsaSecurityException("No such principal");
     }

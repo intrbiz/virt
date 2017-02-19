@@ -152,7 +152,7 @@ public class AppRouter extends Router<App>
     @Get("/console/guest/:host/:guest")
     public void consoleGuest(String host, String guest) throws IOException
     {
-        VirtHost virtHost = model("host", ((App) this.app()).getHost(host));
+        VirtHost virtHost = model("host", this.app().getHost(host));
         model("guest", virtHost.getGuest(guest));
         //
         encodeOnly("console");

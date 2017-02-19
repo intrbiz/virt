@@ -24,14 +24,18 @@ public class VirtGuest implements Comparable<VirtGuest>
 
     private long memory;
 
+    private long currentMemory;
+
     private LibVirtDomainDef definition;
 
     private int vncPort;
-    
+
+    private int vncWebsocketPort;
+
     private List<VirtGuestDisk> disks = new LinkedList<VirtGuestDisk>();
-    
+
     private List<VirtGuestInterface> interfaces = new LinkedList<VirtGuestInterface>();
-    
+
     private LibVirtDomain domain;
 
     public VirtGuest()
@@ -115,12 +119,22 @@ public class VirtGuest implements Comparable<VirtGuest>
     {
         this.vncPort = vncPort;
     }
-    
+
+    public int getVncWebsocketPort()
+    {
+        return vncWebsocketPort;
+    }
+
+    public void setVncWebsocketPort(int vncWebsocketPort)
+    {
+        this.vncWebsocketPort = vncWebsocketPort;
+    }
+
     public List<VirtGuestDisk> getDisks()
     {
         return disks;
     }
-    
+
     public void addDisk(VirtGuestDisk disk)
     {
         this.disks.add(disk);
@@ -131,17 +145,17 @@ public class VirtGuest implements Comparable<VirtGuest>
     {
         return interfaces;
     }
-    
+
     public void addInterface(VirtGuestInterface iface)
     {
         this.interfaces.add(iface);
     }
-    
+
     public boolean isRunning()
     {
         return this.state == GuestState.RUNNING;
     }
-    
+
     public boolean isDefined()
     {
         return this.state == GuestState.DEFINED;
@@ -161,6 +175,16 @@ public class VirtGuest implements Comparable<VirtGuest>
     public int compareTo(VirtGuest o)
     {
         return this.name.compareTo(o.name);
+    }
+
+    public long getCurrentMemory()
+    {
+        return currentMemory;
+    }
+
+    public void setCurrentMemory(long currentMemory)
+    {
+        this.currentMemory = currentMemory;
     }
 
     @Override

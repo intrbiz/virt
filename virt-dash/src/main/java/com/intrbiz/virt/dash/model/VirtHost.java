@@ -435,6 +435,7 @@ public class VirtHost implements Comparable<VirtHost>
         LibVirtDomainDef def = domain.getDomainDef();
         guest.setCpuCount(def.getVcpu().getCount());
         guest.setMemory(def.getMemory().getBytesValue());
+        guest.setCurrentMemory(def.getCurrentMemory().getBytesValue());
         guest.setDefinition(def);
         guest.setState(domain.isRunning() ? GuestState.RUNNING : GuestState.DEFINED);
         // vnc
@@ -443,6 +444,7 @@ public class VirtHost implements Comparable<VirtHost>
             if ("vnc".equals(gfx.getType()))
             {
                 guest.setVncPort(gfx.getPort());
+                guest.setVncWebsocketPort(gfx.getWebsocket());
             }
         }
         // disks

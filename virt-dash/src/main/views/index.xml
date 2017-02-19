@@ -38,11 +38,19 @@
 				<div class="guests">
 					<table>
 						<thead>
-							<tr>
+							<tr class="multi-row-header-top">
 								<th></th>
 								<th>Name</th>
 								<th>CPUs</th>
-								<th>Memory</th>
+								<th colspan="2">Memory</th>
+								<th></th>
+							</tr>
+							<tr  class="multi-row-header-bot">
+								<th></th>
+								<th></th>
+								<th></th>
+								<th class="split-header-l">Current</th>
+								<th class="split-header-r">Max</th>
 								<th></th>
 							</tr>
 						</thead>
@@ -52,6 +60,7 @@
 									<td class="col-state"><span class="state #{guest.state}" title="Guest is #{guest.state}"></span></td>
 									<td><a href="/guest/#{host.name}/#{guest.name}">#{guest.name}</a></td>
 									<td class="col-cpu">#{guest.cpuCount}</td>
+									<td class="col-mem">#{guest.currentMemory / (1024*1024)} MiB</td>
 									<td class="col-mem">#{guest.memory / (1024*1024)} MiB</td>
 									<td class="col-action">
 										<a class="start"    rendered="#{guest.defined}" href="/start/guest/#{host.name}/#{guest.name}">Start</a>

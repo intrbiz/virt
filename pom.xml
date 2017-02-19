@@ -12,6 +12,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<intrbiz.balsa.version>5.0.0-SNAPSHOT</intrbiz.balsa.version>
+		<intrbiz.util.version>1.4.0-SNAPSHOT</intrbiz.util.version>
 	</properties>
 
 	<build>
