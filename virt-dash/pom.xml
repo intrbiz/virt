@@ -57,7 +57,7 @@
                 <artifactId>balsa-executor-compiler-plugin</artifactId>
                 <version>${intrbiz.balsa.version}</version>
                 <configuration>
-                	<appClass>com.intrbiz.bergamot.ui.BergamotApp</appClass>
+                	<appClass>com.intrbiz.virt.dash.App</appClass>
                 </configuration>
                 <executions>
                     <execution>
