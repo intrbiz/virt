@@ -2,6 +2,7 @@ package com.intrbiz.virt.dash.router.admin;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.balsa.error.BalsaConversionError;
@@ -19,8 +20,10 @@ import com.intrbiz.metadata.RequirePermission;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.Template;
 import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.dash.model.RunningZone;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Zone;
+import com.intrbiz.virt.scheduler.SchedulerManager;
 
 @Prefix("/admin/zone")
 @Template("layout/main")
@@ -32,7 +35,10 @@ public class ZonesRouter extends Router<App>
     @WithDataAdapter(VirtDB.class)
     public void zones(VirtDB db)
     {
-        var("zones", db.listZones());
+        SchedulerManager schedulerManager = app().getClusterManager().getSchedulerManager();
+        var("zones", db.listZones().stream()
+                .map((z) -> new RunningZone(z, schedulerManager.getZoneSchedulerState(z.getName())))
+                .collect(Collectors.toList()));
         encode("admin/zones");
     }
     

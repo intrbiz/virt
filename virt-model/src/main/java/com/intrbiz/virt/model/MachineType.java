@@ -49,7 +49,7 @@ public class MachineType
     @SQLColumn(index = 9, name = "supported_network_types", type = "TEXT[]", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     private List<String> supportedNetworkTypes = new LinkedList<String>();
 
-    @SQLColumn(index = 10, name = "ephemeral_volumes", type = "TEXT[]", notNull = true, since = @SQLVersion({ 1, 0, 8 }))
+    @SQLColumn(index = 10, name = "ephemeral_volumes", type = "TEXT[]", since = @SQLVersion({ 1, 0, 8 }))
     private List<String> ephemeralVolumes = new LinkedList<String>();
 
     public MachineType()
@@ -229,7 +229,7 @@ public class MachineType
 
         public long getSize()
         {
-            return this.getSize();
+            return this.size;
         }
         
         public String toVolumeTypeMetadataString()

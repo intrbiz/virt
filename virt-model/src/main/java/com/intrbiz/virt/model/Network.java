@@ -86,9 +86,9 @@ public class Network
         this.networkType = TYPE.VXLAN;
         this.vxlanId = IDUtil.randomVxlanId();
         // ensure the CIDR is aligned
-        this.cidr = alignCIDR(cidr);
+        this.cidr = alignIPv4CIDR(cidr);
         // allocate the default reserved addresses
-        Iterator<String> resAddr = this.getReservedAddresses().iterator();
+        Iterator<String> resAddr = this.getIPv4ReservedAddresses().iterator();
         this.ipv4Router = resAddr.next();
         this.ipv4DNS1 = resAddr.next();
         this.ipv4DNS2 = resAddr.next();
@@ -241,9 +241,27 @@ public class Network
     }
     
     /**
+     * Get the network address of this network
+     */
+    public String getIPv4NetworkAddress()
+    {
+        SubnetInfo subnet = new SubnetUtils(this.cidr).getInfo();
+        return subnet.getNetworkAddress();
+    }
+    
+    /**
+     * Get the number of bits in the network mask
+     */
+    public int getIPv4NetworkMaskBits()
+    {
+        SubnetInfo subnet = new SubnetUtils(this.cidr).getInfo();
+        return pop(subnet.asInteger(subnet.getNetmask()));
+    }
+    
+    /**
      * Get the list of reserved addresses within this network
      */
-    public List<String> getReservedAddresses()
+    public List<String> getIPv4ReservedAddresses()
     {
         List<String> ret = new ArrayList<String>();
         SubnetInfo subnet = new SubnetUtils(this.cidr).getInfo();
@@ -259,7 +277,7 @@ public class Network
     /**
      * Choose an address at random for this network, the returned address may not be free.
      */
-    public String getRandomAddress()
+    public String getIPv4RandomAddress()
     {
         SubnetInfo subnet = new SubnetUtils(this.cidr).getInfo();
         String[] addresses = subnet.getAllAddresses();
@@ -269,7 +287,7 @@ public class Network
     /**
      * Get the number of addresses which are usable in this network
      */
-    public long getUsableAddresses()
+    public long getIPv4UsableAddresses()
     {
         SubnetInfo subnet = new SubnetUtils(this.cidr).getInfo();
         return subnet.getAddressCountLong() - 10;
@@ -281,7 +299,7 @@ public class Network
      * Is the given CIDR usable as a network.  Networks need a CIDR of /24 at 
      * minimum and must be within 10.0.0.0/8
      */
-    public static boolean isCIDRUsable(String cidr)
+    public static boolean isIPv4CIDRUsable(String cidr)
     {
         if (cidr == null || (! cidr.startsWith("10."))) return false;
         SubnetInfo subnet = new SubnetUtils(cidr).getInfo();
@@ -293,7 +311,7 @@ public class Network
      * @param cidr a CIDR
      * @return an aligned CIDR
      */
-    public static String alignCIDR(String cidr)
+    public static String alignIPv4CIDR(String cidr)
     {
         SubnetInfo subnet = new SubnetUtils(cidr).getInfo();
         return subnet.getNetworkAddress() + "/" + pop(subnet.asInteger(subnet.getNetmask()));

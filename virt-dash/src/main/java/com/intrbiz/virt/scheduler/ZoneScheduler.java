@@ -15,6 +15,7 @@ import com.intrbiz.virt.event.host.CreateMachine;
 import com.intrbiz.virt.event.model.MachineEO;
 import com.intrbiz.virt.event.schedule.ScheduleMachine;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
+import com.intrbiz.virt.scheduler.model.ZoneSchedulerState;
 import com.intrbiz.virt.scheduler.stratergy.MachineScheduleStratergy;
 import com.intrbiz.virt.scheduler.stratergy.RandomMachineScheduleStratergy;
 
@@ -91,6 +92,9 @@ public class ZoneScheduler
             {
                 this.restart = false;
                 logger.info("Obtained scheduler lock for zone " + this.zoneId + ", processing scheduler events");
+                // update state
+                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, true, this.manager.getLocalMember()));
+                // start the scheduling loop
                 while (this.run && (! this.restart))
                 {
                     // process scheduler events
@@ -110,6 +114,8 @@ public class ZoneScheduler
                         logger.warn("Failed to process scheduler event", e);
                     }
                 }
+                // update state
+                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, false, this.manager.getLocalMember()));
             }
             finally
             {

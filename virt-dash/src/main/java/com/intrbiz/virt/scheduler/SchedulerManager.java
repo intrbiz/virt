@@ -1,28 +1,37 @@
 package com.intrbiz.virt.scheduler;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.EvictionPolicy;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.core.Cluster;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.IQueue;
+import com.hazelcast.core.Member;
 import com.intrbiz.virt.cluster.ClusterComponent;
 import com.intrbiz.virt.cluster.ClusterManager;
 import com.intrbiz.virt.cluster.component.HostEventManager;
 import com.intrbiz.virt.cluster.component.HostStateStore;
 import com.intrbiz.virt.cluster.component.MachineStateStore;
 import com.intrbiz.virt.cluster.component.SchedulerEventManager;
+import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
+import com.intrbiz.virt.model.Zone;
+import com.intrbiz.virt.scheduler.model.ZoneSchedulerState;
 
 public class SchedulerManager implements ClusterComponent
 {
     private static Logger logger = Logger.getLogger(SchedulerManager.class);
     
-    private static final String SCHEDULER_LOCKS = "virt.zone.scheduler";
+    private static final String SCHEDULER_LOCKS = "virt.zone.scheduler.lock";
+    
+    private static final String SCHEDULER_STATE_MAP = "virt.zone.scheduler.state";
     
     private static final String schedulerLockName(String zoneId)
     {
@@ -40,6 +49,10 @@ public class SchedulerManager implements ClusterComponent
     private MachineStateStore machineStore;
     
     private HostEventManager hostEvents;
+    
+    private IMap<String, ZoneSchedulerState> schedulerState;
+    
+    private Cluster cluster;
 
     public SchedulerManager()
     {
@@ -55,6 +68,10 @@ public class SchedulerManager implements ClusterComponent
     @Override
     public void config(ClusterManager manager, Config config)
     {
+        MapConfig machineStateMapCfg = config.getMapConfig(SCHEDULER_STATE_MAP);
+        machineStateMapCfg.setAsyncBackupCount(2);
+        machineStateMapCfg.setBackupCount(1);
+        machineStateMapCfg.setEvictionPolicy(EvictionPolicy.NONE);
     }
 
     @Override
@@ -62,6 +79,8 @@ public class SchedulerManager implements ClusterComponent
     {
         logger.info("Scheduler Manager starting up");
         this.instance = instance;
+        this.schedulerState = instance.getMap(SCHEDULER_STATE_MAP);
+        this.cluster = instance.getCluster();
         this.schedulerEvents = manager.getComponent(SchedulerEventManager.class);
         this.hostStore = manager.getComponent(HostStateStore.class);
         this.hostEvents = manager.getComponent(HostEventManager.class);
@@ -78,6 +97,11 @@ public class SchedulerManager implements ClusterComponent
             scheduler.shutdown();
         }
         this.zoneSchedulers.clear();
+    }
+    
+    public Member getLocalMember()
+    {
+        return this.cluster.getLocalMember();
     }
 
     public ILock getZoneSchedulerLock(String zoneId)
@@ -105,14 +129,26 @@ public class SchedulerManager implements ClusterComponent
         return this.hostEvents;
     }
     
+    public ZoneSchedulerState getZoneSchedulerState(String zone)
+    {
+        return this.schedulerState.get(zone);
+    }
+    
+    public void setZoneSchedulerState(ZoneSchedulerState state)
+    {
+        this.schedulerState.set(state.getId(), state);
+    }
+    
     private void startZoneSchedulers()
     {
-        // TODO: Get zone list from somewhere
-        for (String zoneId : Arrays.asList("uk1.a"))
+        try (VirtDB db = VirtDB.connect())
         {
-            ZoneScheduler scheduler = new ZoneScheduler(this, zoneId);
-            this.zoneSchedulers.add(scheduler);
-            scheduler.start();
+            for (Zone zone : db.listZones())
+            {
+                ZoneScheduler scheduler = new ZoneScheduler(this, zone.getName());
+                this.zoneSchedulers.add(scheduler);
+                scheduler.start();
+            }
         }
     }
 }

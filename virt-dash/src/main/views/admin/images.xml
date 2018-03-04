@@ -32,7 +32,7 @@
 		      						<div class="btn-group">
 										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Image</button>
 										<div class="dropdown-menu dropdown-menu-right">
-								            <a class="dropdown-item text-danger" href="/admin/image/id/#{type.id}/remove">Remove</a>
+								            <a class="dropdown-item text-danger" href="/admin/image/id/#{image.id}/remove">Remove</a>
 										</div>
 									</div>
 		      					</td>

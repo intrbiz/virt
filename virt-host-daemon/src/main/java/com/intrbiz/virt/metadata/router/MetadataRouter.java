@@ -46,7 +46,7 @@ public class MetadataRouter extends Router<MetadataApp>
     public MachineMetadataV1 metadataV2(@Var("machine") Machine machine)
     {
         return new MachineMetadataV1()
-                .withZone("uk1.a")
+                .withZone(machine.getZone().getName())
                 .withMachine(machine.getId(), machine.getName())
                 .withSSHKey(machine.getSSHKey().getKey())
                 .withNetwork(this.network(machine));
@@ -63,7 +63,7 @@ public class MetadataRouter extends Router<MetadataApp>
     @Text
     public String zone(@Var("machine") Machine machine)
     {
-        return "uk1.a";
+        return machine.getZone().getName();
     }
     
     @Any("/hostname")
@@ -99,22 +99,21 @@ public class MetadataRouter extends Router<MetadataApp>
         int i = 1;
         for (MachineNIC nic : machine.getInterfaces())
         {
+            Network net = nic.getNetwork();
             if (i == 1)
             {
                 // primary nic
-                Network net = nic.getNetwork();
-                network.with(physical("eth" + i, nic.getMac()).staticAddress(nic.getIpv4() + "/24", net.getIpv4Router()));
+                network.with(physical("eth" + i, nic.getMac()).staticAddress(nic.getIpv4() + "/" + net.getIPv4NetworkMaskBits(), net.getIpv4Router()));
                 // nameserver for primary network
                 network.with(nameserver().nameservers(net.getIpv4DNS1()).nameservers(net.getIpv4DNS2()));
             }
             else
             {
                 // additional nic
-                network.with(physical("eth" + i, nic.getMac()).staticAddress(nic.getIpv4() + "/24"));
+                network.with(physical("eth" + i, nic.getMac()).staticAddress(nic.getIpv4() + "/" + net.getIPv4NetworkMaskBits()));
             }
             i++;
         }
-        // TODO: routes
         return network;
     }
     

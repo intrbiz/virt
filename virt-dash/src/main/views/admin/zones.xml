@@ -13,19 +13,23 @@
 		      			<tr>
 		      				<th>Name</th>
 		      				<th>Summary</th>
-		      				<th>Description</th>
+		      				<th>Status</th>
 		      				<th>&nbsp;</th>
 		      			</tr>
-		      			<data-set var="zone" value="#{zones}">
+		      			<data-set var="item" value="#{zones}">
 		      				<tr>
-		      					<td>#{zone.name}</td>
-		      					<td>#{zone.summary}</td>
-		      					<td>#{zone.description}</td>
+		      					<td>#{item.zone.name}</td>
+		      					<td>#{item.zone.summary}</td>
+		      					<td><span class="badge badge-#{if(item.schedulerState.running, 'success', 'danger')}">#{if(item.schedulerState.running, 'Running on ' + item.schedulerState.currentOwnerName, 'Not running')}</span></td>
 		      					<td>
 		      						<div class="btn-group">
 										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Zone</button>
 										<div class="dropdown-menu dropdown-menu-right">
-								            <a class="dropdown-item text-danger" href="/admin/zone/id/#{type.id}/remove">Remove</a>
+											<h6 class="dropdown-header">Zone Scheduler State</h6>
+											<a class="dropdown-item text-warning" href="/admin/zone/id/#{item.zone.id}/pause">Pause</a>
+								            <a class="dropdown-item text-success" href="/admin/zone/id/#{item.zone.id}/restart">Restart</a>
+								            <div class="dropdown-divider"></div>
+								            <a class="dropdown-item text-danger" href="/admin/zone/id/#{item.zone.id}/remove">Remove</a>
 										</div>
 									</div>
 		      					</td>
