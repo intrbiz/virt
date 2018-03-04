@@ -1,0 +1,100 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Machine #{machine.name}">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Machine #{machine.name}</h5>
+				<div class="card-body">
+					<h5 class="card-title">Machine Type</h5>
+					<p class="card-text">Basic details for this machine.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Zone</th>
+	      					<th>Name</th>
+	      					<th>Type</th>
+	      					<th>CPUs</th>
+	      					<th>Memory</th>
+	      					<th>Cfg MAC</th>
+	      				</tr>
+      					<tr>
+      						<td>#{machine.zone.summary}</td>
+      						<td>#{machine.name}</td>
+      						<td>#{machine.type.family}.#{machine.type.name}</td>
+      						<td>#{machine.type.cpus}</td>
+      						<td>#{machine.type.memory / 1024 / 1024} MiB</td>
+      						<td>#{machine.cfgMac}</td>
+      					</tr>
+	      			</table>
+	      			<p class="card-text">#{machine.description}</p>
+					<h5 class="card-title pt-3">Machine Image</h5>
+					<p class="card-text">The details for the image you are creating this machine from.</p>
+					<table class="table">
+		      			<tr>
+		      				<th>Name</th>
+		      				<th>Size</th>
+		      				<th>Vendor</th>
+		      				<th>Product</th>
+		      				<th>Provider</th>
+		      			</tr>
+	      				<tr>
+	      					<td>#{machine.image.name}</td>
+	      					<td>#{machine.image.size} GiB</td>
+	      					<td>#{machine.image.vendor}</td>
+	      					<td>#{machine.image.product}</td>
+	      					<td>#{machine.image.provider}</td>
+	      				</tr>
+		      		</table>
+		      		<p class="card-text">#{machine.image.description}</p>
+					<h5 class="card-title pt-3">SSH Key</h5>
+					<p class="card-text">The details for the SSH key which will provide root access to this machine.</p>
+					<table class="table">
+		      			<tr>
+		      				<th>Name</th>
+		      				<th>Key</th>
+		      			</tr>
+	      				<tr>
+	      					<td>#{machine.SSHKey.name}</td>
+	      					<td><pre>#{machine.SSHKey.getKeyWrapped(100)}</pre></td>
+	      				</tr>
+		      		</table>
+					<h5 class="card-title pt-3">Machine Volumes</h5>
+					<p class="card-text">These are the details for any volumes not defined by the machine type or image, that this machine has.</p>
+					<table class="table">
+		      			<tr>
+		      				<th>Device</th>
+		      				<th>Size</th>
+		      				<th>Source</th>
+		      			</tr>
+		      			<data-set var="volume" value="#{machine.volumes}">
+		      				<tr>
+		      					<td>#{volume.name}</td>
+		      					<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
+		      					<td>#{volume.source}</td>
+		      				</tr>
+	      				</data-set>
+		      		</table>
+					<h5 class="card-title pt-3">Machine Network Interfaces</h5>
+					<p class="card-text">These are the details for the network interfaces this machine has.</p>
+					<table class="table">
+		      			<tr>
+		      				<th>Interface</th>
+		      				<th>Network</th>
+		      				<th>MAC</th>
+		      				<th>IPv4</th>
+		      			</tr>
+		      			<data-set var="nic" value="#{machine.interfaces}">
+		      				<tr>
+		      					<td>#{nic.name}</td>
+		      					<td>#{nic.network.name}</td>
+		      					<td>#{nic.mac}</td>
+		      					<td>#{nic.ipv4}</td>
+		      				</tr>
+	      				</data-set>
+		      		</table>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

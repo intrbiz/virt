@@ -1,6 +1,7 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -18,26 +19,38 @@ public class SourceDef
     
     private String service;
     
+    private String protocol;
+    
+    private String name;
+    
+    private HostDef hostDef;
+    
     public SourceDef()
     {
         super();
     }
     
-    public SourceDef(String file, String bridge)
-    {
-        super();
-        this.file = file;
-        this.bridge = bridge;
-    }
-    
     public static final SourceDef bridge(String bridge)
     {
-        return new SourceDef(null, bridge);
+        SourceDef def = new SourceDef();
+        def.setBridge(bridge);
+        return def;
     }
     
     public static final SourceDef file(String file)
     {
-        return new SourceDef(file, null);
+        SourceDef def = new SourceDef();
+        def.setFile(file);
+        return def;
+    }
+    
+    public static final SourceDef rbd(String hosts, int port, String image)
+    {
+        SourceDef def = new SourceDef();
+        def.setProtocol("rbd");
+        def.setName(image);
+        def.setHostDef(new HostDef(hosts, String.valueOf(port)));
+        return def;
     }
 
     @XmlAttribute(name = "file")
@@ -93,5 +106,38 @@ public class SourceDef
     public void setService(String service)
     {
         this.service = service;
+    }
+
+    @XmlAttribute(name = "protocol")
+    public String getProtocol()
+    {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol)
+    {
+        this.protocol = protocol;
+    }
+
+    @XmlAttribute(name = "name")
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    @XmlElementRef(type = HostDef.class)
+    public HostDef getHostDef()
+    {
+        return hostDef;
+    }
+
+    public void setHostDef(HostDef hostDef)
+    {
+        this.hostDef = hostDef;
     }
 }

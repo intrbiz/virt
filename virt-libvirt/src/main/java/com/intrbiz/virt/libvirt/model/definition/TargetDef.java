@@ -23,6 +23,12 @@ public class TargetDef
         super();
     }
     
+    public TargetDef(String dev)
+    {
+        super();
+        this.dev = dev;
+    }
+    
     public TargetDef(String bus, String dev)
     {
         super();
@@ -92,5 +98,15 @@ public class TargetDef
     public void setName(String name)
     {
         this.name = name;
+    }
+    
+    public static TargetDef scsi(String dev)
+    {
+        return new TargetDef("scsi", dev);
+    }
+    
+    public static TargetDef dev(String dev)
+    {
+        return new TargetDef(dev);
     }
 }

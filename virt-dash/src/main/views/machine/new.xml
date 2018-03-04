@@ -1,0 +1,76 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Machine">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Machine</h5>
+				<div class="card-body">
+					<p class="card-text">Lets setup the basics of the machine you want to create</p>
+		      		<form method="post" action="#{path('/machine/new')}">
+		      			<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="web-app-1"/>
+					    	<small id="nameHelp" class="form-text text-muted">The name for this machine: web-app-1</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Zone:</label>
+		      				<select class="form-control" aria-describedby="zoneHelp" id="zone" name="zone">
+		      					<data-set var="option" value="#{zones}">
+		      						<option value="#{option.id}">#{option.summary}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="zoneHelp" class="form-text text-muted">The zone this machine will be created in.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Machine Type:</label>
+		      				<select class="form-control" aria-describedby="typeHelp" id="type" name="type">
+		      					<data-set var="option" value="#{types}">
+		      						<option value="#{option.id}">#{option.family}.#{option.name} #{option.cpus} CPUs #{option.memory / 1024 / 1024} MiB Memory</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The machine type</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Image:</label>
+		      				<select class="form-control" aria-describedby="imageHelp" id="image" name="image">
+		      					<data-set var="option" value="#{images}">
+		      						<option value="#{option.id}">#{option.name}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The image to create the machine from</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Primary Network:</label>
+		      				<select class="form-control" aria-describedby="networkHelp" id="network" name="network">
+		      					<data-set var="option" value="#{networks}">
+		      						<option value="#{option.id}">#{option.name} #{option.zone.summary}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The primary network this machine is attached to</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Root SSH Key:</label>
+		      				<select class="form-control" aria-describedby="keyHelp" id="key" name="key">
+		      					<data-set var="option" value="#{keys}">
+		      						<option value="#{option.id}">#{option.name}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The administrative SSH Key for the machine</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="1"></textarea>
+					    	<small id="descriptionHelp" class="form-text text-muted">What is this machine for?</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Next</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

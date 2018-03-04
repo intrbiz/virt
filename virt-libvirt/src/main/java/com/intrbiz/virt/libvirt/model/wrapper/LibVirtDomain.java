@@ -210,9 +210,41 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
             throw new DataException("Failed to shutdown domain", e);
         }
     }
+    
+    /**
+     * Send the guest the reboot signal, note some guests might ignore this.
+     */
+    public void reboot()
+    {
+        this.adapter.checkOpen();
+        try
+        {
+            if (this.domain.isActive() == 1) this.domain.reboot(0);
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Failed to reboot domain", e);
+        }
+    }
+    
+    /**
+     * Reset this guest immediately, this will not cleanly shutdown the guest and will forcefully reboot the guest
+     */
+    public void reset()
+    {
+        this.adapter.checkOpen();
+        try
+        {
+            if (this.domain.isActive() == 1) this.domain.reset();
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Failed to reset domain", e);
+        }
+    }
 
     /**
-     * Terminate this guest immediately, note this does not cleanly shutdown the guest
+     * Terminate this guest immediately, this will not cleanly shutdown the guest
      */
     public void terminate()
     {

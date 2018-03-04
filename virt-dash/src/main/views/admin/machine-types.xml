@@ -1,0 +1,66 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Machine Types">
+	
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Machine Types</h5>
+				<div class="card-body">
+					<p class="card-text">These are the available machine types registered which users can deploy.</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Family</th>
+		      				<th>Name</th>
+		      				<th>CPUs</th>
+		      				<th>Memory</th>
+		      				<th>Volume Limit</th>
+		      				<th>Volume Types</th>
+		      				<th>NIC Limit</th>
+		      				<th>Network Types</th>
+		      				<th>Ephemeral Volumes</th>
+		      				<th>&nbsp;</th>
+		      			</tr>
+		      			<data-set var="machineType" value="#{machineTypes}">
+		      				<tr>
+		      					<td>#{machineType.family}</td>
+		      					<td>#{machineType.name}</td>
+		      					<td>#{machineType.cpus}</td>
+		      					<td>#{machineType.memory / 1024 / 1024} MiB</td>
+		      					<td>#{machineType.volumeLimit}</td>
+		      					<td>
+		      						<data-set var="type" value="#{machineType.supportedVolumeTypes}">
+		      							<span class="badge badge-info">#{type}</span>
+		      						</data-set>
+		      					</td>
+		      					<td>#{machineType.nicLimit}</td>
+		      					<td>
+		      						<data-set var="type" value="#{machineType.supportedNetworkTypes}">
+		      							<span class="badge badge-info">#{type}</span>
+		      						</data-set>
+		      					</td>
+		      					<td>
+		      						<ul>
+			      						<data-set var="evol" value="#{type.parseEphemeralVolumes()}">
+			      							<li><span class="badge badge-info">#{evol.volumeType} #{evol.size / 1000 / 1000 / 1000} GB</span></li>
+			      						</data-set>
+		      						</ul>
+		      					</td>
+		      					<td>
+		      						<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Machine Type</button>
+										<div class="dropdown-menu dropdown-menu-right">
+								            <a class="dropdown-item text-danger" href="/admin/machine-type/id/#{type.id}/remove">Remove</a>
+										</div>
+									</div>
+		      					</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+		      		<a href="/admin/machine-type/new" class="btn btn-primary">Create Machine Type</a>
+		      	</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

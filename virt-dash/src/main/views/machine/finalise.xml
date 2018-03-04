@@ -1,0 +1,177 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Machine">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Review Machine</h5>
+				<div class="card-body">
+					<form method="post" action="#{path('/machine/finalise')}">
+						<h5 class="card-title">Machine Type</h5>
+						<p class="card-text">Basic details for the machine you are creating.</p>
+						<table class="table">
+		      				<tr>
+		      					<th>Zone</th>
+		      					<th>Name</th>
+		      					<th>Type</th>
+		      					<th>CPUs</th>
+		      					<th>Memory</th>
+		      					<th>Cfg MAC</th>
+		      				</tr>
+	      					<tr>
+	      						<td>#{currentMachine.zone.summary}</td>
+	      						<td>#{currentMachine.name}</td>
+	      						<td>#{currentMachine.type.family}.#{currentMachine.type.name}</td>
+	      						<td>#{currentMachine.type.cpus}</td>
+	      						<td>#{currentMachine.type.memory / 1024 / 1024} MiB</td>
+	      						<td>#{currentMachine.cfgMac}</td>
+	      					</tr>
+		      			</table>
+		      			<p class="card-text">#{currentMachine.description}</p>
+						<h5 class="card-title pt-3">Machine Image</h5>
+						<p class="card-text">The details for the image you are creating this machine from.</p>
+						<table class="table">
+			      			<tr>
+			      				<th>Name</th>
+			      				<th>Size</th>
+			      				<th>Vendor</th>
+			      				<th>Product</th>
+			      				<th>Provider</th>
+			      			</tr>
+		      				<tr>
+		      					<td>#{currentMachine.image.name}</td>
+		      					<td>#{currentMachine.image.size} GiB</td>
+		      					<td>#{currentMachine.image.vendor}</td>
+		      					<td>#{currentMachine.image.product}</td>
+		      					<td>#{currentMachine.image.provider}</td>
+		      				</tr>
+			      		</table>
+			      		<p class="card-text">#{currentMachine.image.description}</p>
+						<h5 class="card-title pt-3">SSH Key</h5>
+						<p class="card-text">The details for the SSH key which will provide root access to this machine.</p>
+						<table class="table">
+			      			<tr>
+			      				<th>Name</th>
+			      				<th>Key</th>
+			      			</tr>
+		      				<tr>
+		      					<td>#{currentMachine.SSHKey.name}</td>
+		      					<td><pre>#{currentMachine.SSHKey.getKeyWrapped(100)}</pre></td>
+		      				</tr>
+			      		</table>
+			      		<container rendered="#{currentMachine.type.volumeLimit > 1}">
+							<h5 class="card-title pt-3">Machine Volumes</h5>
+							<p class="card-text">These are the details for any volumes not defined by the machine type or image, that this machine will have.</p>
+							<table class="table">
+				      			<tr>
+				      				<th>Device</th>
+				      				<th>Size</th>
+				      				<th>Source</th>
+				      			</tr>
+				      			<data-set var="volume" value="#{currentMachineVolumes}">
+				      				<tr>
+				      					<td>#{volume.name}</td>
+				      					<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
+				      					<td>#{volume.attached.name}</td>
+				      				</tr>
+			      				</data-set>
+				      		</table>
+			      			<div class="clearfix">
+			      				<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachVolumeModal">Attach Volume</button>
+							</div>
+						</container>
+						<h5 class="card-title pt-3">Machine Network Interfaces</h5>
+						<p class="card-text">These are the details for the network interfaces this machine will have.</p>
+						<table class="table">
+			      			<tr>
+			      				<th>Interface</th>
+			      				<th>Network</th>
+			      				<th>MAC</th>
+			      				<th>IPv4</th>
+			      			</tr>
+			      			<data-set var="nic" value="#{currentMachineNICs}">
+			      				<tr>
+			      					<td>#{nic.name}</td>
+			      					<td>#{nic.network.name}</td>
+			      					<td>#{nic.mac}</td>
+			      					<td>
+			      						<input type="text" class="form-control" name="#{nic.name}_ipv4" id="#{nic.name}_ipv4" value="#{nic.ipv4}"/>
+			      					</td>
+			      				</tr>
+		      				</data-set>
+			      		</table>
+			      		<container rendered="#{currentMachine.type.nicLimit > 1}">
+			      			<div class="clearfix">
+								<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachNetworkModal">Attach Network</button>
+							</div>
+						</container>
+						<p class="card-text pt-3">All looking good, lets get busy.</p>
+	      				<button type="submit" class="btn btn-primary">Create Machine</button>
+	      			</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+    
+    <!-- Attach Volume Modal -->
+	<div class="modal fade" id="attachVolumeModal" tabindex="-1" role="dialog" aria-labelledby="attachVolumeModalLabel" aria-hidden="true">
+  		<div class="modal-dialog" role="document">
+    		<div class="modal-content">
+    			<form method="post" action="#{path('/machine/finalise/volume/attach')}">
+	      			<div class="modal-header">
+	        			<h5 class="modal-title" id="attachVolumeModalLabel">Attach Volume</h5>
+	        			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          				<span aria-hidden="true">&times;</span>
+	        			</button>
+	      			</div>
+	      			<div class="modal-body">
+        				<label class="sr-only" for="volume">Volume</label>
+		      			<div class="form-group">
+		      				<select class="form-control" id="volume" name="volume">
+		      					<data-set var="option" value="#{volumes}">
+		      						<option value="#{option.id}">#{option.name} - #{option.size / 1000 / 1000 / 1000} GB#{if(option.shared, ' (Shared!)', '')}</option>
+		      					</data-set>
+		      				</select>
+					  	</div>
+	      			</div>
+	      			<div class="modal-footer">
+	        			<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+	        			<button type="submit" class="btn btn-primary">Attach</button>
+	      			</div>
+      			</form>
+    		</div>
+  		</div>
+	</div>
+	
+	<!-- Attach Network Modal -->
+	<div class="modal fade" id="attachNetworkModal" tabindex="-1" role="dialog" aria-labelledby="attachNetworkModalLabel" aria-hidden="true">
+  		<div class="modal-dialog" role="document">
+    		<div class="modal-content">
+    			<form method="post" action="#{path('/machine/finalise/network/attach')}">
+	      			<div class="modal-header">
+	        			<h5 class="modal-title" id="attachVolumeModalLabel">Attach Network</h5>
+	        			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          				<span aria-hidden="true">&times;</span>
+	        			</button>
+	      			</div>
+	      			<div class="modal-body">
+        				<label class="sr-only" for="network">Network</label>
+		      			<div class="form-group">
+		      				<select class="form-control" id="network" name="network">
+		      					<data-set var="option" value="#{networks}">
+		      						<option value="#{option.id}">#{option.name}</option>
+		      					</data-set>
+		      				</select>
+					  	</div>
+	      			</div>
+	      			<div class="modal-footer">
+	        			<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+	        			<button type="submit" class="btn btn-primary">Attach</button>
+	      			</div>
+      			</form>
+    		</div>
+  		</div>
+	</div>
+	
+</fragment>

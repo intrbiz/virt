@@ -1,0 +1,41 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Accounts">
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Images</h5>
+				<div class="card-body">
+					<p class="card-text">These are all the accounts across all users.</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Owners</th>
+		      				<th>Name</th>
+		      				<th>Created</th>
+		      				<th>Active</th>
+		      				<th>&nbsp;</th>
+		      			</tr>
+		      			<data-set var="account" value="#{accounts}">
+		      				<tr>
+		      					<td>
+		      						<ul style="list-style: none">
+			      						<data-set var="owner" value="#{account.getOwners()}">
+			      							<li>#{owner.fullName} (#{owner.email})</li>
+			      						</data-set>
+		      						</ul>
+		      					</td>
+		      					<td>#{account.summary}</td>
+		      					<td>#{dateformat('yyyy-MM-dd hh:mm:ss', account.created)}</td>
+		      					<td>#{if(account.active, 'Active', 'Inactive')}</td>
+		      					<td>
+		      						<a href="/admin/account/id/#{account.id}/active" class="btn btn-success" rendered="#{! account.active}">Make active</a>
+		      					</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+		      	</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

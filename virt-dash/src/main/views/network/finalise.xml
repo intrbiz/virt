@@ -1,0 +1,48 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Network">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+   				<form method="post" action="#{path('/network/finalise')}">
+					<h5 class="card-header">Review Network</h5>
+					<div class="card-body">
+						<h5 class="card-title">Network Details</h5>
+						<p class="card-text">Basic details for the network your are creating.</p>
+						<table class="table">
+		      				<tr>
+		      					<th>Zone</th>
+		      					<th>Name</th>
+		      					<th>CIDR</th>
+		      					<th>Addresses</th>
+		      					<th>Router</th>
+		      					<th>DNS</th>
+		      					<container rendered="#{balsa().permission('global_admin')}">
+	      							<th>Type</th>
+	      							<th>VXLAN ID</th>
+	      						</container>
+		      				</tr>
+	      					<tr>
+	      						<td>#{currentNetwork.zone.summary}</td>
+	      						<td>#{currentNetwork.name}</td>
+	      						<td>#{currentNetwork.cidr}</td>
+	      						<td>#{currentNetwork.getUsableAddresses()}</td>
+	      						<td>#{currentNetwork.ipv4Router}</td>
+	      						<td>#{currentNetwork.ipv4DNS1}, #{currentNetwork.ipv4DNS2}</td>
+	      						<container rendered="#{balsa().permission('global_admin')}">
+	      							<td><span class="badge badge-info">#{currentNetwork.networkType}</span></td>
+	      							<td><span class="badge badge-warning">#{currentNetwork.vxlanSuffix}</span></td>
+	      						</container>
+	      					</tr>
+		      			</table>
+		      			<p class="card-text">#{currentNetwork.description}</p>
+						
+						<p class="card-text pt-3">All looking good, lets get busy.</p>
+		      			<button type="submit" class="btn btn-primary">Create Network</button>
+	      			</div>
+	      		</form>
+	      	</div>
+    	</div>
+    </div>
+</fragment>

@@ -66,5 +66,8 @@ public class ModelDef
         this.heads = heads;
     }
     
-    
+    public static final ModelDef virtio()
+    {
+        return new ModelDef("virtio");
+    }
 }

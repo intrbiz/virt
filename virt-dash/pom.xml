@@ -21,24 +21,36 @@
 		<dependency>
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-core</artifactId>
-			<version>${intrbiz.balsa.version}</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mindrot</groupId>
-			<artifactId>jbcrypt</artifactId>
-			<version>0.3m</version>
+			<groupId>com.intrbiz.virt</groupId>
+			<artifactId>virt-model</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.intrbiz.virt</groupId>
-			<artifactId>virt-libvirt</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+			<artifactId>virt-event-model</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-all</artifactId>
-			<version>4.0.12.Final</version>
+			<groupId>com.intrbiz.balsa</groupId>
+			<artifactId>balsa-data</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.intrbiz.balsa</groupId>
+			<artifactId>balsa-hazelcast</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.intrbiz.balsa</groupId>
+			<artifactId>balsa-pegdown</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.intrbiz.virt</groupId>
+			<artifactId>virt-cluster</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

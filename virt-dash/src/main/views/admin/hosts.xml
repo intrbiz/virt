@@ -1,0 +1,57 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Hosts">
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Hosts</h5>
+				<div class="card-body">
+					<p class="card-text">These are the hosts in the cluster on which can run machines</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Zone</th>
+		      				<th>Name</th>
+		      				<th>State</th>
+		      				<th>Last Seen</th>
+		      				<th>CPUs</th>
+		      				<th>Memory</th>
+		      				<th>Machine Families</th>
+		      				<th>Volume Types</th>
+		      				<th>Network Types</th>
+		      				<th>Running Machines</th>
+		      				<th>Defined Memory</th>
+		      			</tr>
+		      			<data-set var="host" value="#{hosts}">
+		      				<tr>
+		      					<td>#{host.zone}</td>
+		      					<td>#{host.name}</td>
+		      					<td>#{host.state}</td>
+		      					<td>#{host.lastUpdatedAgo / 1000}s ago</td>
+		      					<td>#{host.hostCPUs}</td>
+		      					<td>#{host.hostMemory / 1024 / 1024} MiB</td>
+		      					<td>
+		      						<data-set var="type" value="#{host.supportedMachineTypeFamilies}">
+		      							<span class="badge badge-info">#{type}</span>
+		      						</data-set>
+		      					</td>
+		      					<td>
+		      						<data-set var="type" value="#{host.supportedVolumeTypes}">
+		      							<span class="badge badge-info">#{type}</span>
+		      						</data-set>
+		      					</td>
+		      					<td>
+		      						<data-set var="type" value="#{host.supportedNetworkTypes}">
+		      							<span class="badge badge-info">#{type}</span>
+		      						</data-set>
+		      					</td>
+		      					<td>#{host.runningMachines}</td>
+		      					<td>#{host.definedMemory / 1024 / 1024} MiB</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+      			</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

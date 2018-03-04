@@ -41,6 +41,25 @@ public class InterfaceDef
         this.source = source;
         this.model = model;
     }
+    
+    public InterfaceDef(String type, MACDef mac, SourceDef source, ModelDef model, TargetDef target)
+    {
+        super();
+        this.type = type;
+        this.mac = mac;
+        this.source = source;
+        this.model = model;
+        this.target = target;
+    }
+    
+    public InterfaceDef(String type, MACDef mac, ModelDef model, TargetDef target)
+    {
+        super();
+        this.type = type;
+        this.mac = mac;
+        this.model = model;
+        this.target = target;
+    }
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -138,5 +157,20 @@ public class InterfaceDef
         {
             throw new RuntimeException(e);
         }
+    }
+    
+    public static InterfaceDef virtioBridge(String mac, String bridge)
+    {
+        return new InterfaceDef("bridge", new MACDef(mac), SourceDef.bridge(bridge), ModelDef.virtio());
+    }
+    
+    public static InterfaceDef virtioBridge(String mac, String bridge, TargetDef target)
+    {
+        return new InterfaceDef("bridge", new MACDef(mac), SourceDef.bridge(bridge), ModelDef.virtio(), target);
+    }
+    
+    public static InterfaceDef virtioEthernet(String mac, String bridge, TargetDef target)
+    {
+        return new InterfaceDef("ethernet", new MACDef(mac), ModelDef.virtio(), target);
     }
 }

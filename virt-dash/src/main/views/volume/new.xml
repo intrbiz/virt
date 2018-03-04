@@ -1,0 +1,50 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Volume">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Volume</h5>
+				<div class="card-body">
+					<p class="card-text">To create a new persistent storage volume we need some basic information</p>
+		      		<form method="post" action="#{path('/volume/new')}">
+		      			<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="web"/>
+					    	<small id="nameHelp" class="form-text text-muted">The name for this volume, eg: prod_database_data_volume</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="type">Zone:</label>
+		      				<select class="form-control" aria-describedby="typeHelp" id="zone" name="zone">
+		      					<data-set var="option" value="#{zones}">
+		      						<option value="#{option.id}">#{option.summary}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The zone this volume will be created in.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="size">Size:</label>
+					    	<input type="text" class="form-control" id="cidr" name="size" aria-describedby="sizeHelp" placeholder="25"/>
+					    	<small id="sizeHelp" class="form-text text-muted">How large this volume is in GB</small>
+					  	</div>
+					  	<div class="form-check">
+    						<input type="checkbox" class="form-check-input" id="shared" name="shared" aria-describedby="sharedHelp"/>
+    						<label class="form-check-label" for="shared">Shared</label>
+    						<small id="sharedHelp" class="form-text text-muted">Can this volume be attached to multiple machine at the same time?</small>
+  						</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2"></textarea>
+					    	<small id="descriptionHelp" class="form-text text-muted">What is this volume for?</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Create Volume</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

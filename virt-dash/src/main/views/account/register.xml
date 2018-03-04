@@ -1,0 +1,28 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- Install -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Account">
+	<div>
+		<h3>Welcome to Virt Dash</h3>
+		<p>Please create an account to use Virt Dash</p>
+		<form method="post" action="#{path('/account/register')}">
+			<h4>Who Are You?</h4>
+			<p>Full Name</p>
+			<p><input type="text" id="full_name" name="full_name" placeholder="Joe Bloggs"/></p>
+			<p>Given Name</p>
+			<p><input type="text" id="given_name" name="given_name" placeholder="Joe"/></p>
+			<p>Email Address</p>
+			<p><input type="text" id="email" name="email" placeholder="joe@bloggs.com"/></p>
+			<p>Mobile Phone</p>
+			<p><input type="text" id="mobile" name="mobile" placeholder="+4407748123123"/></p>
+			<p>Choose Your Password</p>
+			<input type="password" id="password_new" name="password_new" placeholder="Enter your new password"/>
+			<p>Confirm Your Password</p>
+			<input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm your new password"/>
+			<p>
+				<access-token-for-url path="#{path('/account/register')}"/>
+				<input type="submit" id="create_account" name="create_account" value="Create Account"/>
+			</p>
+		</form>
+	</div>
+</fragment>

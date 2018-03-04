@@ -1,0 +1,42 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Volume">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+   				<form method="post" action="#{path('/volume/finalise')}">
+					<h5 class="card-header">Review Volume</h5>
+					<div class="card-body">
+						<h5 class="card-title">Volume Details</h5>
+						<p class="card-text">Basic details for the volume your are creating.</p>
+						<table class="table">
+		      				<tr>
+		      					<th>Zone</th>
+		      					<th>Name</th>
+		      					<th>Size</th>
+		      					<th>Shared</th>
+		      					<container rendered="#{balsa().permission('global_admin')}">
+	      							<th>Type</th>
+	      						</container>
+		      				</tr>
+	      					<tr>
+	      						<td>#{currentVolume.zone.summary}</td>
+	      						<td>#{currentVolume.name}</td>
+	      						<td>#{currentVolume.size / 1000 / 1000 / 1000} GB</td>
+	      						<td>#{if(currentVolume.shared, 'yes', 'no')}</td>
+	      						<container rendered="#{balsa().permission('global_admin')}">
+	      							<td><span class="badge badge-info">#{currentVolume.volumeType}</span></td>
+	      						</container>
+	      					</tr>
+		      			</table>
+		      			<p class="card-text">#{currentVolume.description}</p>
+						
+						<p class="card-text pt-3">All looking good? Lets get busy.</p>
+		      			<button type="submit" class="btn btn-primary">Create Volume</button>
+	      			</div>
+	      		</form>
+	      	</div>
+    	</div>
+    </div>
+</fragment>

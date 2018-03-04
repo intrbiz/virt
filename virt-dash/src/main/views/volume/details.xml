@@ -1,0 +1,51 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Volume #{network.name}">
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Volume #{network.name}</h5>
+				<div class="card-body">
+					<h5 class="card-title">Volume Details</h5>
+					<p class="card-text">Basic details for the volume.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Zone</th>
+	      					<th>Name</th>
+	      					<th>Size</th>
+	      					<th>Shared</th>
+	      					<container rendered="#{balsa().permission('global_admin')}">
+      							<th>Type</th>
+      						</container>
+	      				</tr>
+      					<tr>
+      						<td>#{volume.zone.summary}</td>
+      						<td>#{volume.name}</td>
+      						<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
+      						<td>#{if(volume.shared, 'yes', 'no')}</td>
+      						<container rendered="#{balsa().permission('global_admin')}">
+	      							<td><span class="badge badge-info">#{volume.volumeType}</span></td>
+	      						</container>
+      					</tr>
+	      			</table>
+	      			<p class="card-text">#{volume.description}</p>
+	      			<h5 class="card-title pt-3">Attachements</h5>
+					<p class="card-text"></p>
+					<table class="table">
+		      			<tr>
+		      				<th>Machine</th>
+		      				<th>Device</th>
+		      			</tr>
+		      			<data-set var="vol" value="#{volume.attachments}">
+		      				<tr>
+		      					<td>#{vol.machine.name}</td>
+		      					<td>#{vol.name}</td>
+		      				</tr>
+	      				</data-set>
+		      		</table>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

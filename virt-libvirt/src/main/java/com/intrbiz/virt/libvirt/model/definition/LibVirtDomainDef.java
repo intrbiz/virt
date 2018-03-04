@@ -1,5 +1,8 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -200,6 +203,21 @@ public class LibVirtDomainDef
     public void setOriginalXML(String originalXML)
     {
         this.originalXML = originalXML;
+    }
+    
+    public static LibVirtDomainDef read(File def)
+    {
+        try
+        {
+            JAXBContext ctx = JAXBContext.newInstance(LibVirtDomainDef.class);
+            Unmarshaller u = ctx.createUnmarshaller();
+            LibVirtDomainDef d = (LibVirtDomainDef) u.unmarshal(new FileReader(def));
+            return d;
+        }
+        catch (IOException | JAXBException e)
+        {
+            throw new DataException("Failed to parse domain definition XML", e);
+        } 
     }
 
     public static LibVirtDomainDef read(String def)

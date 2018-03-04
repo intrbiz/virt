@@ -1,0 +1,47 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Images">
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Images</h5>
+				<div class="card-body">
+					<p class="card-text">These are the public images which are available to all users.</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Name</th>
+		      				<th>Size</th>
+		      				<th>Type</th>
+		      				<th>Source</th>
+		      				<th>Provider</th>
+		      				<th>Vendor</th>
+		      				<th>Product</th>
+		      				<th>&nbsp;</th>
+		      			</tr>
+		      			<data-set var="image" value="#{images}">
+		      				<tr>
+		      					<td>#{image.name}</td>
+		      					<td>#{image.size} GiB</td>
+		      					<td><span class="badge badge-info">#{image.volumeType}</span></td>
+		      					<td>#{image.source}</td>
+		      					<td>#{image.provider}</td>
+		      					<td>#{image.vendor}</td>
+		      					<td>#{image.product}</td>
+		      					<td>
+		      						<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Image</button>
+										<div class="dropdown-menu dropdown-menu-right">
+								            <a class="dropdown-item text-danger" href="/admin/image/id/#{type.id}/remove">Remove</a>
+										</div>
+									</div>
+		      					</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+		      		<a href="/admin/image/new" class="btn btn-primary">Create Image</a>
+      			</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

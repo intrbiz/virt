@@ -13,8 +13,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<intrbiz.balsa.version>5.0.0-SNAPSHOT</intrbiz.balsa.version>
-		<intrbiz.util.version>1.4.0-SNAPSHOT</intrbiz.util.version>
+		<balsa.version>5.0.0-SNAPSHOT</balsa.version>
+		<util.version>1.4.0-SNAPSHOT</util.version>
 	</properties>
 
 	<build>
@@ -64,6 +64,11 @@
 	<modules>
 		<module>virt-libvirt</module>
 		<module>virt-dash</module>
+		<module>virt-host-daemon</module>
+		<module>virt-model</module>
+		<module>virt-event-model</module>
+		<module>virt-util</module>
+		<module>virt-cluster</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
@@ -85,13 +90,98 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>data-manager</artifactId>
-				<version>1.4.0-SNAPSHOT</version>
+                <version>${util.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>
 				<version>3.5.0</version>
 			</dependency>
+            <dependency>
+                <groupId>com.intrbiz.util</groupId>
+                <artifactId>data-database-adapter-compiler</artifactId>
+                <version>${util.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.intrbiz.util</groupId>
+                <artifactId>database-pool</artifactId>
+                <version>${util.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.intrbiz.util</groupId>
+                <artifactId>data-annotations</artifactId>
+                <version>${util.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.virt</groupId>
+            	<artifactId>virt-model</artifactId>
+            	<version>${project.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.virt</groupId>
+            	<artifactId>virt-event-model</artifactId>
+            	<version>${project.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.balsa</groupId>
+            	<artifactId>balsa-data</artifactId>
+            	<version>${balsa.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.balsa</groupId>
+            	<artifactId>balsa-hazelcast</artifactId>
+            	<version>${balsa.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.balsa</groupId>
+            	<artifactId>balsa-pegdown</artifactId>
+            	<version>${balsa.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.balsa</groupId>
+            	<artifactId>balsa-core</artifactId>
+            	<version>${balsa.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>org.postgresql</groupId>
+            	<artifactId>postgresql</artifactId>
+            	<version>42.2.0.jre7</version>
+            </dependency>
+            <dependency>
+            	<groupId>org.mindrot</groupId>
+            	<artifactId>jbcrypt</artifactId>
+            	<version>0.4</version>
+            </dependency>
+            <dependency>
+            	<groupId>commons-net</groupId>
+            	<artifactId>commons-net</artifactId>
+            	<version>3.6</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.virt</groupId>
+            	<artifactId>virt-util</artifactId>
+            	<version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.hazelcast</groupId>
+            	<artifactId>hazelcast-all</artifactId>
+            	<version>3.9.2</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.core</groupId>
+            	<artifactId>core</artifactId>
+            	<version>1.0.1</version>
+            </dependency>
+            <dependency>
+            	<groupId>log4j</groupId>
+            	<artifactId>log4j</artifactId>
+            	<version>1.2.14</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.intrbiz.virt</groupId>
+            	<artifactId>virt-cluster</artifactId>
+            	<version>1.0.0-SNAPSHOT</version>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 

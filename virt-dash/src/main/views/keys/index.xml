@@ -1,0 +1,53 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="SSH Keys">	
+  	<div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">SSH Keys</h5>
+				<div class="card-body">
+					<p class="card-text">These are SSH Keys which are registered to the #{currentAccount.summary} account.</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Name</th>
+		      				<th>Key</th>
+		      			</tr>
+		      			<data-set var="key" value="#{keys}">
+		      				<tr>
+		      					<td>#{key.name}</td>
+		      					<td><pre>#{key.getKeyWrapped(100)}</pre></td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+      			</div>
+      		</div>
+    	</div>
+    </div>
+    <div class="row" style="margin-top: 30px;">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Add SSH Key</h5>
+				<div class="card-body">
+					<p class="card-text">Simply put the contents of your SSH public key below, for example from the file ~/.ssh/id_rsa.pub.</p>
+		      		<form method="post" action="#{path('/keys/new')}">
+		      			<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="chrisx260"/>
+		      				<small id="nameHelp" class="form-text text-muted">The name for this SSH Key</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="key">SSH Key:</label>
+		      				<textarea class="form-control" id="key" name="key" aria-describedby="keyHelp" rows="1"></textarea>
+		      				<small id="keyHelp" class="form-text text-muted">The content of your SSH public key</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Add SSH Key</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

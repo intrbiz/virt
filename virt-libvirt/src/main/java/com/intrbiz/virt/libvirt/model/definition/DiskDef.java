@@ -30,6 +30,8 @@ public class DiskDef
 
     private AddressDef address;
     
+    private AuthDef auth;
+    
     public DiskDef()
     {
         super();
@@ -43,6 +45,12 @@ public class DiskDef
         this.driver = driver;
         this.source = source;
         this.target = target;
+    }
+    
+    public DiskDef(String type, String device, DriverDef driver, SourceDef source, TargetDef target, AuthDef auth)
+    {
+        this(type, device, driver, source, target);
+        this.auth = auth;
     }
 
     @XmlAttribute(name = "type")
@@ -121,14 +129,25 @@ public class DiskDef
     {
         this.address = address;
     }
+    
+    @XmlElementRef(type = AuthDef.class)
+    public AuthDef getAuth()
+    {
+        return auth;
+    }
 
+    public void setAuth(AuthDef auth)
+    {
+        this.auth = auth;
+    }
+    
     @XmlRootElement(name = "sharable")
     @XmlType(name = "sharable")
     public static class Sharable
     {
 
     }
-    
+
     public static DiskDef read(String def)
     {
         try

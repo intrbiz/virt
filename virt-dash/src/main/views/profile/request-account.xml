@@ -1,0 +1,31 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Request Another Account">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Request Account</h5>
+				<div class="card-body">
+					<p class="card-text">To request another account we need to know what it should be called and why you need it.</p>
+		      		<form method="post" action="#{path('/profile/account/request')}">
+		      			<div class="form-group">
+					    	<label for="name">Account name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="Development"/>
+					    	<small id="nameHelp" class="form-text text-muted">What you would like to call this account, eg: Production, Development, Staging</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="reason">Account reason:</label>
+					    	<textarea class="form-control" id="reason" name="reason" aria-describedby="reasonHelp" rows="2"></textarea>
+					    	<small id="reasonHelp" class="form-text text-muted">Why do you require another account?</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Request Account</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

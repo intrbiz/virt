@@ -1,0 +1,37 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Zone">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Zone</h5>
+				<div class="card-body">
+					<p class="card-text">Zones define isolated pools which users can deploy into.</p>
+	      			<form method="post" action="#{path('/admin/zone/new')}">
+	      				<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="uk1.a"/>
+					    	<small id="nameHelp" class="form-text text-muted">The name zone name configured on hosts, eg: 'uk1.a'</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="summary">Summary:</label>
+					    	<input type="text" class="form-control" aria-describedby="summaryHelp" id="summary" name="summary" placeholder="UK 1 Zone A"/>
+					    	<small id="summaryHelp" class="form-text text-muted">The display summary for this zone</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="description">Description:</label>
+		      				<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2"></textarea>
+		      				<small id="descriptionHelp" class="form-text text-muted">Short description of this zone.</small>
+					  	</div>
+	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Create Zone</button>
+	      			</form>
+	      		</div>
+	      	</div>
+    	</div>
+    </div>
+	
+</fragment>

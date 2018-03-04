@@ -1,0 +1,18 @@
+label {
+	display: inline-block;
+	width: 150px;
+}
+input[type=text], input[type=password], input[type=submit], select {
+	width: 400px;
+	padding: 4px;
+}
+input[type=submit] {
+	font-weight: bold;
+	margin-left: 155px;
+	padding: 4px;
+}
+textarea {
+	width: 400px;
+	height: 200px;
+	padding: 4px;
+} 

@@ -81,4 +81,14 @@ public class DriverDef
     {
         this.io = io;
     }
+    
+    public static DriverDef qcow2()
+    {
+        return new DriverDef("qemu", "qcow2", "writethrough");
+    }
+    
+    public static DriverDef raw()
+    {
+        return new DriverDef("qemu", "raw", "writethrough");
+    }
 }

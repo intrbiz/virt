@@ -1,0 +1,37 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Machines">
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Machines</h5>
+				<div class="card-body">
+					<p class="card-text">These are the machines which are currently defined within the cluster.</p>
+		      		<table class="table">
+		      			<tr>
+							<th>UUID</th>
+							<th>Name</th>
+							<th>Status</th>
+							<th>Host</th>
+							<th>Autostart</th>
+							<th>Persistent</th>
+							<th>Unmanaged</th>
+		      			</tr>
+		      			<data-set var="machine" value="#{machines}">
+		      				<tr>
+		      					<td>#{machine.id}</td>
+		      					<td>#{machine.name}</td>
+		      					<td><span class="badge badge-#{status_class(machine.status)}">#{machine.status}</span></td>
+		      					<td>#{machine.host}</td>
+		      					<td>#{if(machine.autostart, 'yes', 'no')}</td>
+		      					<td>#{if(machine.persistent, 'yes', 'no')}</td>
+		      					<td>#{if(machine.isUnmanaged(), 'yes', 'no')}</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+      			</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

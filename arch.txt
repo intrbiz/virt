@@ -1,0 +1,31 @@
+# Virt Manager
+
+    +--------------+
+    |              |
+    | Virt Manager |
+    | UI + API     |
+    |              |
+    +--------------+
+           |    |
+           |    |
+           |    |            +-------------------+
+           |    | Hazelcast  |                   |
+           |    \----------->| Virt Host Manager |
+           |                 | - Metadata API    |
+           |                 | - VM Manager      |
+           |                 | - Net Manager     |
+           |                 | - Ceph Manager    |
+           |                 +-------------------+
+           |                           |
+           |/--------------------------/
+           |
+           v
+    +--------------+
+    |              |
+    | PostgreSQL   |
+    |              |
+    +--------------+
+
+## VM Metadata Service
+
+Each VM has a dedicated NIC to communicate with the metadata server.  On the VM host a bridge: brcfg exists using the IP range: 172.16.169.0/24 with a suitable DHCP server running issuing addresses and a route for 169.254.169.254, which is the address for the metadata server. The metadata server queries the VM hosts ARP table to resolve the client to the VM configuration interface MAC address.
