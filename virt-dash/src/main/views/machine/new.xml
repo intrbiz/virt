@@ -15,6 +15,11 @@
 					    	<small id="nameHelp" class="form-text text-muted">The name for this machine: web-app-1</small>
 					  	</div>
 					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="1" style="height: 4em;"></textarea>
+					    	<small id="descriptionHelp" class="form-text text-muted">What is this machine for?</small>
+					  	</div>
+					  	<div class="form-group">
 					    	<label for="type">Zone:</label>
 		      				<select class="form-control" aria-describedby="zoneHelp" id="zone" name="zone">
 		      					<data-set var="option" value="#{zones}">
@@ -60,9 +65,9 @@
 		      				<small id="typeHelp" class="form-text text-muted">The administrative SSH Key for the machine</small>
 					  	</div>
 					  	<div class="form-group">
-					    	<label for="description">Description:</label>
-					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="1"></textarea>
-					    	<small id="descriptionHelp" class="form-text text-muted">What is this machine for?</small>
+					    	<label for="userData">User Data:</label>
+					    	<textarea class="form-control" id="userData" name="userData" aria-describedby="userDataHelp" rows="2"></textarea>
+					    	<small id="userDataHelp" class="form-text text-muted">The User Data in Cloud Config format which will be passed to Cloud Init</small>
 					  	</div>
 		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
 		      				#{balsa().getValidationErrors()}

@@ -17,12 +17,12 @@ import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidAccessTokenForURL;
 import com.intrbiz.metadata.RequireValidPrincipal;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.User;
 
 @Prefix("/")
-public class LoginRouter extends Router<App>
+public class LoginRouter extends Router<VirtDashApp>
 {
     private static final Logger logger = Logger.getLogger(LoginRouter.class);
     

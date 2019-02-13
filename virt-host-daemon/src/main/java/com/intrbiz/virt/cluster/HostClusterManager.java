@@ -1,8 +1,9 @@
 package com.intrbiz.virt.cluster;
 
+import com.intrbiz.virt.config.VirtHostCfg;
 import com.intrbiz.virt.manager.HostManager;
 
-public class HostClusterManager extends BaseClusterManager
+public class HostClusterManager extends BaseClusterManager<VirtHostCfg>
 {   
     public HostClusterManager(String instanceName, String environment)
     {

@@ -15,7 +15,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.SessionVar;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.SSHKey;
@@ -23,8 +23,8 @@ import com.intrbiz.virt.model.SSHKey;
 @Prefix("/keys")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class KeysRouter extends Router<App>
-{    
+public class KeysRouter extends Router<VirtDashApp>
+{
     @Get("/")
     @WithDataAdapter(VirtDB.class)
     public void sshKeys(VirtDB db, @SessionVar("currentAccount") Account currentAccount)
@@ -39,11 +39,11 @@ public class KeysRouter extends Router<App>
             VirtDB db,
             @SessionVar("currentAccount") Account currentAccount,
             @Param("name") @CheckStringLength(mandatory = true, min = 3) String name,
-            @Param("key") @CheckStringLength(mandatory = true, min = 50) String key
+            @Param("key") @CheckStringLength(mandatory = true, min = 50) String keyLines
     ) throws IOException
     {
-        String[] keyParts = key.split(" ");
-        db.setSSHKey(new SSHKey(currentAccount.getId(), name, keyParts[0] + " " + keyParts[1]));
+        String[] keys = keyLines.split("(?:\r\n|\n|\r)");
+        db.setSSHKey(new SSHKey(currentAccount.getId(), name, keys));
         redirect("/keys/");
     }
     

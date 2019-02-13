@@ -20,7 +20,7 @@ import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Role;
@@ -30,7 +30,7 @@ import com.intrbiz.virt.model.UserAccountGrant;
 @Prefix("/profile")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class ProfileRouter extends Router<App>
+public class ProfileRouter extends Router<VirtDashApp>
 {
     private static final Logger logger = Logger.getLogger(ProfileRouter.class);
     

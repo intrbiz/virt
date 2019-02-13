@@ -11,7 +11,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermission;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 
@@ -19,7 +19,7 @@ import com.intrbiz.virt.model.Account;
 @Template("layout/main")
 @RequireValidPrincipal()
 @RequirePermission("global_admin")
-public class AccountsRouter extends Router<App>
+public class AccountsRouter extends Router<VirtDashApp>
 {
     @Any("/")
     @WithDataAdapter(VirtDB.class)

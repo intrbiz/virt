@@ -2,34 +2,37 @@ package com.intrbiz.virt.metadata.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class ARPTable
-{   
-    public static final String DEFAULT_METADATA_BRIDGE = "brcfg";
+{    
+    private final Set<String> metadataInterfaces = new HashSet<String>(); 
     
-    private final String metadataBridge; 
-    
-    public ARPTable(String metadataBridge)
+    public ARPTable(String... metadataBridges)
     {
-        this.metadataBridge = metadataBridge;
+        for (String metadataBridge : metadataBridges)
+        {
+            this.metadataInterfaces.add(metadataBridge);
+        }
     }
     
     public ARPTable()
     {
-        this(DEFAULT_METADATA_BRIDGE);
+        this("brvms", "cfghost");
     }
     
-    public String getMetadataBridge()
+    public Set<String> getMetadataInterfaces()
     {
-        return this.metadataBridge;
+        return this.metadataInterfaces;
     }
     
     public String getInstanceMAC(String ip)
     {
         return this.readARPTable().stream()
-                .filter((e) -> this.metadataBridge.equals(e.getDevice()))
+                .filter((e) -> this.metadataInterfaces.contains(e.getDevice()))
                 .filter((e) -> ip.equals(e.getIp()))
                 .findFirst()
                 .map((e) -> e.getHwAddress())

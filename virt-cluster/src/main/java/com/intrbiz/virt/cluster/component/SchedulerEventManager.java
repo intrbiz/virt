@@ -6,11 +6,12 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IQueue;
+import com.intrbiz.configuration.Configuration;
 import com.intrbiz.virt.cluster.ClusterComponent;
 import com.intrbiz.virt.cluster.ClusterManager;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
 
-public class SchedulerEventManager implements ClusterComponent
+public class SchedulerEventManager<C extends Configuration> implements ClusterComponent<C>
 {
     private static final String SCHEDULER_EVENT_QUEUES = "virt.scheduler.event";
     
@@ -22,7 +23,7 @@ public class SchedulerEventManager implements ClusterComponent
     private HazelcastInstance instance;
 
     @Override
-    public void config(ClusterManager manager, Config config)
+    public void config(ClusterManager<C> manager, Config config)
     {
         QueueConfig queueConfig = config.getQueueConfig(schedulerEventQueueName("*"));
         queueConfig.setAsyncBackupCount(0);
@@ -32,7 +33,7 @@ public class SchedulerEventManager implements ClusterComponent
     }
 
     @Override
-    public void start(ClusterManager manager, HazelcastInstance instance)
+    public void start(ClusterManager<C> manager, HazelcastInstance instance)
     {
         this.instance = instance;
     }
@@ -59,5 +60,16 @@ public class SchedulerEventManager implements ClusterComponent
         {
         }
         return false;
+    }
+
+    @Override
+    public void configure(C cfg) throws Exception
+    {
+    }
+
+    @Override
+    public C getConfiguration()
+    {
+        return null;
     }
 }

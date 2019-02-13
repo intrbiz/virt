@@ -1,38 +1,63 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 
-@XmlRootElement(name = "vcpu")
-@XmlType(name = "vcpu")
+@XmlRootElement(name = "cpu")
+@XmlType(name = "cpu")
 public class CPUDef
 {
-
-    private String placement;
-
-    private int count;
-
-    @XmlAttribute(name = "placement")
-    public String getPlacement()
+    private String mode;
+    
+    private String match;
+    
+    private String check;
+    
+    private ModelDef model;
+    
+    @XmlAttribute(name = "mode")
+    public String getMode()
     {
-        return placement;
+        return mode;
     }
 
-    public void setPlacement(String placement)
+    public void setMode(String mode)
     {
-        this.placement = placement;
+        this.mode = mode;
     }
 
-    @XmlValue
-    public int getCount()
+    @XmlAttribute(name = "match")
+    public String getMatch()
     {
-        return count;
+        return match;
     }
 
-    public void setCount(int count)
+    public void setMatch(String match)
     {
-        this.count = count;
+        this.match = match;
+    }
+
+    @XmlAttribute(name = "check")
+    public String getCheck()
+    {
+        return check;
+    }
+
+    public void setCheck(String check)
+    {
+        this.check = check;
+    }
+
+    @XmlElementRef(type = ModelDef.class)
+    public ModelDef getModel()
+    {
+        return model;
+    }
+
+    public void setModel(ModelDef model)
+    {
+        this.model = model;
     }
 }

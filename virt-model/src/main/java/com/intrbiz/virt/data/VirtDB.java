@@ -34,7 +34,7 @@ import com.intrbiz.virt.model.Zone;
 
 @SQLSchema(
         name = "virt", 
-        version = @SQLVersion({1, 0, 8}),
+        version = @SQLVersion({1, 0, 10}),
         tables = {
             Config.class,
             User.class,

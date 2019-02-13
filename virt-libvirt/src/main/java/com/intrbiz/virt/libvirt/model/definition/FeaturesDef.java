@@ -1,5 +1,6 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -13,6 +14,8 @@ public class FeaturesDef
     private APIC apic;
 
     private PAE pae;
+    
+    private VMPort vmport;
 
     @XmlElementRef(type = ACPI.class)
     public ACPI getAcpi()
@@ -47,6 +50,17 @@ public class FeaturesDef
         this.pae = pae;
     }
 
+    @XmlElementRef(type = VMPort.class)
+    public VMPort getVmport()
+    {
+        return vmport;
+    }
+
+    public void setVmport(VMPort vmport)
+    {
+        this.vmport = vmport;
+    }
+
     @XmlRootElement(name = "acpi")
     @XmlType(name = "acpi")
     public static class ACPI
@@ -63,5 +77,23 @@ public class FeaturesDef
     @XmlType(name = "pae")
     public static class PAE
     {
+    }
+    
+    @XmlRootElement(name = "vmport")
+    @XmlType(name = "vmport")
+    public static class VMPort
+    {
+        private String state;
+
+        @XmlAttribute(name ="state")
+        public String getState()
+        {
+            return state;
+        }
+
+        public void setState(String state)
+        {
+            this.state = state;
+        }
     }
 }

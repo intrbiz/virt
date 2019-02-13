@@ -19,6 +19,8 @@ public class HostState implements Serializable, Comparable<HostState>
     private Set<String> supportedVolumeTypes = new HashSet<String>();
 
     private Set<String> supportedNetworkTypes = new HashSet<String>();
+    
+    private Set<String> capabilities = new HashSet<String>();
 
     private HostStatus state;
 
@@ -35,18 +37,29 @@ public class HostState implements Serializable, Comparable<HostState>
     private int definedCPUs;
 
     private long definedMemory;
+    
+    private String interconnectAddress;
+    
+    private long hugepages2MiBTotal = 0;
+    
+    private long hugepages2MiBFree = 0;
+    
+    private long hugepages1GiBTotal = 0;
+    
+    private long hugepages1GiBFree = 0;
 
     public HostState()
     {
         super();
     }
 
-    public HostState(String zone, String name, HostStatus state)
+    public HostState(String zone, String name, HostStatus state, Set<String> capabilities)
     {
         super();
         this.zone = zone;
         this.name = name;
         this.state = state;
+        this.capabilities = capabilities;
         this.lastUpdated = System.currentTimeMillis();
     }
 
@@ -68,6 +81,16 @@ public class HostState implements Serializable, Comparable<HostState>
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public String getInterconnectAddress()
+    {
+        return interconnectAddress;
+    }
+
+    public void setInterconnectAddress(String interconnectAddress)
+    {
+        this.interconnectAddress = interconnectAddress;
     }
 
     public String getId()
@@ -195,9 +218,70 @@ public class HostState implements Serializable, Comparable<HostState>
         this.definedCPUs = definedCPUs;
     }
 
+    public long getHugepages2MiBTotal()
+    {
+        return hugepages2MiBTotal;
+    }
+
+    public void setHugepages2MiBTotal(long hugepages2MiBTotal)
+    {
+        this.hugepages2MiBTotal = hugepages2MiBTotal;
+    }
+
+    public long getHugepages2MiBFree()
+    {
+        return hugepages2MiBFree;
+    }
+
+    public void setHugepages2MiBFree(long hugepages2MiBFree)
+    {
+        this.hugepages2MiBFree = hugepages2MiBFree;
+    }
+
+    public long getHugepages1GiBTotal()
+    {
+        return hugepages1GiBTotal;
+    }
+
+    public void setHugepages1GiBTotal(long hugepages1GiBTotal)
+    {
+        this.hugepages1GiBTotal = hugepages1GiBTotal;
+    }
+
+    public long getHugepages1GiBFree()
+    {
+        return hugepages1GiBFree;
+    }
+
+    public void setHugepages1GiBFree(long hugepages1GiBFree)
+    {
+        this.hugepages1GiBFree = hugepages1GiBFree;
+    }
+
+    public boolean hasCapability(String capability)
+    {
+        return this.capabilities.contains(capability);
+    }
+
+    public Set<String> getCapabilities()
+    {
+        return capabilities;
+    }
+
+    public void setCapabilities(Set<String> capabilities)
+    {
+        this.capabilities = capabilities;
+    }
+
     @Override
     public int compareTo(HostState o)
     {
         return this.zone.equals(o.zone) ? this.zone.compareTo(o.zone) : this.name.compareTo(o.name);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "HostState [id=" + id + ", hostCPUs=" + hostCPUs + ", hostMemory=" + hostMemory + ", supportedMachineTypeFamilies=" + supportedMachineTypeFamilies + ", supportedVolumeTypes=" + supportedVolumeTypes + ", supportedNetworkTypes=" + supportedNetworkTypes + ", state=" + state + ", zone=" + zone + ", name=" + name + ", lastUpdated=" + lastUpdated + ", runningMachines=" + runningMachines + ", definedMachines=" + definedMachines + ", definedCPUs=" + definedCPUs + ", definedMemory=" + definedMemory + ", interconnectAddress=" + interconnectAddress + "]";
     }
 }

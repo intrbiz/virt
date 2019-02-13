@@ -12,6 +12,8 @@ import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.intrbiz.virt.libvirt.model.definition.SourceDef.MacVTapMode;
+
 @XmlRootElement(name = "interface")
 @XmlType(name = "interface")
 public class InterfaceDef
@@ -169,8 +171,32 @@ public class InterfaceDef
         return new InterfaceDef("bridge", new MACDef(mac), SourceDef.bridge(bridge), ModelDef.virtio(), target);
     }
     
-    public static InterfaceDef virtioEthernet(String mac, String bridge, TargetDef target)
+    public static InterfaceDef virtioEthernet(String mac, TargetDef target)
     {
         return new InterfaceDef("ethernet", new MACDef(mac), ModelDef.virtio(), target);
+    }
+    
+    /**
+     * <interface type='vhostuser'>
+     *  <mac address='c6:bc:c8:ef:eb:48'/>
+     *  <source type='unix' path='/var/run/vpp/vm-7afbfb35811a.sock' mode='server'/>
+     *  <model type='virtio'/>
+     * </interface>
+     */
+    public static InterfaceDef vhostUser(String mac, String path, boolean server)
+    {
+        return new InterfaceDef("vhostuser", new MACDef(mac), SourceDef.unix(path, server), ModelDef.virtio());
+    }
+    
+    /**
+     * <interface type='direct'>
+     *   <mac address='d0:0f:d0:0f:00:01'/>
+     *   <source dev='eth0' mode='bridge'/>
+     *   <model type='virtio'/>
+     * </interface>
+     */
+    public static InterfaceDef direct(String mac, String device, MacVTapMode mode)
+    {
+        return new InterfaceDef("direct", new MACDef(mac), SourceDef.macVTap(device, mode), ModelDef.virtio());
     }
 }

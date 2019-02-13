@@ -19,10 +19,18 @@
 					    	<input type="text" class="form-control" aria-describedby="sizeHelp" id="size" name="size" placeholder="20"/>
 		      				<small id="sizeHelp" class="form-text text-muted">How large is the image root volume</small>
 					  	</div>
+					  	<div class="form-group">
+					    	<label for="volume_type">Source Volume Type:</label>
+		      				<select class="form-control" aria-describedby="volumeTypeHelp" id="volume_type" name="volume_type">
+		      					<option value="ceph" selected="selected">Ceph Snapshot</option>
+		      					<option value="local">Local QCOW2 Volume</option>
+		      				</select> 
+		      				<small id="volumeTypeHelp" class="form-text text-muted">The volume type for the image's root volume</small>
+					  	</div>
 	      				<div class="form-group">
-					    	<label for="source">Source:</label>
+					    	<label for="source">Source Volume:</label>
 		      				<input type="text" class="form-control" aria-describedby="sourceHelp" id="source" name="source" placeholder="important/image/opensuse42.3@20180204"/>
-		      				<small id="sourceHelp" class="form-text text-muted">The volume source for the image's root volume, this must be a Ceph snapshot</small>
+		      				<small id="sourceHelp" class="form-text text-muted">The volume source for the image's root volume, eg a Ceph snapshot</small>
 					  	</div>
 	      				<div class="form-group">
 					    	<label for="provider">Provider:</label>

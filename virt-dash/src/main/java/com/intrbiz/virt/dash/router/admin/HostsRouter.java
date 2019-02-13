@@ -9,14 +9,14 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermission;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 
 @Prefix("/admin/host")
 @Template("layout/main")
 @RequireValidPrincipal()
 @RequirePermission("global_admin")
-public class HostsRouter extends Router<App>
+public class HostsRouter extends Router<VirtDashApp>
 {
     @Any("/")
     @WithDataAdapter(VirtDB.class)

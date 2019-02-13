@@ -10,12 +10,13 @@ import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.intrbiz.configuration.Configuration;
 import com.intrbiz.virt.cluster.ClusterComponent;
 import com.intrbiz.virt.cluster.ClusterManager;
 import com.intrbiz.virt.cluster.model.MachineState;
 import com.intrbiz.virt.cluster.model.health.MachineHealth;
 
-public class MachineStateStore implements ClusterComponent
+public class MachineStateStore<C extends Configuration> implements ClusterComponent<C>
 {
     private static final String MACHINE_STATE_MAP = "virt.machine.state";
     
@@ -28,7 +29,7 @@ public class MachineStateStore implements ClusterComponent
     private IMap<UUID, MachineHealth> machineHealth;
 
     @Override
-    public void config(ClusterManager manager, Config config)
+    public void config(ClusterManager<C> manager, Config config)
     {
         MapConfig machineStateMapCfg = config.getMapConfig(MACHINE_STATE_MAP);
         machineStateMapCfg.setAsyncBackupCount(2);
@@ -41,7 +42,7 @@ public class MachineStateStore implements ClusterComponent
     }
 
     @Override
-    public void start(ClusterManager manager, HazelcastInstance instance)
+    public void start(ClusterManager<C> manager, HazelcastInstance instance)
     {
         this.localMemberId = instance.getCluster().getLocalMember().getUuid();
         this.machineState = instance.getMap(MACHINE_STATE_MAP);
@@ -53,7 +54,7 @@ public class MachineStateStore implements ClusterComponent
     {
     }
     
-    public void setLocalMachineState(MachineState state)
+    public void mergeLocalMachineState(MachineState state)
     {
         state.setHost(this.localMemberId);
         this.setMachineState(state);
@@ -66,12 +67,13 @@ public class MachineStateStore implements ClusterComponent
     
     public void setMachineState(MachineState state)
     {
-        this.machineState.set(state.getId(), state);
+        this.machineState.put(state.getId(), state);
     }
     
     public void removeMachineState(UUID id)
     {
         this.machineState.remove(id);
+        this.machineHealth.remove(id);
     }
     
     public List<MachineState> getMachines()
@@ -87,5 +89,16 @@ public class MachineStateStore implements ClusterComponent
     public void setMachineHealth(UUID id, MachineHealth health)
     {
         this.machineHealth.set(id, health);
+    }
+    
+    @Override
+    public void configure(C cfg) throws Exception
+    {
+    }
+
+    @Override
+    public C getConfiguration()
+    {
+        return null;
     }
 }

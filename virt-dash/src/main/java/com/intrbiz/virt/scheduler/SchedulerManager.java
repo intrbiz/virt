@@ -20,12 +20,13 @@ import com.intrbiz.virt.cluster.component.HostEventManager;
 import com.intrbiz.virt.cluster.component.HostStateStore;
 import com.intrbiz.virt.cluster.component.MachineStateStore;
 import com.intrbiz.virt.cluster.component.SchedulerEventManager;
+import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
 import com.intrbiz.virt.model.Zone;
 import com.intrbiz.virt.scheduler.model.ZoneSchedulerState;
 
-public class SchedulerManager implements ClusterComponent
+public class SchedulerManager implements ClusterComponent<VirtDashCfg>
 {
     private static Logger logger = Logger.getLogger(SchedulerManager.class);
     
@@ -40,15 +41,15 @@ public class SchedulerManager implements ClusterComponent
     
     private HazelcastInstance instance;
     
-    private SchedulerEventManager schedulerEvents;
+    private SchedulerEventManager<VirtDashCfg> schedulerEvents;
     
     private List<ZoneScheduler> zoneSchedulers = new CopyOnWriteArrayList<ZoneScheduler>();
     
-    private HostStateStore hostStore;
+    private HostStateStore<VirtDashCfg> hostStore;
     
-    private MachineStateStore machineStore;
+    private MachineStateStore<VirtDashCfg> machineStore;
     
-    private HostEventManager hostEvents;
+    private HostEventManager<VirtDashCfg> hostEvents;
     
     private IMap<String, ZoneSchedulerState> schedulerState;
     
@@ -60,13 +61,24 @@ public class SchedulerManager implements ClusterComponent
     }
     
     @Override
+    public void configure(VirtDashCfg cfg) throws Exception
+    {        
+    }
+
+    @Override
+    public VirtDashCfg getConfiguration()
+    {
+        return null;
+    }
+
+    @Override
     public int order()
     {
         return ORDER_LATE;
     }
 
     @Override
-    public void config(ClusterManager manager, Config config)
+    public void config(ClusterManager<VirtDashCfg> manager, Config config)
     {
         MapConfig machineStateMapCfg = config.getMapConfig(SCHEDULER_STATE_MAP);
         machineStateMapCfg.setAsyncBackupCount(2);
@@ -74,8 +86,9 @@ public class SchedulerManager implements ClusterComponent
         machineStateMapCfg.setEvictionPolicy(EvictionPolicy.NONE);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void start(ClusterManager manager, HazelcastInstance instance)
+    public void start(ClusterManager<VirtDashCfg> manager, HazelcastInstance instance)
     {
         logger.info("Scheduler Manager starting up");
         this.instance = instance;
@@ -114,17 +127,17 @@ public class SchedulerManager implements ClusterComponent
         return this.schedulerEvents.getZoneSchedulerEventQueue(zoneId);
     }
     
-    public HostStateStore getHostStore()
+    public HostStateStore<VirtDashCfg> getHostStore()
     {
         return this.hostStore;
     }
     
-    public MachineStateStore getMachineStore()
+    public MachineStateStore<VirtDashCfg> getMachineStore()
     {
         return this.machineStore;
     }
     
-    public HostEventManager getHostEvents()
+    public HostEventManager<VirtDashCfg> getHostEvents()
     {
         return this.hostEvents;
     }

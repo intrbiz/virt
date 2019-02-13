@@ -3,6 +3,7 @@ package com.intrbiz.virt.scheduler.model;
 import java.io.Serializable;
 
 import com.hazelcast.core.Member;
+import com.intrbiz.Util;
 
 public class ZoneSchedulerState implements Serializable
 {
@@ -21,13 +22,13 @@ public class ZoneSchedulerState implements Serializable
         super();
     }
 
-    public ZoneSchedulerState(String id, boolean running, Member member)
+    public ZoneSchedulerState(String id, boolean running, Member member, String hostName)
     {
         super();
         this.id = id;
         this.running = running;
         this.currentOwnerId = member.getUuid();
-        this.currentOwnerName = member.getAddress().getHost();
+        this.currentOwnerName = Util.coalesceEmpty(hostName, member.getAddress().getHost());
     }
 
     public String getId()

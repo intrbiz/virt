@@ -58,13 +58,13 @@ public class Image
         super();
     }
     
-    public Image(String name, long size, String source)
+    public Image(String name, long size, String volumeType, String source)
     {
         super();
         this.id = UUID.randomUUID();
         this.name = name;
         this.size = size;
-        this.volumeType = PersistentVolume.TYPE.CEPH;
+        this.volumeType = volumeType;
         this.source = source;
     }
 

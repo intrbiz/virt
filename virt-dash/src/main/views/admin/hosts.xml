@@ -16,6 +16,8 @@
 		      				<th>Last Seen</th>
 		      				<th>CPUs</th>
 		      				<th>Memory</th>
+		      				<th>Hugepages 2 MiB</th>
+		      				<th>Hugepages 1 GiB</th>
 		      				<th>Machine Families</th>
 		      				<th>Volume Types</th>
 		      				<th>Network Types</th>
@@ -30,6 +32,8 @@
 		      					<td>#{host.lastUpdatedAgo / 1000}s ago</td>
 		      					<td>#{host.hostCPUs}</td>
 		      					<td>#{host.hostMemory / 1024 / 1024} MiB</td>
+		      					<td>#{host.hugepages2MiBFree} of #{host.hugepages2MiBTotal} free</td>
+		      					<td>#{host.hugepages1GiBFree} of #{host.hugepages1GiBTotal} free</td>
 		      					<td>
 		      						<data-set var="type" value="#{host.supportedMachineTypeFamilies}">
 		      							<span class="badge badge-info">#{type}</span>

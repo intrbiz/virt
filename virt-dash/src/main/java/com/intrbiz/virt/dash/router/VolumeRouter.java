@@ -21,7 +21,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.SessionVar;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Permission;
@@ -31,7 +31,7 @@ import com.intrbiz.virt.model.Zone;
 @Prefix("/volume")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class VolumeRouter extends Router<App>
+public class VolumeRouter extends Router<VirtDashApp>
 {   
     @Get("/new")
     @WithDataAdapter(VirtDB.class)

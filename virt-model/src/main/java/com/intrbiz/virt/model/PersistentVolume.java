@@ -11,6 +11,7 @@ import com.intrbiz.data.db.compiler.meta.SQLTable;
 import com.intrbiz.data.db.compiler.meta.SQLUnique;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.data.VirtDB;
+import com.intrbiz.virt.event.model.PersistentVolumeEO;
 
 @SQLTable(schema = VirtDB.class, name = "persistent_volume", since = @SQLVersion({ 1, 0, 6 }) )
 public class PersistentVolume
@@ -182,7 +183,13 @@ public class PersistentVolume
     
     public String getSource()
     {
-        return "zone/" + this.getZone().getName() + "/account/" + this.accountId + "/volume/" + this.id;
+        return "z/" + this.getZone().getName() + "/a/" + this.accountId + "/v/" + this.id;
+    }
+    
+    public PersistentVolumeEO toEvent()
+    {
+        PersistentVolumeEO eo = new PersistentVolumeEO();
+        return eo;
     }
 
     @Override

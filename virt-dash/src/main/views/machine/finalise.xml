@@ -57,9 +57,18 @@
 			      			</tr>
 		      				<tr>
 		      					<td>#{currentMachine.SSHKey.name}</td>
-		      					<td><pre>#{currentMachine.SSHKey.getKeyWrapped(100)}</pre></td>
+		      					<td>
+	      						<ul>
+		      						<data-set var="key" value="#{key.getAllKeysWrapped(100)}">
+		      							<li><pre>#{key}</pre></li>
+		      						</data-set>
+	      						</ul>
+	      					</td>
 		      				</tr>
 			      		</table>
+			      		<h5 class="card-title pt-3">User Data</h5>
+						<p class="card-text">The user data for this machine which will be provided to Cloud Init</p>
+						<pre class="card-text">#{coalesce(currentMachine.userData, 'No User Data')}</pre>
 			      		<container rendered="#{currentMachine.type.volumeLimit > 1}">
 							<h5 class="card-title pt-3">Machine Volumes</h5>
 							<p class="card-text">These are the details for any volumes not defined by the machine type or image, that this machine will have.</p>

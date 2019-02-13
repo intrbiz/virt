@@ -8,13 +8,14 @@ import com.hazelcast.core.Cluster;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.Member;
+import com.intrbiz.configuration.Configuration;
 import com.intrbiz.virt.cluster.ClusterComponent;
 import com.intrbiz.virt.cluster.ClusterManager;
 import com.intrbiz.virt.cluster.event.VirtEventConsumer;
 import com.intrbiz.virt.cluster.event.VirtEventHandler;
 import com.intrbiz.virt.event.host.VirtHostEvent;
 
-public class HostEventManager implements ClusterComponent
+public class HostEventManager<C extends Configuration> implements ClusterComponent<C>
 {
     private static final String HOST_EVENT_QUEUES = "virt.host.event";
     
@@ -34,7 +35,7 @@ public class HostEventManager implements ClusterComponent
     private VirtEventConsumer<VirtHostEvent> localConsumer;
 
     @Override
-    public void config(ClusterManager manager, Config config)
+    public void config(ClusterManager<C> manager, Config config)
     {
         QueueConfig queueConfig = config.getQueueConfig(hostEventQueueName("*"));
         queueConfig.setAsyncBackupCount(0);
@@ -44,7 +45,7 @@ public class HostEventManager implements ClusterComponent
     }
 
     @Override
-    public void start(ClusterManager manager, HazelcastInstance instance)
+    public void start(ClusterManager<C> manager, HazelcastInstance instance)
     {
         this.instance = instance;
         this.cluster = instance.getCluster();
@@ -96,5 +97,17 @@ public class HostEventManager implements ClusterComponent
     public void addLocalEventHandler(VirtEventHandler<VirtHostEvent> handler)
     {
         this.localConsumer.addLocalEventHandler(handler);
+    }
+    
+
+    @Override
+    public void configure(C cfg) throws Exception
+    {
+    }
+
+    @Override
+    public C getConfiguration()
+    {
+        return null;
     }
 }

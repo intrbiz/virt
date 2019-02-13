@@ -1,105 +1,79 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "os")
 @XmlType(name = "os")
 public class OSDef
 {
 
-    private Type type;
+    private TypeDef type;
 
-    private Boot boot;
+    private List<BootDef> boot = new LinkedList<BootDef>();
+    
+    private NVRAMDef nvram;
+    
+    private LoaderDef loader;
+    
+    private SMBIOSDef smbios;
 
-    @XmlElementRef(type = Type.class)
-    public Type getType()
+    @XmlElementRef(type = TypeDef.class)
+    public TypeDef getType()
     {
         return type;
     }
 
-    public void setType(Type type)
+    public void setType(TypeDef type)
     {
         this.type = type;
     }
 
-    @XmlElementRef(type = Boot.class)
-    public Boot getBoot()
+    @XmlElementRef(type = BootDef.class)
+    public List<BootDef> getBoot()
     {
         return boot;
     }
 
-    public void setBoot(Boot boot)
+    public void setBoot(List<BootDef> boot)
     {
         this.boot = boot;
     }
 
-    @XmlRootElement(name = "type")
-    @XmlType(name = "type")
-    public static class Type
+    @XmlElementRef(type = NVRAMDef.class)
+    public NVRAMDef getNvram()
     {
-
-        private String arch;
-
-        private String machine;
-
-        private String value;
-
-        @XmlAttribute(name = "arch")
-        public String getArch()
-        {
-            return arch;
-        }
-
-        public void setArch(String arch)
-        {
-            this.arch = arch;
-        }
-
-        @XmlAttribute(name = "machine")
-        public String getMachine()
-        {
-            return machine;
-        }
-
-        public void setMachine(String machine)
-        {
-            this.machine = machine;
-        }
-
-        @XmlValue
-        public String getValue()
-        {
-            return value;
-        }
-
-        public void setValue(String value)
-        {
-            this.value = value;
-        }
-
+        return nvram;
     }
 
-    @XmlRootElement(name = "boot")
-    @XmlType(name = "boot")
-    public static class Boot
+    public void setNvram(NVRAMDef nvram)
     {
+        this.nvram = nvram;
+    }
 
-        private String device;
+    @XmlElementRef(type = LoaderDef.class)
+    public LoaderDef getLoader()
+    {
+        return loader;
+    }
 
-        @XmlAttribute(name = "dev")
-        public String getDevice()
-        {
-            return device;
-        }
+    public void setLoader(LoaderDef loader)
+    {
+        this.loader = loader;
+    }
 
-        public void setDevice(String device)
-        {
-            this.device = device;
-        }
+    @XmlElementRef(type = SMBIOSDef.class)
+    public SMBIOSDef getSmbios()
+    {
+        return smbios;
+    }
 
+    public void setSmbios(SMBIOSDef smbios)
+    {
+        this.smbios = smbios;
     }
 }

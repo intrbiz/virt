@@ -11,6 +11,7 @@ import com.intrbiz.data.db.compiler.meta.SQLTable;
 import com.intrbiz.data.db.compiler.meta.SQLUnique;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.data.VirtDB;
+import com.intrbiz.virt.event.model.MachineAdminStatus;
 import com.intrbiz.virt.event.model.MachineEO;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
 import com.intrbiz.virt.model.MachineType.EphemeralVolume;
@@ -56,6 +57,12 @@ public class Machine
     @SQLColumn(index = 10, name = "zone_id", since = @SQLVersion({ 1, 0, 4 }))
     @SQLForeignKey(references = Zone.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 4 }))
     private UUID zoneId;
+    
+    @SQLColumn(index = 11, name = "admin_status", since = @SQLVersion({ 1, 0, 9 }))
+    private MachineAdminStatus adminStatus;
+    
+    @SQLColumn(index = 12, name = "user_data", since = @SQLVersion({ 1, 0, 10 }))
+    private String userData;
 
     public Machine()
     {
@@ -176,6 +183,26 @@ public class Machine
         this.zoneId = zoneId;
     }
     
+    public MachineAdminStatus getAdminStatus()
+    {
+        return adminStatus;
+    }
+
+    public void setAdminStatus(MachineAdminStatus adminStatus)
+    {
+        this.adminStatus = adminStatus;
+    }
+
+    public String getUserData()
+    {
+        return userData;
+    }
+
+    public void setUserData(String userData)
+    {
+        this.userData = userData;
+    }
+
     public Zone getZone()
     {
         try (VirtDB db = VirtDB.connect())
@@ -237,12 +264,12 @@ public class Machine
      */
     public String getSource()
     {
-        return "zone/" + this.getZone().getName() + "/account/" + this.accountId + "/machine/" + this.id + ".sda";
+        return "z/" + this.getZone().getName() + "/a/" + this.accountId + "/m/" + this.id + ".sda";
     }
     
     public String getEphemeralVolumeSource(int evIndex)
     {
-        return "zone/" + this.getZone().getName() + "/account/" + this.accountId + "/machine/" + this.id + "." + volumeName(evIndex);
+        return "z/" + this.getZone().getName() + "/a/" + this.accountId + "/m/" + this.id + "." + volumeName(evIndex);
     }
     
     public MachineEO toEvent()
@@ -253,7 +280,7 @@ public class Machine
         List<MachineVolume> volumes = this.getVolumes();
         List<MachineNIC> interfaces = this.getInterfaces();
         // machine basics
-        MachineEO eo = new MachineEO(this.id, zone.getName(), this.name, type.getFamily(), type.getCpus(), type.getMemory(), this.cfgMac);
+        MachineEO eo = new MachineEO(this.id, zone.getName(), this.name, type.getFamily(), type.getName(), type.getCpus(), type.getMemory(), this.cfgMac, this.adminStatus);
         // add the list of NICs to various networks
         for (MachineNIC nic : interfaces)
         {
@@ -317,7 +344,7 @@ public class Machine
     
     public static String interfaceName(int index)
     {
-        return "eth" + ((char) (0x31 + index));
+        return "eth" + ((char) (0x30 + index));
     }
     
     public static String volumeName(int deviceIndex)

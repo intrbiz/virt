@@ -1,5 +1,7 @@
 package com.intrbiz.virt.model;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import com.intrbiz.data.db.compiler.meta.Action;
@@ -26,19 +28,26 @@ public class SSHKey
 
     @SQLColumn(index = 4, name = "key", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     private String key;
+    
+    @SQLColumn(index = 5, name = "additional", type ="TEXT[]", since = @SQLVersion({ 1, 0, 10 }))
+    private List<String> additional = new LinkedList<String>();
 
     public SSHKey()
     {
         super();
     }
 
-    public SSHKey(UUID accountId, String name, String key)
+    public SSHKey(UUID accountId, String name, String... keys)
     {
         super();
         this.id = UUID.randomUUID();
         this.accountId = accountId;
         this.name = name;
-        this.key = key;
+        if (keys.length > 0) this.key = keys[0];
+        for (int i = 1; i < keys.length; i++)
+        {
+            this.additional.add(keys[i]);
+        }
     }
 
     public UUID getId()
@@ -81,14 +90,43 @@ public class SSHKey
         this.key = key;
     }
     
-    public String getKeyWrapped(int length)
+    public List<String> getAdditional()
+    {
+        return additional;
+    }
+
+    public void setAdditional(List<String> additional)
+    {
+        this.additional = additional;
+    }
+    
+    public List<String> getAllKeys()
+    {
+        List<String> all = new LinkedList<>();
+        all.add(this.key);
+        all.addAll(this.additional);
+        return all;
+    }
+    
+    public List<String> getAllKeysWrapped(int length)
+    {
+        List<String> all = new LinkedList<>();
+        all.add(wrapKey(this.key, length));
+        for (String key : this.additional)
+        {
+            all.add(wrapKey(key, length));
+        }
+        return all;
+    }
+
+    public static String wrapKey(String key, int length)
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < this.key.length(); i++)
+        for (int i = 0; i < key.length(); i++)
         {
             if (i > 0 && (i % length) == 0)
                 sb.append("\r\n");
-            sb.append(this.key.charAt(i));
+            sb.append(key.charAt(i));
         }
         return sb.toString();
     }

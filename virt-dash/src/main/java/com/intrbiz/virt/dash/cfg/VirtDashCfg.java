@@ -6,20 +6,35 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.intrbiz.configuration.Configuration;
+import com.intrbiz.util.pool.database.DatabasePoolConfiguration;
 
 @XmlRootElement(name = "virt-dash")
 @XmlType(name = "virt-dash")
 public class VirtDashCfg extends Configuration
 {
     private static final long serialVersionUID = 1L;
+    
+    private DatabasePoolConfiguration database;
 
     public VirtDashCfg()
     {
         super();
+    }
+
+    @XmlElementRef(type = DatabasePoolConfiguration.class)
+    public DatabasePoolConfiguration getDatabase()
+    {
+        return database;
+    }
+
+    public void setDatabase(DatabasePoolConfiguration database)
+    {
+        this.database = database;
     }
 
     public static VirtDashCfg read(File file) throws JAXBException

@@ -85,7 +85,7 @@
 				<artifactId>packaging</artifactId>
 				<version>${intrbiz.util.version}</version>
 				<configuration>
-					<appClass>com.intrbiz.virt.dash.App</appClass>
+					<appClass>com.intrbiz.virt.VirtDashApp</appClass>
 				</configuration>
 				<executions>
 					<execution>

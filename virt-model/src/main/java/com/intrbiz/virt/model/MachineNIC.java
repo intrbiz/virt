@@ -49,7 +49,7 @@ public class MachineNIC
         this.networkId = network.getId();
         this.name = name;
         this.mac = IDUtil.formatMac(IDUtil.randomMac());
-        this.ipv4 = network.getRandomAddress();
+        this.ipv4 = network.getIPv4RandomAddress();
     }
 
 

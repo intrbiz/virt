@@ -1,11 +1,12 @@
 package com.intrbiz.virt.cluster;
 
+import com.intrbiz.configuration.Configuration;
 import com.intrbiz.virt.cluster.component.HostEventManager;
 import com.intrbiz.virt.cluster.component.HostStateStore;
 import com.intrbiz.virt.cluster.component.MachineStateStore;
 import com.intrbiz.virt.cluster.component.SchedulerEventManager;
 
-public class BaseClusterManager extends ClusterManager
+public class BaseClusterManager<C extends Configuration> extends ClusterManager<C>
 {
     public BaseClusterManager(String instanceName, String environment)
     {
@@ -20,28 +21,32 @@ public class BaseClusterManager extends ClusterManager
     @Override
     protected void registerDefaultComponents()
     {
-        this.registerComponent(new HostStateStore());
-        this.registerComponent(new MachineStateStore());
-        this.registerComponent(new HostEventManager());
-        this.registerComponent(new SchedulerEventManager());
+        this.registerComponent(new HostStateStore<C>());
+        this.registerComponent(new MachineStateStore<C>());
+        this.registerComponent(new HostEventManager<C>());
+        this.registerComponent(new SchedulerEventManager<C>());
     }
     
-    public HostStateStore getHostStateStore()
+    @SuppressWarnings("unchecked")
+    public HostStateStore<C> getHostStateStore()
     {
         return this.getComponent(HostStateStore.class);
     }
     
-    public MachineStateStore getMachineStateStore()
+    @SuppressWarnings("unchecked")
+    public MachineStateStore<C> getMachineStateStore()
     {
         return this.getComponent(MachineStateStore.class);
     }
     
-    public HostEventManager getHostEventManager()
+    @SuppressWarnings("unchecked")
+    public HostEventManager<C> getHostEventManager()
     {
         return this.getComponent(HostEventManager.class);
     }
     
-    public SchedulerEventManager getSchedulerEventManager()
+    @SuppressWarnings("unchecked")
+    public SchedulerEventManager<C> getSchedulerEventManager()
     {
         return this.getComponent(SchedulerEventManager.class);
     }

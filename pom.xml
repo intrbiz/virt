@@ -13,8 +13,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<balsa.version>5.0.0-SNAPSHOT</balsa.version>
-		<util.version>1.4.0-SNAPSHOT</util.version>
+		<balsa.version>5.0.0</balsa.version>
+		<util.version>1.4.0</util.version>
+		<hazelcast.version>3.11.1</hazelcast.version>
+		<core.version>1.0.1</core.version>
+		<postgresql.driver.version>42.2.5</postgresql.driver.version>
 	</properties>
 
 	<build>
@@ -69,6 +72,10 @@
 		<module>virt-event-model</module>
 		<module>virt-util</module>
 		<module>virt-cluster</module>
+		<module>virt-vpp-api-simple</module>
+		<module>virt-vpp-daemon</module>
+		<module>virt-vpp-client</module>
+		<module>virt-pdns-backend</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
@@ -145,7 +152,7 @@
             <dependency>
             	<groupId>org.postgresql</groupId>
             	<artifactId>postgresql</artifactId>
-            	<version>42.2.0.jre7</version>
+            	<version>${postgresql.driver.version}</version>
             </dependency>
             <dependency>
             	<groupId>org.mindrot</groupId>
@@ -160,17 +167,17 @@
             <dependency>
             	<groupId>com.intrbiz.virt</groupId>
             	<artifactId>virt-util</artifactId>
-            	<version>1.0.0-SNAPSHOT</version>
+            	<version>${project.version}</version>
             </dependency>
             <dependency>
             	<groupId>com.hazelcast</groupId>
             	<artifactId>hazelcast-all</artifactId>
-            	<version>3.9.2</version>
+            	<version>${hazelcast.version}</version>
             </dependency>
             <dependency>
             	<groupId>com.intrbiz.core</groupId>
             	<artifactId>core</artifactId>
-            	<version>1.0.1</version>
+            	<version>${core.version}</version>
             </dependency>
             <dependency>
             	<groupId>log4j</groupId>
@@ -180,7 +187,7 @@
             <dependency>
             	<groupId>com.intrbiz.virt</groupId>
             	<artifactId>virt-cluster</artifactId>
-            	<version>1.0.0-SNAPSHOT</version>
+            	<version>${project.version}</version>
             </dependency>
 		</dependencies>
 	</dependencyManagement>

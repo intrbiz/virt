@@ -409,6 +409,34 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         }
         return ifaces;
     }
+    
+    public int getMaxCpus()
+    {
+        this.adapter.checkOpen();
+        try 
+        {
+            return this.domain.getMaxVcpus();
+        }
+        catch (LibvirtException e)
+        {
+            // ignore
+        }
+        return 0;
+    }
+    
+    public long getMaxMemory()
+    {
+        this.adapter.checkOpen();
+        try 
+        {
+            return this.domain.getMaxMemory() * 1024L;
+        }
+        catch (LibvirtException e)
+        {
+            // ignore
+        }
+        return 0;
+    }
 
     public LibVirtDomainLifecycleEventHandler registerLifecycleEventHandler(LibVirtDomainLifecycleEventHandler handler)
     {

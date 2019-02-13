@@ -9,8 +9,8 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.SessionVar;
 import com.intrbiz.metadata.Template;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.cluster.component.MachineStateStore;
-import com.intrbiz.virt.dash.App;
 import com.intrbiz.virt.dash.model.RunningMachine;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
@@ -19,7 +19,7 @@ import com.intrbiz.virt.model.Account;
 @Prefix("/")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class OverviewRouter extends Router<App>
+public class OverviewRouter extends Router<VirtDashApp>
 {
     @Any("/")
     @WithDataAdapter(VirtDB.class)

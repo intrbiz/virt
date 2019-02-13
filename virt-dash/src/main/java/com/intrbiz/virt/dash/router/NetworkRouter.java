@@ -19,7 +19,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.SessionVar;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Network;
@@ -29,7 +29,7 @@ import com.intrbiz.virt.model.Zone;
 @Prefix("/network")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class NetworkRouter extends Router<App>
+public class NetworkRouter extends Router<VirtDashApp>
 {   
     @Get("/new")
     @WithDataAdapter(VirtDB.class)
@@ -52,7 +52,7 @@ public class NetworkRouter extends Router<App>
     {
         Zone zone = notNull(db.getZone(zoneId));
         require(permission(Permission.NETWORK_MANAGE.toString(), currentAccount));
-        if (! Network.isCIDRUsable(cidr)) throw new BalsaValidationError("The provided CIDR is not usable");
+        if (! Network.isIPv4CIDRUsable(cidr)) throw new BalsaValidationError("The provided CIDR is not usable");
         sessionVar("currentNetwork", new Network(zone, currentAccount, name, cidr, description));
         redirect("/network/finalise");
     }

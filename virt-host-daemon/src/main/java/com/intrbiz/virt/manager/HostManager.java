@@ -1,8 +1,10 @@
 package com.intrbiz.virt.manager;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -17,28 +19,28 @@ import com.intrbiz.virt.cluster.component.MachineStateStore;
 import com.intrbiz.virt.cluster.model.HostState;
 import com.intrbiz.virt.cluster.model.HostStatus;
 import com.intrbiz.virt.cluster.model.MachineState;
+import com.intrbiz.virt.config.VirtHostCfg;
 import com.intrbiz.virt.event.VirtEvent;
-import com.intrbiz.virt.event.host.CreateMachine;
-import com.intrbiz.virt.event.host.RebootMachine;
-import com.intrbiz.virt.event.host.StartMachine;
-import com.intrbiz.virt.event.host.StopMachine;
-import com.intrbiz.virt.event.model.MachineEO;
+import com.intrbiz.virt.event.host.ManageMachine;
 import com.intrbiz.virt.manager.net.DefaultNetManager;
 import com.intrbiz.virt.manager.net.NetManager;
-import com.intrbiz.virt.manager.store.DefaultStoreManager;
+import com.intrbiz.virt.manager.net.VPPNetManager;
+import com.intrbiz.virt.manager.store.CephStoreManager;
+import com.intrbiz.virt.manager.store.LocalStoreManager;
 import com.intrbiz.virt.manager.store.StoreManager;
-import com.intrbiz.virt.manager.vm.LibvirtManager;
-import com.intrbiz.virt.manager.vm.VirtManager;
+import com.intrbiz.virt.manager.virt.LibvirtManager;
+import com.intrbiz.virt.manager.virt.VirtManager;
+import com.intrbiz.virt.manager.virt.model.HostInfo;
 
-public class HostManager implements ClusterComponent
+public class HostManager implements ClusterComponent<VirtHostCfg>
 {
     private static Logger logger = Logger.getLogger(HostManager.class);
     
-    private HostStateStore hostStore;
+    private HostStateStore<VirtHostCfg> hostStore;
     
-    private MachineStateStore machineStore;
+    private MachineStateStore<VirtHostCfg> machineStore;
     
-    private HostEventManager hostEvents;
+    private HostEventManager<VirtHostCfg> hostEvents;
 
     private HostStatus status = HostStatus.JOINING;
 
@@ -51,15 +53,69 @@ public class HostManager implements ClusterComponent
     private Timer timer = new Timer();
     
     private TimerTask updateTask;
+    
+    private String hostZone;
+    
+    private String hostName;
+    
+    private VirtHostCfg config;
 
     public HostManager()
     {
         super();
-        this.virtManager = new LibvirtManager();
-        this.storeManager = new DefaultStoreManager();
-        this.netManager = new DefaultNetManager();
     }
     
+    @Override
+    public VirtHostCfg getConfiguration()
+    {
+        return this.config;
+    }
+    
+    @Override
+    public void configure(VirtHostCfg config) throws Exception
+    {
+        // configure basic parameters
+        this.hostZone = config.getZone().getName();
+        this.hostName = config.getName();
+        // configure managers
+        // Load the virtulization manager
+        this.virtManager = this.createVirtManager(config.getVirtManager().getType());
+        this.virtManager.configure(config.getVirtManager());
+        // Load the storeage manager
+        this.storeManager = this.createStoreManager(config.getStoreManager().getType());
+        this.storeManager.configure(config.getStoreManager());
+        // Load the network manager
+        this.netManager = this.createNetManager(config.getNetManager().getType());
+        this.netManager.configure(config.getNetManager());
+    }
+    
+    protected VirtManager createVirtManager(String type)
+    {
+        switch (Util.coalesce(type, "default"))
+        {
+            case "libvirt":
+            default: return new LibvirtManager();
+        }
+    }
+    
+    protected StoreManager createStoreManager(String type)
+    {
+        switch (Util.coalesce(type, "default"))
+        {
+            case "ceph": return new CephStoreManager();
+            default: return new LocalStoreManager();
+        }
+    }
+    
+    protected NetManager createNetManager(String type)
+    {
+        switch (Util.coalesce(type, "default"))
+        {
+            case "vpp": return new VPPNetManager();
+            default: return new DefaultNetManager();
+        }
+    }
+
     @Override
     public int order()
     {
@@ -67,27 +123,32 @@ public class HostManager implements ClusterComponent
     }
 
     @Override
-    public void config(ClusterManager manager, Config config)
+    public void config(ClusterManager<VirtHostCfg> manager, Config config)
     {
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void start(ClusterManager manager, HazelcastInstance instance)
+    public void start(ClusterManager<VirtHostCfg> manager, HazelcastInstance instance)
     {
         logger.info("Host Manager starting up");
+        logger.info("Host " + this.hostName + " in zone " + this.hostZone);
         this.hostStore = manager.getComponent(HostStateStore.class);
         this.machineStore = manager.getComponent(MachineStateStore.class);
         this.hostEvents = manager.getComponent(HostEventManager.class);
         // start our underlying managers
-        this.netManager.start();
-        this.storeManager.start();
-        this.virtManager.start();
+        HostManagerContext hostManagerContext = this.createHostManagerContext();
+        this.netManager.start(hostManagerContext, this.createHostMetadataStoreContext("net"));
+        this.storeManager.start(hostManagerContext, this.createHostMetadataStoreContext("store"));
+        this.virtManager.start(hostManagerContext, this.createHostMetadataStoreContext("virt"));
         // setup event handler
         this.hostEvents.addLocalEventHandler(this::processVirtEvent);
         // set our initial state
-        this.setLocalHostState();
+        this.registerLocalHostState();
         // do an initial scan of our VMs
-        this.setMachineStates();
+        this.discoverMachines();
+        // register remote VM hosts
+        this.registerRemoteVMHosts();
         // setup scheuled tasks
         this.updateTask = new TimerTask() {
             public void run()
@@ -98,6 +159,7 @@ public class HostManager implements ClusterComponent
         this.timer.scheduleAtFixedRate(this.updateTask, 30_000L, 30_000L);
         // update our status
         this.status = HostStatus.ACTIVE;
+        this.registerLocalHostState();
         // start up complete
         logger.info("Host Manager started");
     }
@@ -107,7 +169,7 @@ public class HostManager implements ClusterComponent
     {
         // update our state
         this.status = HostStatus.LEAVING;
-        this.setLocalHostState();
+        this.registerLocalHostState();
         // shutdown our period task
         this.updateTask.cancel();
     }
@@ -115,121 +177,186 @@ public class HostManager implements ClusterComponent
     private void update()
     {
         // update our state
-        this.setLocalHostState();
+        this.registerLocalHostState();
+        // register remote VM hosts
+        this.registerRemoteVMHosts();
         // scan machines
-        this.setMachineStates();
+        this.discoverMachines();
     }
     
-    private void setMachineStates()
+    private void registerRemoteVMHosts()
     {
-        for (MachineState state : this.virtManager.getMachineStates())
+        String ourAddress = this.netManager.getInterconnectAddress();
+        Set<String> remoteHosts = new HashSet<String>();
+        for (HostState host : this.hostStore.getActiveHostsInZone(this.getHostZone()))
         {
-            this.machineStore.setLocalMachineState(state);
+            if (host.getState() == HostStatus.ACTIVE && (! ourAddress.equals(host.getInterconnectAddress())))
+            {
+                logger.debug("Registering remote VM host " + host);
+                remoteHosts.add(host.getInterconnectAddress());
+            }
+            else
+            {
+                logger.debug("Ignoring remote VM host " + host);
+            }
         }
+        // Do a batch register
+        this.netManager.registerRemoteVMHosts(remoteHosts);
     }
 
-    private void setLocalHostState()
+    private void registerLocalHostState()
     {
         this.hostStore.setLocalHostState(this.getHostState());
+    }
+    
+    private void discoverMachines()
+    {
+        for (MachineState state : this.virtManager.discoverMachines())
+        {
+            this.machineStore.mergeLocalMachineState(state);
+        }
     }
 
     private HostState getHostState()
     {
-        HostState state = new HostState(this.getHostZone(), this.getHostName(), this.status);
-        state.setHostCPUs(this.virtManager.getHostCPUs());
-        state.setHostMemory(this.virtManager.getHostMemory());
+        HostInfo info = this.virtManager.getHostInfo();
+        HostState state = new HostState(this.hostZone, this.hostName, this.status, this.config.getCapabilities());
+        state.setInterconnectAddress(this.netManager.getInterconnectAddress());
+        state.setHostCPUs(info.getHostCPUs());
+        state.setHostMemory(info.getHostMemory());
         state.setSupportedMachineTypeFamilies(this.virtManager.getAvailableMachineTypeFamilies());
         state.setSupportedNetworkTypes(this.netManager.getSupportedNetworkTypes());
         state.setSupportedVolumeTypes(this.storeManager.getSupportedVolumeTypes());
-        state.setRunningMachines(this.virtManager.getRunningMachines());
-        state.setDefinedMemory(this.virtManager.getDefinedMemory());
+        state.setRunningMachines(info.getRunningMachines());
+        state.setDefinedMachines(info.getDefinedMachines());
+        state.setDefinedMemory(info.getDefinedMemory());
+        state.setHugepages2MiBTotal(info.getHugepages2MiBTotal());
+        state.setHugepages2MiBFree(info.getHugepages2MiBFree());
+        state.setHugepages1GiBTotal(info.getHugepages1GiBTotal());
+        state.setHugepages1GiBFree(info.getHugepages1GiBFree());
         return state;
     }
     
-    private String getHostZone()
+    /**
+     * Get the zone this host is in
+     */
+    public String getHostZone()
     {
-        return Util.coalesceEmpty(System.getProperty("host.zone"), System.getenv("host_zone"));
+        return this.hostZone;
     }
 
-    private String getHostName()
+    /**
+     * Get the name for this host
+     */
+    public String getHostName()
     {
-        return Util.coalesceEmpty(System.getProperty("host.name"), System.getenv("host_name"));
+        return this.hostName;
     }
     
+    /**
+     * Process a host manager event
+     */
     private void processVirtEvent(VirtEvent event)
     {
         logger.info("Got event: " + event);
-        if (event instanceof CreateMachine)
+        if (event instanceof ManageMachine)
         {
-            CreateMachine runMachine = (CreateMachine) event;
-            this.runMachine(runMachine.getMachine());
-        }
-        else if (event instanceof RebootMachine)
-        {
-            RebootMachine reboot = (RebootMachine) event;
-            this.rebootMachine(reboot.getMachineId());
-        }
-        else if (event instanceof StartMachine)
-        {
-            StartMachine start = (StartMachine) event;
-            this.startMachine(start.getMachineId());
-        }
-        else if (event instanceof StopMachine)
-        {
-            StopMachine stop = (StopMachine) event;
-            this.stopMachine(stop.getMachineId());
+            this.updateMachine((ManageMachine) event);
         }
     }
     
-    private void runMachine(MachineEO machine)
+    /**
+     * Update the state of a machine on this host
+     */
+    private void updateMachine(ManageMachine update)
     {
-        try
+        switch (update.getAction())
         {
-            logger.info("Running machine: " + machine.getId() + " " + machine.getName());
-            this.virtManager.createMachine(machine, this.storeManager, this.netManager);
-        }
-        catch (Exception e)
-        {
-            logger.error("Failed to run machine", e);
+            case CREATE:
+                this.virtManager.createMachine(update.getMachine());
+                this.virtManager.start(update.getMachine());
+                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                break;
+            case REBOOT:
+                this.virtManager.reboot(update.getMachine(), update.isForce());
+                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                break;
+            case START:
+                this.virtManager.start(update.getMachine());
+                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                break;
+            case STOP:
+                this.virtManager.stop(update.getMachine(), update.isForce());
+                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                break;
+            case RELEASE:
+                this.virtManager.releaseMachine(update.getMachine());
+                this.machineStore.removeMachineState(update.getMachine().getId());
+                break;
+            case TERMINATE:
+                this.virtManager.terminateMachine(update.getMachine());
+                this.machineStore.removeMachineState(update.getMachine().getId());
+                break;
         }
     }
     
-    private void rebootMachine(UUID id)
+    private HostManagerContext createHostManagerContext()
     {
-        try
+        return new HostManagerContext()
         {
-            logger.info("Rebooting machine: " + id);
-            this.virtManager.rebootMachine(id);
-        }
-        catch (Exception e)
-        {
-            logger.error("Failed to reboot machine", e);
-        }
+            @Override
+            public String getHostZone()
+            {
+                return hostZone;
+            }
+
+            @Override
+            public String getHostName()
+            {
+                return hostName;
+            }
+
+            @Override
+            public List<HostState> getActiveHostsInZone()
+            {
+                return hostStore.getActiveHostsInZone(hostZone);
+            }
+            
+            @Override
+            public StoreManager getStoreManager()
+            {
+                return storeManager;
+            }
+            
+            @Override
+            public NetManager getNetManager()
+            {
+                return netManager;
+            }
+            
+            @Override
+            public VirtManager getVirtManager()
+            {
+                return virtManager;
+            }
+        };
     }
     
-    private void startMachine(UUID id)
+    private HostMetadataStoreContext createHostMetadataStoreContext(final String manager)
     {
-        try
+        return new HostMetadataStoreContext()
         {
-            logger.info("Starting machine: " + id);
-            this.virtManager.startMachine(id);
-        }
-        catch (Exception e)
-        {
-            logger.error("Failed to start machine", e);
-        }
-    }
-    
-    private void stopMachine(UUID id)
-    {
-        try
-        {
-            logger.info("Stopping machine: " + id);
-            this.virtManager.stopMachine(id);
-        }
-        catch (Exception e)
-        {
-            logger.error("Failed to stop machine", e);
-        }
+            @Override
+            public <T> T get(String key)
+            {
+                return hostStore.getHostMetadata(hostName, manager, key);
+            }
+
+            @Override
+            public void set(String key, Object value)
+            {
+                hostStore.setHostMetadata(hostName, manager, key, value);
+            }
+        };
     }
 }

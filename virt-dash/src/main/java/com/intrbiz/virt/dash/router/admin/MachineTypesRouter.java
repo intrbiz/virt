@@ -24,7 +24,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermission;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.MachineType;
 import com.intrbiz.virt.model.MachineType.EphemeralVolume;
@@ -33,7 +33,7 @@ import com.intrbiz.virt.model.MachineType.EphemeralVolume;
 @Template("layout/main")
 @RequireValidPrincipal()
 @RequirePermission("global_admin")
-public class MachineTypesRouter extends Router<App>
+public class MachineTypesRouter extends Router<VirtDashApp>
 {
     @Any("/")
     @WithDataAdapter(VirtDB.class)

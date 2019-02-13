@@ -24,7 +24,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.SessionVar;
 import com.intrbiz.metadata.Template;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Image;
@@ -41,7 +41,7 @@ import com.intrbiz.virt.model.Zone;
 @Prefix("/machine")
 @Template("layout/main")
 @RequireValidPrincipal()
-public class MachineRouter extends Router<App>
+public class MachineRouter extends Router<VirtDashApp>
 {    
     @Get("/new")
     @WithDataAdapter(VirtDB.class)
@@ -66,7 +66,8 @@ public class MachineRouter extends Router<App>
             @Param("image") @IsaUUID UUID imageId,
             @Param("network") @IsaUUID UUID networkId,
             @Param("key") @IsaUUID UUID keyId,
-            @Param("description") String description
+            @Param("description") String description,
+            @Param("userData") String userData
     ) throws IOException
     {
         // can we create a machine
@@ -79,6 +80,7 @@ public class MachineRouter extends Router<App>
         SSHKey key = notNull(db.getSSHKey(keyId));
         // create the machine
         Machine machine = new Machine(currentAccount, zone, type, image, name, key, description);
+        machine.setUserData(userData);
         // create the machine main NIC
         MachineNIC nic0 = new MachineNIC(machine, machine.getInterfaceName(0), network);
         // stash the details in the session
@@ -188,7 +190,7 @@ public class MachineRouter extends Router<App>
     @WithDataAdapter(VirtDB.class)
     public void rebootMachine(VirtDB db, @IsaUUID UUID id, @Param("force") @IsaBoolean(defaultValue = false, coalesce = CoalesceMode.ALWAYS) Boolean force) throws IOException
     {
-        action("machine.reboot", notNull(db.getMachine(id)), false);
+        action("machine.reboot", notNull(db.getMachine(id)), force);
         redirect("/");
     }
     
@@ -202,9 +204,25 @@ public class MachineRouter extends Router<App>
     
     @Any("/id/:id/stop")
     @WithDataAdapter(VirtDB.class)
-    public void stopMachine(VirtDB db, @IsaUUID UUID id) throws IOException
+    public void stopMachine(VirtDB db, @IsaUUID UUID id, @Param("force") @IsaBoolean(defaultValue = false, coalesce = CoalesceMode.ALWAYS) Boolean force) throws IOException
     {
-        action("machine.stop", notNull(db.getMachine(id)));
+        action("machine.stop", notNull(db.getMachine(id)), force);
+        redirect("/");
+    }
+    
+    @Any("/id/:id/release")
+    @WithDataAdapter(VirtDB.class)
+    public void releaseMachine(VirtDB db, @IsaUUID UUID id) throws IOException
+    {
+        action("machine.release", notNull(db.getMachine(id)));
+        redirect("/");
+    }
+    
+    @Any("/id/:id/terminate")
+    @WithDataAdapter(VirtDB.class)
+    public void terminateMachine(VirtDB db, @IsaUUID UUID id) throws IOException
+    {
+        action("machine.terminate", notNull(db.getMachine(id)));
         redirect("/");
     }
     
@@ -212,6 +230,6 @@ public class MachineRouter extends Router<App>
     @Post("/**")
     public void newMachineError()
     {
-        encode("machine/new-machine");
+        encode("machine/new");
     }
 }

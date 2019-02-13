@@ -28,14 +28,22 @@ public class LibVirtDomainDef
     private String name;
 
     private String uuid;
+    
+    private MetadataDef metadata;
 
     private MemoryDef memory;
+    
+    private MemoryBackingDef memoryBacking;
 
     private CurrentMemoryDef currentMemory;
 
-    private CPUDef vcpu;
+    private VCPUDef vcpu;
+    
+    private CPUDef cpu;
 
     private OSDef os;
+    
+    private SysInfoDef sysinfo;
 
     private FeaturesDef features;
 
@@ -50,6 +58,8 @@ public class LibVirtDomainDef
     private DevicesDef devices;
 
     private String originalXML;
+    
+    private PMDef pm;
 
     @XmlAttribute(name = "type")
     public String getType()
@@ -84,6 +94,28 @@ public class LibVirtDomainDef
         this.uuid = uuid;
     }
 
+    @XmlElementRef(type = MetadataDef.class)
+    public MetadataDef getMetadata()
+    {
+        return metadata;
+    }
+
+    public void setMetadata(MetadataDef metadata)
+    {
+        this.metadata = metadata;
+    }
+
+    @XmlElementRef(type = MemoryBackingDef.class)
+    public MemoryBackingDef getMemoryBacking()
+    {
+        return memoryBacking;
+    }
+
+    public void setMemoryBacking(MemoryBackingDef memoryBacking)
+    {
+        this.memoryBacking = memoryBacking;
+    }
+
     @XmlElementRef(type = MemoryDef.class)
     public MemoryDef getMemory()
     {
@@ -107,12 +139,23 @@ public class LibVirtDomainDef
     }
 
     @XmlElementRef(type = CPUDef.class)
-    public CPUDef getVcpu()
+    public CPUDef getCpu()
+    {
+        return cpu;
+    }
+
+    public void setCpu(CPUDef cpu)
+    {
+        this.cpu = cpu;
+    }
+
+    @XmlElementRef(type = VCPUDef.class)
+    public VCPUDef getVcpu()
     {
         return vcpu;
     }
 
-    public void setVcpu(CPUDef vcpu)
+    public void setVcpu(VCPUDef vcpu)
     {
         this.vcpu = vcpu;
     }
@@ -205,6 +248,27 @@ public class LibVirtDomainDef
         this.originalXML = originalXML;
     }
     
+    @XmlElementRef(type = PMDef.class)
+    public PMDef getPm()
+    {
+        return pm;
+    }
+
+    public void setPm(PMDef pm)
+    {
+        this.pm = pm;
+    }
+
+    public SysInfoDef getSysinfo()
+    {
+        return sysinfo;
+    }
+
+    public void setSysinfo(SysInfoDef sysinfo)
+    {
+        this.sysinfo = sysinfo;
+    }
+
     public static LibVirtDomainDef read(File def)
     {
         try

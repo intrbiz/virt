@@ -1,6 +1,7 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -17,6 +18,8 @@ public class TargetDef
     private String type;
     
     private String name;
+    
+    private ModelDef model;
     
     public TargetDef()
     {
@@ -100,6 +103,17 @@ public class TargetDef
         this.name = name;
     }
     
+    @XmlElementRef(type = ModelDef.class)
+    public ModelDef getModel()
+    {
+        return model;
+    }
+
+    public void setModel(ModelDef model)
+    {
+        this.model = model;
+    }
+
     public static TargetDef scsi(String dev)
     {
         return new TargetDef("scsi", dev);

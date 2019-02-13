@@ -1,22 +1,38 @@
 <!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
 <?RenderLibrary com.intrbiz.balsa?>
 <!-- The index view -->
-<fragment xmlns="com.intrbiz.balsa" title="SSH Keys">	
+<fragment xmlns="com.intrbiz.balsa" title="SSH Key Sets">	
   	<div class="row">
     	<div class="col-md-12">
 			<div class="card">
 				<h5 class="card-header">SSH Keys</h5>
 				<div class="card-body">
-					<p class="card-text">These are SSH Keys which are registered to the #{currentAccount.summary} account.</p>
+					<p class="card-text">These are SSH Key Sets which are registered to the #{currentAccount.summary} account.</p>
 		      		<table class="table">
 		      			<tr>
 		      				<th>Name</th>
 		      				<th>Key</th>
+		      				<th></th>
 		      			</tr>
 		      			<data-set var="key" value="#{keys}">
 		      				<tr>
 		      					<td>#{key.name}</td>
-		      					<td><pre>#{key.getKeyWrapped(100)}</pre></td>
+		      					<td>
+		      						<ul>
+			      						<data-set var="key" value="#{key.getAllKeysWrapped(100)}">
+			      							<li><pre>#{key}</pre></li>
+			      						</data-set>
+		      						</ul>
+		      					</td>
+		      					<td>
+		      						<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/keys/id/#{key.id}/edit">Edit</a>
+								            <a class="dropdown-item text-danger" href="/keys/id/#{key.id}/remove">Remove</a>
+										</div>
+									</div>
+		      					</td>
 		      				</tr>
 		      			</data-set>
 		      		</table>
@@ -27,24 +43,24 @@
     <div class="row" style="margin-top: 30px;">
     	<div class="col-md-12">
     		<div class="card">
-				<h5 class="card-header">Add SSH Key</h5>
+				<h5 class="card-header">Add SSH Key Set</h5>
 				<div class="card-body">
 					<p class="card-text">Simply put the contents of your SSH public key below, for example from the file ~/.ssh/id_rsa.pub.</p>
 		      		<form method="post" action="#{path('/keys/new')}">
 		      			<div class="form-group">
 					    	<label for="name">Name:</label>
-					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="chrisx260"/>
+					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="My development keys"/>
 		      				<small id="nameHelp" class="form-text text-muted">The name for this SSH Key</small>
 					  	</div>
 	      				<div class="form-group">
-					    	<label for="key">SSH Key:</label>
+					    	<label for="key">SSH Keys (One per line):</label>
 		      				<textarea class="form-control" id="key" name="key" aria-describedby="keyHelp" rows="1"></textarea>
-		      				<small id="keyHelp" class="form-text text-muted">The content of your SSH public key</small>
+		      				<small id="keyHelp" class="form-text text-muted">The content of your SSH public keys, one key per line</small>
 					  	</div>
 		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
 		      				#{balsa().getValidationErrors()}
 		      			</div>
-	      				<button type="submit" class="btn btn-primary">Add SSH Key</button>
+	      				<button type="submit" class="btn btn-primary">Create SSH Key Set</button>
 		      		</form>
 		      	</div>
       		</div>

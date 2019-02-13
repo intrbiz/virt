@@ -12,8 +12,10 @@ import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.intrbiz.Util;
+import com.intrbiz.configuration.Configurable;
+import com.intrbiz.configuration.Configuration;
 
-public class ClusterManager
+public class ClusterManager<C extends Configuration> implements Configurable<C>
 {
     public static final String DEFAULT_INSTANCE_NAME = "virt";
     
@@ -27,7 +29,9 @@ public class ClusterManager
 
     private boolean started = false;
     
-    private Map<Class<?>, ClusterComponent> components = new ConcurrentHashMap<Class<?>, ClusterComponent>();
+    private Map<Class<?>, ClusterComponent<C>> components = new ConcurrentHashMap<Class<?>, ClusterComponent<C>>();
+    
+    private C config;
 
     public ClusterManager(String instanceName, String environment)
     {
@@ -47,7 +51,7 @@ public class ClusterManager
     {
     }
     
-    public synchronized <T extends ClusterComponent> T registerComponent(T component)
+    public synchronized <T extends ClusterComponent<C>> T registerComponent(T component)
     {
         Class<?> type = component.getClass();
         if (this.components.containsKey(type))
@@ -57,9 +61,25 @@ public class ClusterManager
     }
     
     @SuppressWarnings("unchecked")
-    public <T extends ClusterComponent> T getComponent(Class<T> componentClass)
+    public <T extends ClusterComponent<C>> T getComponent(Class<T> componentClass)
     {
         return (T) this.components.get(componentClass);
+    }
+    
+    @Override
+    public void configure(C cfg) throws Exception
+    {
+        this.config = cfg;
+        for (ClusterComponent<C> component : this.components.values())
+        {
+            component.configure(this.config);
+        }
+    }
+
+    @Override
+    public C getConfiguration()
+    {
+        return this.config;
     }
 
     public synchronized void start()
@@ -70,7 +90,8 @@ public class ClusterManager
             {
                 // configure hazelcast
                 this.hazelcastConfig = this.loadHazelcaastConfig();
-                this.hazelcastConfig.setInstanceName(this.instanceName);
+                // this.hazelcastConfig.setInstanceName(this.instanceName);
+                this.hazelcastConfig.setInstanceName("virt");
                 this.configComponents();
                 // start hazelcast
                 this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);

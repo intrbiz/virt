@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "source")
 public class SourceDef
 {
+    public static enum MacVTapMode { BRIDGE, PRIVATE, VEPA }
+    
     private String file;
 
     private String bridge;
@@ -25,6 +27,12 @@ public class SourceDef
     
     private HostDef hostDef;
     
+    private String type;
+    
+    private String path;
+    
+    private String dev;
+    
     public SourceDef()
     {
         super();
@@ -34,6 +42,14 @@ public class SourceDef
     {
         SourceDef def = new SourceDef();
         def.setBridge(bridge);
+        return def;
+    }
+    
+    public static final SourceDef macVTap(String device, MacVTapMode mode)
+    {
+        SourceDef def = new SourceDef();
+        def.setDev(device);
+        def.setMode(mode.toString().toLowerCase());
         return def;
     }
     
@@ -50,6 +66,18 @@ public class SourceDef
         def.setProtocol("rbd");
         def.setName(image);
         def.setHostDef(new HostDef(hosts, String.valueOf(port)));
+        return def;
+    }
+    
+    /**
+     * <source type='unix' path='/var/run/vpp/vm-7afbfb35811a.sock' mode='server'/>
+     */
+    public static final SourceDef unix(String path, boolean server)
+    {
+        SourceDef def = new SourceDef();
+        def.setType("unix");
+        def.setPath(path);
+        def.setMode(server ? "server" : "client");
         return def;
     }
 
@@ -139,5 +167,38 @@ public class SourceDef
     public void setHostDef(HostDef hostDef)
     {
         this.hostDef = hostDef;
+    }
+
+    @XmlAttribute(name = "type")
+    public String getType()
+    {
+        return type;
+    }
+
+    public void setType(String type)
+    {
+        this.type = type;
+    }
+
+    @XmlAttribute(name = "path")
+    public String getPath()
+    {
+        return path;
+    }
+
+    public void setPath(String path)
+    {
+        this.path = path;
+    }
+
+    @XmlAttribute(name = "dev")
+    public String getDev()
+    {
+        return dev;
+    }
+
+    public void setDev(String dev)
+    {
+        this.dev = dev;
     }
 }

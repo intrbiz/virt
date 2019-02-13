@@ -37,7 +37,6 @@
 	      					</tr>
 		      			</table>
 		      			<p class="card-text">#{currentNetwork.description}</p>
-						
 						<p class="card-text pt-3">All looking good, lets get busy.</p>
 		      			<button type="submit" class="btn btn-primary">Create Network</button>
 	      			</div>

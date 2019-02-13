@@ -8,16 +8,22 @@ import org.apache.log4j.Logger;
 
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IQueue;
+import com.intrbiz.Util;
 import com.intrbiz.virt.cluster.model.HostState;
 import com.intrbiz.virt.cluster.model.MachineState;
 import com.intrbiz.virt.event.VirtEvent;
-import com.intrbiz.virt.event.host.CreateMachine;
+import com.intrbiz.virt.event.host.ManageMachine;
+import com.intrbiz.virt.event.host.ManageVolume;
 import com.intrbiz.virt.event.model.MachineEO;
-import com.intrbiz.virt.event.schedule.ScheduleMachine;
+import com.intrbiz.virt.event.model.PersistentVolumeEO;
+import com.intrbiz.virt.event.schedule.CreateMachine;
+import com.intrbiz.virt.event.schedule.CreateVolume;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
 import com.intrbiz.virt.scheduler.model.ZoneSchedulerState;
-import com.intrbiz.virt.scheduler.stratergy.MachineScheduleStratergy;
-import com.intrbiz.virt.scheduler.stratergy.RandomMachineScheduleStratergy;
+import com.intrbiz.virt.scheduler.stratergy.machine.MachineScheduleStratergy;
+import com.intrbiz.virt.scheduler.stratergy.machine.RandomMachineScheduleStratergy;
+import com.intrbiz.virt.scheduler.stratergy.storage.RandomVolumeScheduleStratergy;
+import com.intrbiz.virt.scheduler.stratergy.storage.VolumeScheduleStratergy;
 
 public class ZoneScheduler
 {
@@ -39,16 +45,26 @@ public class ZoneScheduler
     
     private MachineScheduleStratergy machineStratergy = new RandomMachineScheduleStratergy();
     
+    private VolumeScheduleStratergy volumeStratergy = new RandomVolumeScheduleStratergy();
+    
+    private final String hostName;
+    
     public ZoneScheduler(SchedulerManager manager, String zoneId)
     {
         super();
         this.zoneId = zoneId;
         this.manager = manager;
+        this.hostName = Util.coalesceEmpty(System.getProperty("host.name"), System.getenv("host_name"));
     }
     
     public String getZoneId()
     {
         return this.zoneId;
+    }
+    
+    public String getHostName()
+    {
+        return this.hostName;
     }
     
     public void start()
@@ -93,7 +109,7 @@ public class ZoneScheduler
                 this.restart = false;
                 logger.info("Obtained scheduler lock for zone " + this.zoneId + ", processing scheduler events");
                 // update state
-                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, true, this.manager.getLocalMember()));
+                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, true, this.manager.getLocalMember(), this.hostName));
                 // start the scheduling loop
                 while (this.run && (! this.restart))
                 {
@@ -115,7 +131,7 @@ public class ZoneScheduler
                     }
                 }
                 // update state
-                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, false, this.manager.getLocalMember()));
+                this.manager.setZoneSchedulerState(new ZoneSchedulerState(this.zoneId, false, this.manager.getLocalMember(), this.hostName));
             }
             finally
             {
@@ -145,20 +161,25 @@ public class ZoneScheduler
     private void processSchedulerEvent(VirtEvent event)
     {
         logger.info("Got scheduler event " + event);
-        if (event instanceof ScheduleMachine)
+        if (event instanceof CreateMachine)
         {
-            ScheduleMachine scheduleMachine = (ScheduleMachine) event;
-            this.scheduleMachine(scheduleMachine.getMachine());
+            this.createMachine((CreateMachine) event);
+        }
+        else if (event instanceof CreateVolume)
+        {
+            this.createVolume((CreateVolume) event);
         }
     }
     
     /**
-     * Schedule a machine on a host
+     * Create a machine on a host
      */
-    private void scheduleMachine(MachineEO machine)
+    private void createMachine(CreateMachine createMachine)
     {
         try
         {
+            MachineEO machine = createMachine.getMachine();
+            // TODO: Account limits
             // get the current machine state
             MachineState machineState = this.manager.getMachineStore().getMachineState(machine.getId());
             if (machineState == null)
@@ -169,21 +190,18 @@ public class ZoneScheduler
             // attempt to schedule the machine
             try
             {
-                // get the currently available hosts to schedule on to
                 List<HostState> activeHostsInZone = this.manager.getHostStore().getActiveHostsInZone(this.zoneId);
-                // choose a host to schedule too
                 HostState chosenHost = this.machineStratergy.scheduleMachine(activeHostsInZone, machine);
-                if (chosenHost == null) throw new SchedulerException("No suitable hosts to schedule machine onto.");
-                // great, we know where to schedule the machine
-                logger.info("Schedule machine " + machine.getId() + " onto host " + chosenHost.getId() + " (" + chosenHost.getName() + ") in zone " + this.zoneId);
+                if (chosenHost == null) throw new SchedulerException("No suitable hosts to create machine.");
+                logger.info("Create machine " + machine.getId() + " onto host " + chosenHost.getId() + " (" + chosenHost.getName() + ") in zone " + this.zoneId);
                 // update the machine state
                 this.manager.getMachineStore().setMachineState(machineState.scheduled(chosenHost.getId()));
                 // fire off an event to the host
-                this.manager.getHostEvents().sendEvent(chosenHost.getId(), new CreateMachine(machine));
+                this.manager.getHostEvents().sendEvent(chosenHost.getId(), new ManageMachine(machine, ManageMachine.Action.CREATE));
             }
             catch (Exception e)
             {
-                // damn, we can't schedule this machine currently
+                // damn, we can't create this machine currently
                 // update the machine state
                 this.manager.getMachineStore().setMachineState(machineState.pending());
                 // fire off error reporting
@@ -191,7 +209,38 @@ public class ZoneScheduler
         }
         catch (Exception e)
         {
-            logger.error("Failed to schedule machine " + machine.getId(), e);
+            logger.error("Failed to create machine " + createMachine, e);
+        }
+    }
+    
+    /**
+     * Create a persistent volume
+     */
+    private void createVolume(CreateVolume createVolume)
+    {
+        try
+        {
+            PersistentVolumeEO volume = createVolume.getVolume();
+            // TODO: Account limits
+            // attempt to create the volume
+            try
+            {
+                List<HostState> activeHostsInZone = this.manager.getHostStore().getActiveHostsInZone(this.zoneId);
+                HostState chosenHost = this.volumeStratergy.scheduleVolume(activeHostsInZone, volume);
+                if (chosenHost == null) throw new SchedulerException("No suitable hosts to create volume.");
+                logger.info("Create volume " + volume + " onto host " + chosenHost.getId() + " (" + chosenHost.getName() + ") in zone " + this.zoneId);
+                // fire off an event to the host
+                this.manager.getHostEvents().sendEvent(chosenHost.getId(), new ManageVolume(volume, ManageVolume.Action.CREATE));
+            }
+            catch (Exception e)
+            {
+                // damn, we can't create this volume currently
+                // fire off error reporting
+            }
+        }
+        catch (Exception e)
+        {
+            logger.error("Failed to create volume " + createVolume, e);
         }
     }
     

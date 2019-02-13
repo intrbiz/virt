@@ -1,0 +1,34 @@
+<virt-host name="chris-t480">
+	<net-manager type="vpp">
+		<parameter name="vpp.daemon.url">http://127.0.0.1:8989/</parameter>
+		<parameter name="vpp.apply.interval">300000</parameter>
+		<parameter name="metadata.server.interface">metadata_srv</parameter>
+        <parameter name="metadata.vm.interface">metadata_vms</parameter>
+        <parameter name="interconnect.interface">enp0s31f6</parameter>
+        <parameter name="interconnect.address">172.22.40.10/24</parameter>
+        <parameter name="public.network.id">20</parameter>
+        <parameter name="service.network.id">30</parameter>
+        <parameter name="transfer.network.id">40</parameter>
+	</net-manager>
+	<store-manager type="ceph">
+		<parameter name="local.file.directory">/srv/vms</parameter>
+		<parameter name="ceph.monitor.hosts">172.26.30.31,172.26.30.32,172.26.30.33,172.26.30.3,172.26.30.34,172.26.30.35,172.26.30.36,172.26.30.37</parameter>
+        <parameter name="ceph.machine.pool.name">important</parameter>
+        <parameter name="ceph.auth.uuid">6f3128fa-fada-463a-989f-b965c83e5da9</parameter>
+	</store-manager>
+	<virt-manager type="libvirt">
+		<parameter name="libvirt.url">qemu+tcp://root@127.0.0.1:16509/system</parameter>
+        <parameter name="virt.types">/data/cellis/Intrbiz/workspace2/virt/virt-host-daemon/src/main/cfg/types</parameter>
+	</virt-manager>
+	<database-pool>
+		<url>jdbc:postgresql://127.0.0.1:5411/virt</url>
+		<username>virt</username>
+		<password>virt</password>
+	</database-pool>
+	<zone name="uk1.a"/>
+	<capabilities>
+		<capability>machine</capability>
+		<capability>router</capability>
+		<capability>volume</capability>
+	</capabilities>
+</virt-host>

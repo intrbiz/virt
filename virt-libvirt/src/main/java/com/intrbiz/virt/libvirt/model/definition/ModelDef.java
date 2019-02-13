@@ -3,6 +3,7 @@ package com.intrbiz.virt.libvirt.model.definition;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "model")
 @XmlType(name = "model")
@@ -13,6 +14,10 @@ public class ModelDef
     private Integer vram;
     
     private Integer heads;
+    
+    private String fallback;
+    
+    private String value;
     
     public ModelDef()
     {
@@ -66,6 +71,28 @@ public class ModelDef
         this.heads = heads;
     }
     
+    @XmlAttribute(name = "fallback")
+    public String getFallback()
+    {
+        return fallback;
+    }
+
+    public void setFallback(String fallback)
+    {
+        this.fallback = fallback;
+    }
+
+    @XmlValue()
+    public String getValue()
+    {
+        return value;
+    }
+
+    public void setValue(String value)
+    {
+        this.value = value;
+    }
+
     public static final ModelDef virtio()
     {
         return new ModelDef("virtio");

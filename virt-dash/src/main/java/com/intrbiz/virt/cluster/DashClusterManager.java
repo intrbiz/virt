@@ -1,8 +1,9 @@
 package com.intrbiz.virt.cluster;
 
+import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 import com.intrbiz.virt.scheduler.SchedulerManager;
 
-public class DashClusterManager extends BaseClusterManager
+public class DashClusterManager extends BaseClusterManager<VirtDashCfg>
 {
     public DashClusterManager(String instanceName, String environment)
     {

@@ -14,7 +14,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequireValidAccessTokenForURL;
 import com.intrbiz.metadata.Template;
 import com.intrbiz.validator.ValidationException;
-import com.intrbiz.virt.dash.App;
+import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Config;
@@ -25,7 +25,7 @@ import com.intrbiz.virt.model.UserAccountGrant;
 // Register Account
 @Prefix("/account")
 @Template("layout/single")
-public class RegisterRouter extends Router<App>
+public class RegisterRouter extends Router<VirtDashApp>
 {
     private static Logger logger = Logger.getLogger(RegisterRouter.class);
     

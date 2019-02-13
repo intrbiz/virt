@@ -2,8 +2,10 @@ package com.intrbiz.virt.cluster;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
+import com.intrbiz.configuration.Configurable;
+import com.intrbiz.configuration.Configuration;
 
-public interface ClusterComponent extends Comparable<ClusterComponent>
+public interface ClusterComponent<C extends Configuration> extends Comparable<ClusterComponent<C>>, Configurable<C>
 {   
     public static final int ORDER_NORMAL = 5000;
     
@@ -12,7 +14,7 @@ public interface ClusterComponent extends Comparable<ClusterComponent>
     public static final int ORDER_EARLY = 0;
     
     @Override
-    default int compareTo(ClusterComponent o)
+    default int compareTo(ClusterComponent<C> o)
     {
         return Integer.compare(this.order(), o.order());
     }
@@ -22,9 +24,9 @@ public interface ClusterComponent extends Comparable<ClusterComponent>
         return ORDER_NORMAL;
     }
     
-    void config(ClusterManager manager, Config config);
+    void config(ClusterManager<C> manager, Config config);
     
-    void start(ClusterManager manager, HazelcastInstance instance);
+    void start(ClusterManager<C> manager, HazelcastInstance instance);
     
     void shutdown();
 }

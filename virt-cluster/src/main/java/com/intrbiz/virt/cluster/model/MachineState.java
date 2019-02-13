@@ -8,6 +8,16 @@ public class MachineState implements Serializable
     private static final long serialVersionUID = 1L;
     
     public static final String MANAGE_MACHINE_NAME_PREFIX = "m-";
+    
+    public static final class Capability {
+        
+        public static final String MACHINE = "machine";
+        
+        public static final String ROUTER = "router";
+        
+        public static final String VOLUME = "volume";
+        
+    }
 
     private UUID id;
     
@@ -125,9 +135,7 @@ public class MachineState implements Serializable
     {
         this.lastUpdated = lastUpdated;
     }
-    
-    // Helpers
-    
+
     public void updated()
     {
         this.lastUpdated = System.currentTimeMillis();

@@ -17,6 +17,8 @@ public class MachineEO implements Serializable
     
     private String machineTypeFamily;
     
+    private String machineType;
+    
     private int cpus;
     
     private long memory;
@@ -27,21 +29,25 @@ public class MachineEO implements Serializable
     
     private List<MachineVolumeEO> volumes = new LinkedList<MachineVolumeEO>();
     
+    private MachineAdminStatus adminStatus;
+    
     public MachineEO()
     {
         super();
     }
 
-    public MachineEO(UUID id, String zone, String name, String machineTypeFamily, int cpus, long memory, String cfgMac)
+    public MachineEO(UUID id, String zone, String name, String machineTypeFamily, String machineType, int cpus, long memory, String cfgMac, MachineAdminStatus adminStatus)
     {
         super();
         this.id = id;
         this.zone = zone;
         this.name = name;
         this.machineTypeFamily = machineTypeFamily;
+        this.machineType = machineType;
         this.cpus = cpus;
         this.memory = memory;
         this.cfgMac = cfgMac;
+        this.adminStatus = adminStatus;
     }
 
     public UUID getId()
@@ -53,8 +59,6 @@ public class MachineEO implements Serializable
     {
         this.id = id;
     }
-    
-    
 
     public String getZone()
     {
@@ -94,6 +98,16 @@ public class MachineEO implements Serializable
     public void setMachineTypeFamily(String machineType)
     {
         this.machineTypeFamily = machineType;
+    }
+
+    public String getMachineType()
+    {
+        return machineType;
+    }
+
+    public void setMachineType(String machineType)
+    {
+        this.machineType = machineType;
     }
 
     public long getMemory()
@@ -136,9 +150,19 @@ public class MachineEO implements Serializable
         this.volumes = volumes;
     }
 
+    public MachineAdminStatus getAdminStatus()
+    {
+        return adminStatus;
+    }
+
+    public void setAdminStatus(MachineAdminStatus adminStatus)
+    {
+        this.adminStatus = adminStatus;
+    }
+
     @Override
     public String toString()
     {
-        return "MachineEO[id=" + id + ", zone=" + zone + ", name=" + name + ", machineTypeFamily=" + machineTypeFamily + ", cpus=" + cpus + ", memory=" + memory + ", cfgMac=" + cfgMac + ", interfaces=" + interfaces + ", volumes=" + volumes + "]";
+        return "MachineEO[id=" + id + ", zone=" + zone + ", name=" + name + ", machineTypeFamily=" + machineTypeFamily + ", adminStatus=" + this.adminStatus + ", cpus=" + cpus + ", memory=" + memory + ", cfgMac=" + cfgMac + ", interfaces=" + interfaces + ", volumes=" + volumes + "]";
     }
 }
