@@ -72,10 +72,6 @@
 		<module>virt-event-model</module>
 		<module>virt-util</module>
 		<module>virt-cluster</module>
-		<module>virt-vpp-api-simple</module>
-		<module>virt-vpp-daemon</module>
-		<module>virt-vpp-client</module>
-		<module>virt-pdns-backend</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>

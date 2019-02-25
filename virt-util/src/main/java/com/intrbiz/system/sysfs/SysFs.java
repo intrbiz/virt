@@ -9,9 +9,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.intrbiz.vpp.api.model.MACAddress;
-import com.intrbiz.vpp.api.model.MTU;
-
 public class SysFs
 {
     public static class INTERFACE_FLAGS
@@ -141,18 +138,18 @@ public class SysFs
         return interfaceDir.exists() && interfaceDir.isDirectory();
     }
 
-    public MACAddress getInterfaceMAC(String interfaceName)
+    public String getInterfaceMAC(String interfaceName)
     {
         File interfaceDir = new File(this.class_net, interfaceName);
-        if (interfaceDir.exists() && interfaceDir.isDirectory()) return MACAddress.fromString(readValue(new File(interfaceDir, "address")));
+        if (interfaceDir.exists() && interfaceDir.isDirectory()) return readValue(new File(interfaceDir, "address"));
         return null;
     }
 
-    public MTU getInterfaceMTU(String interfaceName)
+    public int getInterfaceMTU(String interfaceName)
     {
         File interfaceDir = new File(this.class_net, interfaceName);
-        if (interfaceDir.exists() && interfaceDir.isDirectory()) return new MTU(readIntValue(new File(interfaceDir, "mtu")));
-        return null;
+        if (interfaceDir.exists() && interfaceDir.isDirectory()) return readIntValue(new File(interfaceDir, "mtu"));
+        return 0;
     }
 
     public long getInterfaceFlags(String interfaceName)
@@ -205,6 +202,7 @@ public class SysFs
         return null;
     }
 
+    @SuppressWarnings("unused")
     private static String readFullValue(File file)
     {
         try (FileReader in = new FileReader(file))

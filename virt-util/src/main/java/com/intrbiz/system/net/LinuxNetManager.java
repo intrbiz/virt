@@ -7,8 +7,6 @@ import java.util.List;
 import com.intrbiz.system.exec.SystemExecutionException;
 import com.intrbiz.system.exec.SystemExecutorService;
 import com.intrbiz.system.sysfs.SysFs;
-import com.intrbiz.vpp.api.model.MACAddress;
-import com.intrbiz.vpp.api.model.MTU;
 
 public class LinuxNetManager implements NetManager
 {
@@ -64,13 +62,13 @@ public class LinuxNetManager implements NetManager
     }
 
     @Override
-    public MACAddress getInterfaceMAC(String name) throws NetException
+    public String getInterfaceMAC(String name) throws NetException
     {
         return this.sysFs.getInterfaceMAC(name);
     }
 
     @Override
-    public MTU getInterfaceMTU(String name)
+    public int getInterfaceMTU(String name)
     {
         return this.sysFs.getInterfaceMTU(name);
     }
@@ -152,13 +150,13 @@ public class LinuxNetManager implements NetManager
     }
 
     @Override
-    public void setMTU(String name, MTU mtu) throws NetException
+    public void setMTU(String name, int mtu) throws NetException
     {
         try
         {
             // ip link set dev <name> mtu <mtu>
             name = truncateInterfaceName(name);
-            this.executor.expect(command(IP, LINK, SET, DEV, name, MTU, mtu.getValueAsString()), 0);
+            this.executor.expect(command(IP, LINK, SET, DEV, name, MTU, String.valueOf(mtu)), 0);
         }
         catch (SystemExecutionException e) 
         {
@@ -167,13 +165,13 @@ public class LinuxNetManager implements NetManager
     }
 
     @Override
-    public void setMAC(String name, MACAddress mac) throws NetException
+    public void setMAC(String name, String mac) throws NetException
     {
         try
         {
             // ip link set dev <name> address <mac>
             name = truncateInterfaceName(name);
-            this.executor.expect(command(IP, LINK, SET, DEV, name, ADDRESS, mac.toString()), 0);
+            this.executor.expect(command(IP, LINK, SET, DEV, name, ADDRESS, mac), 0);
         }
         catch (SystemExecutionException e) 
         {

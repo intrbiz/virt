@@ -46,11 +46,6 @@
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-data</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.intrbiz.virt</groupId>
-			<artifactId>virt-vpp-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 	<build>
 		<finalName>virt-host-daemon</finalName>

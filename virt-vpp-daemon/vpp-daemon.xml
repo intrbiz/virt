@@ -1,3 +1,0 @@
-<vpp-daemon>
-	<recipe-store>/etc/virt/vpp-daemon</recipe-store>
-</vpp-daemon>
