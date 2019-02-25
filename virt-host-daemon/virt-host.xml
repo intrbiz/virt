@@ -1,13 +1,10 @@
 <virt-host name="chris-t480">
-	<net-manager type="vpp">
-		<parameter name="vpp.daemon.url">http://127.0.0.1:8989/</parameter>
-		<parameter name="metadata.server.interface">metadata_srv</parameter>
-        <parameter name="metadata.vm.interface">metadata_vms</parameter>
-        <parameter name="interconnect.interface">enp0s31f6</parameter>
-        <parameter name="interconnect.address">172.22.40.10/24</parameter>
+	<net-manager type="netd">
         <parameter name="public.network.id">20</parameter>
         <parameter name="service.network.id">30</parameter>
         <parameter name="transfer.network.id">40</parameter>
+        <parameter name="host.interconnect.address">172.26.40.30</parameter>
+        <parameter name="metadata.vm.interface">metadata_vms</parameter>
 	</net-manager>
 	<store-manager type="ceph">
 		<parameter name="local.file.directory">/srv/vms</parameter>

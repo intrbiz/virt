@@ -23,6 +23,7 @@ import com.intrbiz.virt.config.VirtHostCfg;
 import com.intrbiz.virt.event.VirtEvent;
 import com.intrbiz.virt.event.host.ManageMachine;
 import com.intrbiz.virt.manager.net.DefaultNetManager;
+import com.intrbiz.virt.manager.net.NetDNetManager;
 import com.intrbiz.virt.manager.net.NetManager;
 import com.intrbiz.virt.manager.net.VPPNetManager;
 import com.intrbiz.virt.manager.store.CephStoreManager;
@@ -113,6 +114,7 @@ public class HostManager implements ClusterComponent<VirtHostCfg>
         switch (Util.coalesce(type, "default"))
         {
             case "vpp": return new VPPNetManager();
+            case "netd": return new NetDNetManager();
             default: return new DefaultNetManager();
         }
     }

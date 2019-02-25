@@ -382,7 +382,7 @@ public class LibvirtManager implements VirtManager
         if (nic instanceof BridgedInterfaceInfo)
         {
             BridgedInterfaceInfo bridged = (BridgedInterfaceInfo) nic;
-            return InterfaceDef.virtioBridge(bridged.getMac(), bridged.getBridge());
+            return InterfaceDef.virtioBridge(bridged.getMac(), bridged.getBridge(), TargetDef.dev("v-" + bridged.getMac().replace(":", "")));
         }
         else if (nic instanceof DirectInterfaceInfo)
         {
