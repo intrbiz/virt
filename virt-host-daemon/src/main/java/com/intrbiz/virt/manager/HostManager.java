@@ -74,6 +74,7 @@ public class HostManager implements ClusterComponent<VirtHostCfg>
     @Override
     public void configure(VirtHostCfg config) throws Exception
     {
+        this.config = config;
         // configure basic parameters
         this.hostZone = config.getZone().getName();
         this.hostName = config.getName();
@@ -149,7 +150,7 @@ public class HostManager implements ClusterComponent<VirtHostCfg>
         this.discoverMachines();
         // register remote VM hosts
         this.registerRemoteVMHosts();
-        // setup scheuled tasks
+        // setup scheduled tasks
         this.updateTask = new TimerTask() {
             public void run()
             {

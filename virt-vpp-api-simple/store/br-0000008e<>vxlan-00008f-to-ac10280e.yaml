@@ -1,0 +1,10 @@
+---
+type: bridge.interface
+name: br-0000008e<>vxlan-00008f-to-ac10280e
+depends:
+- br-0000008e
+- vxlan-00008f-to-ac10280e
+dependCount: 2
+bridge: br-0000008e
+interface: vxlan-00008f-to-ac10280e
+split_horizon_group: null

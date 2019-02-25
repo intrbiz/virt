@@ -9,14 +9,9 @@
 	<artifactId>virt-host-daemon</artifactId>
 	<dependencies>
 		<dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast</artifactId>
-			<version>3.8.2</version>
-		</dependency>
-		<dependency>
 			<groupId>com.intrbiz.util</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>1.2.0</version>
+			<version>1.4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -29,7 +24,7 @@
 		<dependency>
 			<groupId>com.intrbiz.virt</groupId>
 			<artifactId>virt-libvirt</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.intrbiz.virt</groupId>

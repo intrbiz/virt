@@ -28,7 +28,7 @@ public class OverviewRouter extends Router<VirtDashApp>
         var("networks", db.getNetworksForAccount(currentAccount.getId()));
         var("volumes", db.getPersistentVolumesForAccount(currentAccount.getId()));
         // build list of machines
-        MachineStateStore mss = app().getClusterManager().getMachineStateStore();
+        MachineStateStore<?> mss = app().getClusterManager().getMachineStateStore();
         var("machines", db.getMachinesForAccount(currentAccount.getId()).stream()
                 .map((m) -> new RunningMachine(m, mss.getMachineState(m.getId()), mss.getMachineHealth(m.getId())))
                 .collect(Collectors.toList()));

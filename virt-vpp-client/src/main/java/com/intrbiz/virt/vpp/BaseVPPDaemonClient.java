@@ -10,6 +10,9 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.intrbiz.Util;
 import com.intrbiz.virt.vpp.call.AliveCall;
 
@@ -26,6 +29,8 @@ public abstract class BaseVPPDaemonClient
     protected HttpClient client;
     
     protected Executor executor;
+    
+    protected final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID).enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
     
     public BaseVPPDaemonClient(String baseURL)
     {
@@ -103,6 +108,11 @@ public abstract class BaseVPPDaemonClient
             ns = true;
         }
         return sb.toString();
+    }
+    
+    public ObjectMapper getYamlMapper()
+    {
+        return this.yamlMapper;
     }
     
     // basic calls

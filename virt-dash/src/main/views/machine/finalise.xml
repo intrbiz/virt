@@ -58,12 +58,12 @@
 		      				<tr>
 		      					<td>#{currentMachine.SSHKey.name}</td>
 		      					<td>
-	      						<ul>
-		      						<data-set var="key" value="#{key.getAllKeysWrapped(100)}">
-		      							<li><pre>#{key}</pre></li>
-		      						</data-set>
-	      						</ul>
-	      					</td>
+		      						<ul>
+			      						<data-set var="key" value="#{currentMachine.SSHKey.getAllKeysWrapped(100)}">
+			      							<li><pre>#{key}</pre></li>
+			      						</data-set>
+		      						</ul>
+	      						</td>
 		      				</tr>
 			      		</table>
 			      		<h5 class="card-title pt-3">User Data</h5>

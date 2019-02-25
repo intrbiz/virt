@@ -40,9 +40,14 @@ public interface VPPRecipeManager extends AutoCloseable
     void update() throws InterruptedException, ExecutionException, IOException;
     
     /**
-     * List all the registered recipes
+     * List all recipes
      */
     Collection<? extends VPPRecipe> list();
+    
+    /**
+     * List all recipes of the given type
+     */
+    Collection<? extends VPPRecipe> list(String type);
     
     /**
      * Get the recipe currently registered with the given name

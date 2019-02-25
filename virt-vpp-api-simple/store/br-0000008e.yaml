@@ -1,0 +1,8 @@
+---
+type: bridge
+name: br-0000008e
+depends: []
+dependCount: 0
+id: 142
+mac_age: 3600
+tag: br-0000008e

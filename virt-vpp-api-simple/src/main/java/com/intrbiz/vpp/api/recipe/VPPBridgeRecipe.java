@@ -9,8 +9,7 @@ import com.intrbiz.vpp.api.model.BridgeDomainId;
  * A smart recipe which will create a VPP bridge domain
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
-public interface VPPBridgeRecipe
+public interface VPPBridgeRecipe extends VPPRecipe
 {
-
     BridgeDomainId getId();
 }

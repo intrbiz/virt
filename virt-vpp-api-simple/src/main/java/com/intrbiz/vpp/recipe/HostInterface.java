@@ -13,13 +13,15 @@ import com.intrbiz.system.net.NetException;
 import com.intrbiz.system.net.NetManager;
 import com.intrbiz.system.sysfs.SysFs;
 import com.intrbiz.vpp.api.VPPSimple;
+import com.intrbiz.vpp.api.model.IPv4CIDR;
 import com.intrbiz.vpp.api.model.InterfaceDetail;
 import com.intrbiz.vpp.api.model.InterfaceIndex;
 import com.intrbiz.vpp.api.model.MACAddress;
 import com.intrbiz.vpp.api.model.MTU;
 import com.intrbiz.vpp.api.model.Tag;
 import com.intrbiz.vpp.api.recipe.VPPInterfaceRecipe;
-import com.intrbiz.vpp.api.recipe.VPPRecipe;
+import com.intrbiz.vpp.api.recipe.VPPRecipeBase;
+import com.intrbiz.vpp.api.recipe.VPPRecipeContext;
 import com.intrbiz.vpp.util.RecipeWriter;
 
 /**
@@ -27,7 +29,7 @@ import com.intrbiz.vpp.util.RecipeWriter;
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
 @JsonTypeName("interface.host")
-public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
+public class HostInterface extends VPPRecipeBase implements VPPInterfaceRecipe
 {
     @JsonProperty("host_interface_name")
     private String hostInterfaceName;
@@ -40,28 +42,66 @@ public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
     
     @JsonProperty("tag")
     private Tag tag;
+    
+    @JsonProperty("ip")
+    private IPv4CIDR ipv4address;
 
     private transient InterfaceIndex currentInterfaceIndex;
     
     private transient String vppInterfaceName;
 
-    public HostInterface(String name, String hostInterfaceName, MACAddress macAddress, MTU mtu, Tag tag)
+    public HostInterface(String name, String hostInterfaceName, MACAddress macAddress, MTU mtu)
     {
         super(name);
+        this.setHostInterfaceName(Objects.requireNonNull(hostInterfaceName));
+        this.setMtu(Objects.requireNonNull(mtu));
+        this.setMacAddress(macAddress);
+        this.setTag(new Tag(name));
+    }
+    
+    public HostInterface(String name, String hostInterfaceName, MTU mtu)
+    {
+        this(name, hostInterfaceName, null, mtu);
+    }
+    
+    public HostInterface(String name, String hostInterfaceName, MACAddress macAddress, MTU mtu, IPv4CIDR address)
+    {
+        this(name, hostInterfaceName, macAddress, mtu);
+        this.ipv4address = address;
+    }
+    
+    public HostInterface(String name, String hostInterfaceName, MTU mtu, IPv4CIDR address)
+    {
+        this(name, hostInterfaceName, null, mtu, address);
+    }
+    
+    public HostInterface(String name, String hostInterfaceName)
+    {
+        this(name, hostInterfaceName, null, MTU.DEFAULT);
+    }
+    
+    public HostInterface(String hostInterfaceName, MACAddress macAddress, MTU mtu, Tag tag)
+    {
+        super("host-" + hostInterfaceName);
         this.setHostInterfaceName(Objects.requireNonNull(hostInterfaceName));
         this.setMtu(Objects.requireNonNull(mtu));
         this.setMacAddress(macAddress);
         this.setTag(tag);
     }
     
-    public HostInterface(String name, String hostInterfaceName, MTU mtu, Tag tag)
+    public HostInterface(String hostInterfaceName, MTU mtu, Tag tag)
     {
-        this(name, hostInterfaceName, null, mtu, tag);
+        this(hostInterfaceName, null, mtu, tag);
     }
     
-    public HostInterface(String name, String hostInterfaceName, Tag tag)
+    public HostInterface(String hostInterfaceName, Tag tag)
     {
-        this(name, hostInterfaceName, null, MTU.DEFAULT, tag);
+        this(hostInterfaceName, null, MTU.DEFAULT, tag);
+    }
+    
+    public HostInterface(String hostInterfaceName)
+    {
+        this(hostInterfaceName, null, MTU.DEFAULT, new Tag(hostInterfaceName));
     }
     
     public HostInterface()
@@ -122,6 +162,16 @@ public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
     {
         this.mtu = mtu;
     }
+    
+    public IPv4CIDR getIpv4address()
+    {
+        return ipv4address;
+    }
+
+    public void setIpv4address(IPv4CIDR ipv4address)
+    {
+        this.ipv4address = ipv4address;
+    }
 
     protected InterfaceIndex findExistingInterface(VPPSimple session) throws InterruptedException, ExecutionException
     {
@@ -145,6 +195,10 @@ public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
     {
         System.out.println("Configuring host interface: " + this.hostInterfaceName);
         session.interfaces().setInterfaceMTU(this.currentInterfaceIndex, this.mtu);
+        if (this.ipv4address != null)
+        {
+            session.interfaces().addInterfaceIPv4Address(this.currentInterfaceIndex, this.ipv4address);
+        }
         session.interfaces().setInterfaceUp(this.currentInterfaceIndex);
     }
     
@@ -187,7 +241,7 @@ public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
     }
     
     @Override
-    public void apply(VPPSimple session) throws InterruptedException, ExecutionException
+    public void apply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
     {
         if (this.macAddress == null) this.macAddress = this.computeInterfaceMACAddress();
         this.setupHostInterface();
@@ -196,13 +250,19 @@ public class HostInterface extends VPPRecipe implements VPPInterfaceRecipe
         this.setupInterface(session);
     }
     
+    @Override
+    public void unapply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
+    {
+        // TODO
+    }
+    
     public String toString()
     {
         return RecipeWriter.getDefault().toString(this);
     }
     
-    public static HostInterface forVM(String name, MACAddress vmMACAddress)
+    public static HostInterface forVM(MACAddress vmMACAddress)
     {
-        return new HostInterface(name, "vm-" + vmMACAddress.toCompactString(), new Tag("vm-" + vmMACAddress.toString()));
+        return new HostInterface("vm-" + vmMACAddress.toCompactString(), new Tag("vm-" + vmMACAddress.toString()));
     }
 }

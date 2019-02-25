@@ -9,7 +9,7 @@ import com.intrbiz.vpp.api.model.InterfaceIndex;
  * A smart recipe which will create some kind of VPP interface
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
-public interface VPPInterfaceRecipe
+public interface VPPInterfaceRecipe extends VPPRecipe
 {
     /**
      * The current (transient) index of the created interface, 

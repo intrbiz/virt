@@ -13,13 +13,21 @@ import com.intrbiz.vpp.api.model.BridgeDomainDetail;
 import com.intrbiz.vpp.api.model.BridgeDomainId;
 import com.intrbiz.vpp.api.model.Tag;
 import com.intrbiz.vpp.api.recipe.VPPBridgeRecipe;
-import com.intrbiz.vpp.api.recipe.VPPRecipe;
+import com.intrbiz.vpp.api.recipe.VPPRecipeBase;
+import com.intrbiz.vpp.api.recipe.VPPRecipeContext;
 import com.intrbiz.vpp.util.RecipeWriter;
 
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
 @JsonTypeName("bridge")
-public class Bridge extends VPPRecipe implements VPPBridgeRecipe
+public class Bridge extends VPPRecipeBase implements VPPBridgeRecipe
 {
+    public static final String name(BridgeDomainId id)
+    {
+        return "br-" + id.asHex();
+    }
+    
+    public static final int DEFAULT_MAC_AGE_SECONDS = 3600;
+    
     @JsonProperty("id")
     private BridgeDomainId id;
 
@@ -35,6 +43,26 @@ public class Bridge extends VPPRecipe implements VPPBridgeRecipe
         this.id = Objects.requireNonNull(id);
         this.macAgeSeconds = macAgeSeconds <= 0 ? 5 : macAgeSeconds;
         this.tag = Objects.requireNonNull(tag);
+    }
+    
+    public Bridge(String name, BridgeDomainId id, int macAgeSeconds)
+    {
+        this(name, id, macAgeSeconds, new Tag(name));
+    }
+    
+    public Bridge(String name, BridgeDomainId id)
+    {
+        this(name, id, DEFAULT_MAC_AGE_SECONDS, new Tag(name));
+    }
+    
+    public Bridge(BridgeDomainId id, int macAgeSeconds)
+    {
+        this(name(id), id, macAgeSeconds);
+    }
+    
+    public Bridge(BridgeDomainId id)
+    {
+        this(name(id), id, DEFAULT_MAC_AGE_SECONDS);
     }
     
     public Bridge() {
@@ -88,12 +116,18 @@ public class Bridge extends VPPRecipe implements VPPBridgeRecipe
     }
 
     @Override
-    public void apply(VPPSimple session) throws InterruptedException, ExecutionException
+    public void apply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
     {
         boolean existing = this.findExistingBridgeDomain(session);
         if (!existing) this.createBridgeDomain(session);
     }
     
+    @Override
+    public void unapply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
+    {
+        // TODO
+    }
+
     public String toString()
     {
         return RecipeWriter.getDefault().toString(this);

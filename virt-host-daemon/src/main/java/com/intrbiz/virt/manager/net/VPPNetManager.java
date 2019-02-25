@@ -3,13 +3,12 @@ package com.intrbiz.virt.manager.net;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
 import com.intrbiz.virt.VirtError;
+import com.intrbiz.virt.cluster.model.HostState;
 import com.intrbiz.virt.config.NetManagerCfg;
 import com.intrbiz.virt.event.model.MachineEO;
 import com.intrbiz.virt.event.model.MachineInterfaceEO;
@@ -21,31 +20,26 @@ import com.intrbiz.virt.manager.net.model.DirectInterfaceInfo;
 import com.intrbiz.virt.manager.net.model.InterfaceInfo;
 import com.intrbiz.virt.manager.net.model.VhostUserInterfaceInfo;
 import com.intrbiz.virt.vpp.VPPDaemonClient;
-import com.intrbiz.virt.vpp.VPPDaemonClientAPIException;
+import com.intrbiz.vpp.api.model.BridgeDomainId;
 import com.intrbiz.vpp.api.model.IPv4Address;
 import com.intrbiz.vpp.api.model.IPv4CIDR;
 import com.intrbiz.vpp.api.model.MACAddress;
+import com.intrbiz.vpp.api.model.MTU;
+import com.intrbiz.vpp.api.model.SplitHorizonGroup;
+import com.intrbiz.vpp.api.model.VNI;
 import com.intrbiz.vpp.api.model.VhostUserMode;
 import com.intrbiz.vpp.api.recipe.VPPInterfaceRecipe;
 import com.intrbiz.vpp.api.recipe.VPPRecipe;
-import com.intrbiz.vpp.recipe.VMInterface;
-import com.intrbiz.vpp.recipe.VMInterfaceType;
-import com.intrbiz.vpp.recipe.VMNetworkId;
-import com.intrbiz.vpp.recipe.VMNetworks;
+import com.intrbiz.vpp.recipe.Bridge;
+import com.intrbiz.vpp.recipe.BridgeInterface;
+import com.intrbiz.vpp.recipe.HostInterface;
+import com.intrbiz.vpp.recipe.VXLANTunnel;
 import com.intrbiz.vpp.recipe.VethHostInterface;
 import com.intrbiz.vpp.recipe.VhostUserInterface;
-import com.intrbiz.vpp.util.RecipeReader;
-import com.intrbiz.vpp.util.RecipeWriter;
 
 public class VPPNetManager implements NetManager
-{
-    private static final String VM_NETWORKS_KEY = "vpp.vm.networks";
-    
-    private static final String VM_NETWORKS_RECIPE_NAME = "vm.networks";
-    
+{    
     private static final Logger logger = Logger.getLogger(VPPNetManager.class);
-    
-    private final Timer timer = new Timer();
     
     private final Set<String> supportedTypes = Collections.unmodifiableSet(new TreeSet<String>(Arrays.asList("vxlan", "public", "transfer", "service")));
     
@@ -57,21 +51,17 @@ public class VPPNetManager implements NetManager
     
     private IPv4CIDR interconnectCIDR;
     
-    private VMNetworkId publicNetworkId;
+    private VNI publicNetworkId;
     
-    private VMNetworkId serviceNetworkId;
+    private VNI serviceNetworkId;
     
-    private VMNetworkId transferNetworkId;
+    private VNI transferNetworkId;
     
     private NetManagerCfg config;
     
-    private VMNetworks vmNetworks;
-    
     private String vppDaemonUrl;
     
-    private long vppApplyInterval = 30_000L;
-    
-    private transient TimerTask applyTask;
+    private transient HostManagerContext hostManagerContext;
     
     private transient HostMetadataStoreContext metadataContext;
     
@@ -90,11 +80,10 @@ public class VPPNetManager implements NetManager
         this.metadataVMInterface = cfg.getStringParameterValue("metadata.vm.interface", "metadata_vms");
         this.interconnectInterface = cfg.getStringParameterValue("interconnect.interface", "uplink_vpp");
         this.interconnectCIDR = IPv4CIDR.fromString(cfg.getStringParameterValue("interconnect.address", "172.22.40.10/24"));
-        this.publicNetworkId = new VMNetworkId(cfg.getIntParameterValue("public.network.id", 20));
-        this.serviceNetworkId = new VMNetworkId(cfg.getIntParameterValue("service.network.id", 30));
-        this.transferNetworkId = new VMNetworkId(cfg.getIntParameterValue("transfer.network.id", 40));
+        this.publicNetworkId = new VNI(cfg.getIntParameterValue("public.network.id", 20));
+        this.serviceNetworkId = new VNI(cfg.getIntParameterValue("service.network.id", 30));
+        this.transferNetworkId = new VNI(cfg.getIntParameterValue("transfer.network.id", 40));
         this.vppDaemonUrl = cfg.getStringParameterValue("vpp.daemon.url", "http://localhost:8989/");
-        this.vppApplyInterval = cfg.getLongParameterValue("vpp.apply.interval", 30_000L);
     }
 
     @Override
@@ -105,31 +94,25 @@ public class VPPNetManager implements NetManager
     
     public void start(HostManagerContext managerContext, HostMetadataStoreContext metadataContext)
     {
+        this.hostManagerContext = managerContext;
         this.metadataContext = metadataContext;
         // Set up our VPP Daemon Client
         this.vppDaemonClient = new VPPDaemonClient(this.vppDaemonUrl);
-        // load our previous state if it is stored
-        this.loadVPPRecipes();
-        // setup our VPP recipes
-        if (this.vmNetworks == null)
-        {
-            this.vmNetworks = new VMNetworks(this.interconnectInterface, this.interconnectCIDR, VMInterfaceType.VETH);
-        }
-        // Add in our infrastructure networks
-        this.vmNetworks.addNetwork(new VMNetworkId(this.publicNetworkId.getValue()));
-        this.vmNetworks.addNetwork(new VMNetworkId(this.serviceNetworkId.getValue()));
-        this.vmNetworks.addNetwork(new VMNetworkId(this.transferNetworkId.getValue()));
-        // apply the state
-        this.apply();
-        // Setup a timer task to ensure our VPP recipe is running every 30 seconds, in case VPP crashes
-        this.applyTask = new TimerTask()
-        {
-            public void run()
-            {
-                apply();
-            }
-        };
-        this.timer.scheduleAtFixedRate(this.applyTask, this.vppApplyInterval, this.vppApplyInterval);
+        // Set up our base recipes for interconnect and built in bridges
+        this.updateRecipe(new HostInterface("interconnect", this.interconnectInterface, MTU.JUMBO, this.interconnectCIDR));
+        this.updateRecipe(new Bridge(bridgeName(this.publicNetworkId), new BridgeDomainId(this.publicNetworkId.getValue())));
+        this.updateRecipe(new Bridge(bridgeName(this.serviceNetworkId), new BridgeDomainId(this.serviceNetworkId.getValue())));
+        this.updateRecipe(new Bridge(bridgeName(this.transferNetworkId), new BridgeDomainId(this.transferNetworkId.getValue())));
+    }
+    
+    protected void updateRecipe(VPPRecipe recipe)
+    {
+        this.vppDaemonClient.callUpdateRecipe().recipe(recipe).execute();
+    }
+    
+    protected Set<String> getBridges()
+    {
+        return this.vppDaemonClient.callListRecipesOfType().type(Bridge.class).execute();
     }
     
     public Set<String> getSupportedTypes()
@@ -157,17 +140,17 @@ public class VPPNetManager implements NetManager
         return interconnectCIDR;
     }
 
-    public VMNetworkId getPublicNetworkId()
+    public VNI getPublicNetworkId()
     {
         return publicNetworkId;
     }
 
-    public VMNetworkId getServiceNetworkId()
+    public VNI getServiceNetworkId()
     {
         return serviceNetworkId;
     }
 
-    public VMNetworkId getTransferNetworkId()
+    public VNI getTransferNetworkId()
     {
         return transferNetworkId;
     }
@@ -177,56 +160,40 @@ public class VPPNetManager implements NetManager
         return this.interconnectCIDR.getAddress().toString();
     }
     
+    protected String bridgeName(VNI vni)
+    {
+        return "vnet-br-" + vni.asHex();
+    }
+    
+    protected boolean isBridge(String name)
+    {
+        return name.startsWith("vnet-br-");
+    }
+    
+    protected VNI fromBridgeName(String name)
+    {
+        return new VNI(Integer.parseInt(name.replace("vnet-br-", ""), 16));
+    }
+    
     public void registerRemoteVMHost(String remoteVMHostAddress)
     {
-        this.vmNetworks.addRemoteVMHost(IPv4Address.fromString(remoteVMHostAddress));
-        this.apply();
+        registerRemoteVMHosts(Collections.singleton(remoteVMHostAddress));
     }
     
     public void registerRemoteVMHosts(Set<String> remoteVMHostAddresses)
     {
-        for (String remoteVMHostAddress : remoteVMHostAddresses)
+        // Get all networks which are configured and add a tunnel to this host
+        for (String bridge : this.getBridges())
         {
-            this.vmNetworks.addRemoteVMHost(IPv4Address.fromString(remoteVMHostAddress));
-        }
-        this.apply();
-    }
-    
-    protected synchronized void apply()
-    {
-        this.saveVPPRecipes();
-        logger.info("Updating VPP VM Networks recipe to:\n" + RecipeWriter.getDefault().toString(this.vmNetworks));
-        // Talk to our VPP daemon
-        for (int i = 0; i < 2; i++)
-        {
-            try
+            if (isBridge(bridge))
             {
-                VPPRecipe applied = this.vppDaemonClient.callApplyRecipe().name(VM_NETWORKS_RECIPE_NAME).recipe(this.vmNetworks).execute();
-                logger.info("Applied VPP Recipse: " + applied);
-                // Successfully applied
-                break;
-            }
-            catch (VPPDaemonClientAPIException e)
-            {
-                logger.error("Failed to apply VPP recipes, this will get retried", e);
-            }
-        }
-    }
-    
-    private void saveVPPRecipes()
-    {
-        this.metadataContext.set(VM_NETWORKS_KEY, RecipeWriter.getDefault().toString(this.vmNetworks));
-    }
-    
-    private void loadVPPRecipes()
-    {
-        String vmNetworksString = this.metadataContext.get(VM_NETWORKS_KEY);
-        if (vmNetworksString != null)
-        {
-            this.vmNetworks = RecipeReader.getDefault().fromString(VMNetworks.class, vmNetworksString);
-            if (this.vmNetworks != null)
-            {
-                logger.info("Loaded existing VPP VM Networks recipe:\n" + RecipeWriter.getDefault().toString(this.vmNetworks));
+                VNI vni = fromBridgeName(bridge);
+                for (String remoteVMHostAddress : remoteVMHostAddresses)
+                {
+                    VXLANTunnel tunnel = new VXLANTunnel(this.interconnectCIDR.getAddress(), IPv4Address.fromString(remoteVMHostAddress), vni);
+                    this.updateRecipe(tunnel);
+                    this.updateRecipe(new BridgeInterface(bridge, tunnel.getName(), SplitHorizonGroup.ONE));
+                }
             }
         }
     }
@@ -247,11 +214,21 @@ public class VPPNetManager implements NetManager
     public void setupNetwork(NetworkEO net)
     {
         logger.info("Setting up network: " + net.getName() + " " + net.getType() + " " + net.getVxlanid());
-        if ("vxlan".equals(net.getType()))
+        // Set up the network bridge
+        VNI vni = new VNI(net.getVxlanid());
+        Bridge bridge = new Bridge(bridgeName(vni), new BridgeDomainId(net.getVxlanid()));
+        this.updateRecipe(bridge);
+        // Create the VXLAN tunnels we need
+        for (HostState remoteHost : this.hostManagerContext.getActiveHostsInZone())
         {
-            this.vmNetworks.addNetwork(new VMNetworkId(net.getVxlanid()));
+            IPv4Address remote = IPv4Address.fromString(remoteHost.getInterconnectAddress());
+            if (! this.interconnectCIDR.getAddress().equals(remote))
+            {
+                VXLANTunnel tunnel = new VXLANTunnel(this.interconnectCIDR.getAddress(), remote, vni);
+                this.updateRecipe(tunnel);
+                this.updateRecipe(new BridgeInterface(bridge, tunnel, SplitHorizonGroup.ONE));
+            }
         }
-        this.apply();
     }
 
     @Override
@@ -268,9 +245,8 @@ public class VPPNetManager implements NetManager
         logger.info("Setting up guest interface: " + nic.getMac() + " " + nic.getName() + " " + nic.getNetwork().getType() + " " + nic.getNetwork().getVxlanid());
         if ("vxlan".equals(nic.getNetwork().getType()))
         {
-            VMNetworkId network = new VMNetworkId(nic.getNetwork().getVxlanid());
-            this.vmNetworks.addNetwork(network);
-            return this.setupGuestNIC(nic, network);
+            this.setupNetwork(nic.getNetwork());
+            return this.setupGuestNIC(nic, new VNI(nic.getNetwork().getVxlanid()));
         }
         else if ("public".equalsIgnoreCase(nic.getNetwork().getType()))
         {
@@ -287,25 +263,25 @@ public class VPPNetManager implements NetManager
         throw new VirtError("Cannot create guest interface for network of type: " + nic.getNetwork().getType());
     }
     
-    protected InterfaceInfo setupGuestNIC(MachineInterfaceEO nic, VMNetworkId network)
+    protected InterfaceInfo setupGuestNIC(MachineInterfaceEO nic, VNI network)
     {
-        VMInterface iface = this.vmNetworks.addVMInterface(MACAddress.fromString(nic.getMac()), new VMNetworkId(nic.getNetwork().getVxlanid()));
-        this.apply();
-        return toInterfaceInfo(iface);
+        VethHostInterface iface = VethHostInterface.forVM(MACAddress.fromString(nic.getMac()));
+        this.updateRecipe(iface);
+        this.updateRecipe(new BridgeInterface(bridgeName(network), iface.getName()));
+        return toInterfaceInfo(nic, iface);
     }
     
-    protected InterfaceInfo toInterfaceInfo(VMInterface vmInterface)
+    protected InterfaceInfo toInterfaceInfo(MachineInterfaceEO nic, VPPInterfaceRecipe iface)
     {
-        VPPInterfaceRecipe iface = vmInterface.getVmInterface();
         if (iface instanceof VhostUserInterface)
         {
             VhostUserInterface vhostUser = (VhostUserInterface) iface;
-            return new VhostUserInterfaceInfo(vmInterface.getVmMACAddress().toString(), vhostUser.getSocket(), vhostUser.getMode() == VhostUserMode.CLIENT);
+            return new VhostUserInterfaceInfo(nic.getMac(), vhostUser.getSocket(), vhostUser.getMode() == VhostUserMode.CLIENT);
         }
         else if (iface instanceof VethHostInterface)
         {
             VethHostInterface veth = (VethHostInterface) iface;
-            return new DirectInterfaceInfo(vmInterface.getVmMACAddress().toString(), veth.getHostInterfacePeerName(), MacVTapMode.PRIVATE);
+            return new DirectInterfaceInfo(nic.getMac(), veth.getHostInterfacePeerName(), MacVTapMode.PRIVATE);
         }
         return null;
     }

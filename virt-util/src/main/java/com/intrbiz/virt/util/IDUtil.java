@@ -14,7 +14,10 @@ public class IDUtil
     {
         byte[] mac = new byte[6];
         new SecureRandom().nextBytes(mac);
-        mac[0] = (byte) ((mac[0] & 0xFC) | 0x02);
+        //mac[0] = (byte) ((mac[0] & 0xFC) | 0x02);
+        mac[0] = 0x52;
+        mac[1] = 0x54;
+        mac[2] = 0x00;
         return mac;
     }
     

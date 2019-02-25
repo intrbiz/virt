@@ -134,7 +134,10 @@ public final class MACAddress implements Comparable<MACAddress>, Serializable
     {
         byte[] mac = new byte[MAC_LENGTH];
         new SecureRandom().nextBytes(mac);
-        mac[0] = (byte) ((mac[0] & 0xFC) | 0x02);
+        // mac[0] = (byte) ((mac[0] & 0xFC) | 0x02);
+        mac[0] = 0x52;
+        mac[1] = 0x54;
+        mac[2] = 0x01;
         return new MACAddress(mac);
     }
     

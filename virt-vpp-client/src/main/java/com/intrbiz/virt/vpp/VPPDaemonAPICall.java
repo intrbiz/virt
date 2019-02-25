@@ -1,6 +1,8 @@
 package com.intrbiz.virt.vpp;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Set;
 
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
@@ -10,6 +12,7 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.intrbiz.vpp.api.recipe.VPPRecipe;
 import com.intrbiz.vpp.util.RecipeReader;
 import com.intrbiz.vpp.util.RecipeWriter;
@@ -73,7 +76,7 @@ public abstract class VPPDaemonAPICall<T>
         return Request.Put(url);
     }
     
-    protected Request delte(String url)
+    protected Request delete(String url)
     {
         return Request.Delete(url);
     }
@@ -91,6 +94,33 @@ public abstract class VPPDaemonAPICall<T>
     protected VPPRecipe asVPPRecipe(Response response) throws IOException
     {
         return RecipeReader.getDefault().fromString(VPPRecipe.class, asString(response));
+    }
+    
+    protected <R> R fromYaml(Response response, Class<R> type) throws IOException
+    {
+        return this.client.getYamlMapper().readValue(asString(response), type);
+    }
+    
+    @SuppressWarnings("unchecked")
+    protected <R> R fromYaml(Response response, JavaType type) throws IOException
+    {
+        return (R) this.client.getYamlMapper().readValue(asString(response), type);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    protected JavaType collectionType(Class<? extends Collection> collectionType, Class<?> elementType)
+    {
+        return this.client.getYamlMapper().getTypeFactory().constructCollectionType(collectionType, elementType);
+    }
+    
+    protected JavaType setOf(Class<?> elementType)
+    {
+        return this.collectionType(Set.class, elementType);
+    }
+    
+    protected JavaType listOf(Class<?> elementType)
+    {
+        return this.collectionType(Set.class, elementType);
     }
     
     /**

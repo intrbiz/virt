@@ -1,7 +1,6 @@
 <virt-host name="chris-t480">
 	<net-manager type="vpp">
 		<parameter name="vpp.daemon.url">http://127.0.0.1:8989/</parameter>
-		<parameter name="vpp.apply.interval">300000</parameter>
 		<parameter name="metadata.server.interface">metadata_srv</parameter>
         <parameter name="metadata.vm.interface">metadata_vms</parameter>
         <parameter name="interconnect.interface">enp0s31f6</parameter>
@@ -31,4 +30,8 @@
 		<capability>router</capability>
 		<capability>volume</capability>
 	</capabilities>
+	<parameter name="metadata.server.url">http://172.16.0.1:8888</parameter>
+	<parameter name="metadata.gateway">172.16.0.1</parameter>
+	<parameter name="metadata.nameservers">8.8.8.8</parameter>
+	<parameter name="metadata.search.domain">intrbiz.cloud</parameter>
 </virt-host>

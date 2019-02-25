@@ -15,7 +15,8 @@ import com.intrbiz.vpp.api.model.InterfaceIndex;
 import com.intrbiz.vpp.api.model.Tag;
 import com.intrbiz.vpp.api.model.VNI;
 import com.intrbiz.vpp.api.recipe.VPPInterfaceRecipe;
-import com.intrbiz.vpp.api.recipe.VPPRecipe;
+import com.intrbiz.vpp.api.recipe.VPPRecipeBase;
+import com.intrbiz.vpp.api.recipe.VPPRecipeContext;
 import com.intrbiz.vpp.util.RecipeWriter;
 
 /**
@@ -23,8 +24,13 @@ import com.intrbiz.vpp.util.RecipeWriter;
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
 @JsonTypeName("vxlan.tunnel")
-public class VXLANTunnel extends VPPRecipe implements VPPInterfaceRecipe
+public class VXLANTunnel extends VPPRecipeBase implements VPPInterfaceRecipe
 {
+    public static final String name(VNI vni, IPv4Address destinationAddress)
+    {
+        return "vxlan-" + vni.asHex() + "-to-" + destinationAddress.asHex();
+    }
+    
     @JsonProperty("source")
     private IPv4Address sourceAddress;
 
@@ -46,6 +52,16 @@ public class VXLANTunnel extends VPPRecipe implements VPPInterfaceRecipe
         this.destinationAddress = Objects.requireNonNull(destinationAddress);
         this.vni = Objects.requireNonNull(vni);
         this.tag = Objects.requireNonNull(tag);
+    }
+    
+    public VXLANTunnel(String name, IPv4Address sourceAddress, IPv4Address destinationAddress, VNI vni)
+    {
+        this(name, sourceAddress, destinationAddress, vni, new Tag(name));
+    }
+    
+    public VXLANTunnel(IPv4Address sourceAddress, IPv4Address destinationAddress, VNI vni)
+    {
+        this(name(vni, destinationAddress), sourceAddress, destinationAddress, vni);
     }
 
     public VXLANTunnel()
@@ -120,10 +136,16 @@ public class VXLANTunnel extends VPPRecipe implements VPPInterfaceRecipe
     }
 
     @Override
-    public void apply(VPPSimple session) throws InterruptedException, ExecutionException
+    public void apply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
     {
         this.currentInterfaceIndex = this.findExistingVXLANTunnel(session);
         if (this.currentInterfaceIndex == null) this.currentInterfaceIndex = this.createVXLANTunnel(session);
+    }
+    
+    @Override
+    public void unapply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
+    {
+        // TODO
     }
     
     public String toString()

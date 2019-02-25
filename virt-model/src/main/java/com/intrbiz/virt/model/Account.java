@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.intrbiz.data.db.compiler.meta.SQLColumn;
 import com.intrbiz.data.db.compiler.meta.SQLPrimaryKey;
 import com.intrbiz.data.db.compiler.meta.SQLTable;
+import com.intrbiz.data.db.compiler.meta.SQLUnique;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.util.NameUtil;
@@ -22,6 +23,7 @@ public class Account implements Serializable
     private UUID id;
 
     @SQLColumn(index = 2, name = "name", since = @SQLVersion({ 1, 0, 0 }))
+    @SQLUnique(name = "account_name_unq")
     private String name;
 
     @SQLColumn(index = 3, name = "summary", since = @SQLVersion({ 1, 0, 0 }))

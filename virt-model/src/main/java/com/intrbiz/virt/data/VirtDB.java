@@ -20,6 +20,7 @@ import com.intrbiz.data.db.compiler.meta.SQLSetter;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.model.Account;
 import com.intrbiz.virt.model.Config;
+import com.intrbiz.virt.model.DNSRecord;
 import com.intrbiz.virt.model.Image;
 import com.intrbiz.virt.model.Machine;
 import com.intrbiz.virt.model.MachineNIC;
@@ -34,7 +35,7 @@ import com.intrbiz.virt.model.Zone;
 
 @SQLSchema(
         name = "virt", 
-        version = @SQLVersion({1, 0, 10}),
+        version = @SQLVersion({1, 0, 11}),
         tables = {
             Config.class,
             User.class,
@@ -48,7 +49,8 @@ import com.intrbiz.virt.model.Zone;
             MachineNIC.class,
             MachineVolume.class,
             Zone.class,
-            PersistentVolume.class
+            PersistentVolume.class,
+            DNSRecord.class
         }
 )
 public abstract class VirtDB extends DatabaseAdapter
@@ -309,6 +311,9 @@ public abstract class VirtDB extends DatabaseAdapter
     @SQLRemove(table = Machine.class, name = "remove_machine", since = @SQLVersion({1, 0, 0}))
     public abstract void removeMachine(@SQLParam("id") UUID id);
     
+    @SQLGetter(table = Machine.class, name ="get_machine_by_name", since = @SQLVersion({1, 0, 11}))
+    public abstract Machine getMachineByName(@SQLParam("account_id") UUID accountId, @SQLParam("name") String name);
+    
     @SQLGetter(table = Machine.class, name ="get_machines_for_account", since = @SQLVersion({1, 0, 0}), orderBy = @SQLOrder("name"))
     public abstract List<Machine> getMachinesForAccount(@SQLParam("account_id") UUID accountId);
     
@@ -391,4 +396,26 @@ public abstract class VirtDB extends DatabaseAdapter
     
     @SQLGetter(table = PersistentVolume.class, name ="get_persistent_volumes_in_zone", since = @SQLVersion({1, 0, 6}), orderBy = @SQLOrder("name"))
     public abstract List<PersistentVolume> getPersistentVolumesInZone(@SQLParam("zone_id") UUID zoneId);
+    
+    // DNS
+    
+    @SQLSetter(table = DNSRecord.class, name = "set_dns_record", since = @SQLVersion({1, 0, 12}))
+    public abstract void setDNSRecord(DNSRecord b);
+    
+    @SQLGetter(table = DNSRecord.class, name = "get_dns_record", since = @SQLVersion({1, 0, 12}))
+    public abstract DNSRecord getDNSRecord(@SQLParam("account_id") UUID accountId, @SQLParam("scope") String scope, @SQLParam("type") String type, @SQLParam("name") String name);
+
+    @SQLRemove(table = DNSRecord.class, name = "remove_dns_record", since = @SQLVersion({1, 0, 12}))
+    public abstract void removeDNSRecord(@SQLParam("account_id") UUID accountId, @SQLParam("scope") String scope, @SQLParam("type") String type, @SQLParam("name") String name);
+    
+    @SQLGetter(table = DNSRecord.class, name ="get_dns_records_for_account", since = @SQLVersion({1, 0, 12}), orderBy = {@SQLOrder("scope"), @SQLOrder("type"), @SQLOrder("name")},
+            query = @SQLQuery("SELECT * FROM virt.dns_record WHERE account_id = p_account_id AND (scope = p_scope OR p_scope IS NULL) AND (type = p_type OR p_type IS NULL OR p_type = 'ANY')"))
+    public abstract List<DNSRecord> getDNSRecordsForAccount(@SQLParam("account_id") UUID accountId, @SQLParam("scope") String scope, @SQLParam("type") String type);
+    
+    @SQLGetter(table = DNSRecord.class, name ="lookup_dns_records_for_account", since = @SQLVersion({1, 0, 12}), orderBy = {@SQLOrder("scope"), @SQLOrder("type"), @SQLOrder("name")},
+            query = @SQLQuery("SELECT * FROM virt.dns_record WHERE account_id = p_account_id AND (scope = p_scope OR p_scope IS NULL) AND (type = p_type OR p_type IS NULL OR p_type = 'ANY') AND (name = p_name OR p_name IS NULL)"))
+    public abstract List<DNSRecord> lookupDNSRecordsForAccount(@SQLParam("account_id") UUID accountId, @SQLParam("scope") String scope, @SQLParam("type") String type, @SQLParam("name") String name);
+    
+    @SQLGetter(table = DNSRecord.class, name = "list_dns_records", since = @SQLVersion({1, 0, 12}))
+    public abstract List<DNSRecord> listDNSRecords();
 }

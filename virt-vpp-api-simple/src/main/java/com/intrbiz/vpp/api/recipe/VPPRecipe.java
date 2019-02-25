@@ -1,6 +1,5 @@
 package com.intrbiz.vpp.api.recipe;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -16,68 +15,49 @@ import com.intrbiz.vpp.api.VPPSimple;
  * the recipe will then take care of ensuring VPP is in the desired state.
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
-public abstract class VPPRecipe
+public interface VPPRecipe
 {
-    private String name;
+    String getType();
     
-    private Set<String> depends = new HashSet<String>();
-    
-    public VPPRecipe()
-    {
-        super();
-    }
-    
-    public VPPRecipe(String name)
-    {
-        super();
-        this.name = name;
-    }
-    
-    public VPPRecipe(String name, String... depends)
-    {
-        this(name);
-        for (String depend : depends)
-        {
-            this.depends.add(depend);
-        }
-    }
-    
-    public VPPRecipe(String name, Set<String> depends)
-    {
-        this(name);
-        if (depends != null) this.depends.addAll(depends);
-    }
-    
-    public String getName()
-    {
-        return name;
-    }
+    String getName();
 
-    public void setName(String name)
-    {
-        this.name = name;
-    }
+    void setName(String name);
 
-    public Set<String> getDepends()
-    {
-        return depends;
-    }
+    Set<String> getDepends();
 
-    public void setDepends(Set<String> depends)
-    {
-        this.depends = depends;
-    }
+    void setDepends(Set<String> depends);
     
-    public void addDepends(String depend)
-    {
-        if (depend != null) this.depends.add(depend);
-    }
+    void addDepends(String depend);
+    
+    void addDepends(VPPRecipe depend);
+    
+    int getDependCount();
 
     /**
-     * Apply this recipe to the given VPP session
+     * Apply this recipe to the given VPP session in an idempotent fashion.
+     * 
+     * This should make any changes to VPP as needed.  If a change as already been made, 
+     * this should be ignored and skipped over.
+     * 
+     * If this recipe cannot apply the changes it needs to a <code>ExecutionException</code> should be thrown.
+     * 
      * @param session the VPP session to configure
      * @throws InterruptedException
      * @throws ExecutionException
      */
-    public abstract void apply(VPPSimple session) throws InterruptedException, ExecutionException;
+    void apply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException;
+    
+    /**
+     * Unapply this recipe from the given VPP session in an idempotent fashion.
+     * 
+     * This should teardown any changes this recipe had made, if something has 
+     * already been torndown that should be ignored.
+     * 
+     * If this recipe cannot currently be torndown an <code>ExecutionException</code> should be thrown.
+     * 
+     * @param session the VPP session to configure
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+    void unapply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException;
 }

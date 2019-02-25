@@ -23,20 +23,20 @@ public class VethHostInterface extends HostInterface
         super();
     }
 
-    public VethHostInterface(String name, String hostInterfaceName, String hostInterfacePeerName, MACAddress macAddress, MTU mtu, Tag tag)
+    public VethHostInterface(String hostInterfaceName, String hostInterfacePeerName, MACAddress macAddress, MTU mtu, Tag tag)
     {
-        super(name, hostInterfaceName, macAddress, mtu, tag);
+        super(hostInterfaceName, macAddress, mtu, tag);
         this.hostInterfacePeerName = hostInterfacePeerName;
     }
 
-    public VethHostInterface(String name, String hostInterfaceName, String hostInterfacePeerName, MTU mtu, Tag tag)
+    public VethHostInterface(String hostInterfaceName, String hostInterfacePeerName, MTU mtu, Tag tag)
     {
-        this(name, hostInterfaceName, hostInterfacePeerName, null, mtu, tag);
+        this(hostInterfaceName, hostInterfacePeerName, null, mtu, tag);
     }
 
-    public VethHostInterface(String name, String hostInterfaceName, String hostInterfacePeerName, Tag tag)
+    public VethHostInterface(String hostInterfaceName, String hostInterfacePeerName, Tag tag)
     {
-        this(name, hostInterfaceName, hostInterfacePeerName, null, MTU.DEFAULT, tag);
+        this(hostInterfaceName, hostInterfacePeerName, null, MTU.DEFAULT, tag);
     }
 
     public String getHostInterfacePeerName()
@@ -56,8 +56,8 @@ public class VethHostInterface extends HostInterface
         netMan.createVeth(this.getHostInterfaceName(), this.getHostInterfacePeerName());
     }
     
-    public static VethHostInterface forVM(String name, MACAddress vmMACAddress)
+    public static VethHostInterface forVM(MACAddress vmMACAddress)
     {
-        return new VethHostInterface(name, "vm-" + vmMACAddress.toCompactString(), "vn-" + vmMACAddress.toCompactString(), MACAddress.random(), MTU.DEFAULT, new Tag("vm-" + vmMACAddress.toString()));
+        return new VethHostInterface("vm-" + vmMACAddress.toCompactString(), "vn-" + vmMACAddress.toCompactString(), MACAddress.random(), MTU.DEFAULT, new Tag("vm-" + vmMACAddress.toString()));
     }
 }

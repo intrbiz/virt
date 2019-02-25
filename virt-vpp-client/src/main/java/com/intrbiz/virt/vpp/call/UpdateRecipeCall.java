@@ -11,19 +11,11 @@ import com.intrbiz.vpp.api.recipe.VPPRecipe;
 
 public class UpdateRecipeCall extends VPPDaemonAPICall<VPPRecipe>
 {   
-    private String name;
-    
     private VPPRecipe recipe;
     
     public UpdateRecipeCall(BaseVPPDaemonClient client)
     {
         super(client);
-    }
-    
-    public UpdateRecipeCall name(String name)
-    {
-        this.name = name;
-        return this;
     }
     
     public UpdateRecipeCall recipe(VPPRecipe recipe)
@@ -36,12 +28,12 @@ public class UpdateRecipeCall extends VPPDaemonAPICall<VPPRecipe>
     {
         try
         {
-            Response response = execute(bodyRecipe(post(url("/recipe/name/" + this.name)), this.recipe));
+            Response response = execute(bodyRecipe(post(url("/recipe/")), this.recipe));
             return asVPPRecipe(response);
         }
         catch (IOException e)
         {
-            throw new VPPDaemonClientAPIException("Error applying recipe " + this.name, e);
+            throw new VPPDaemonClientAPIException("Error applying recipe", e);
         }
     }
 }

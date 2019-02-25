@@ -7,9 +7,9 @@ import java.util.concurrent.ExecutionException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.intrbiz.vpp.api.VPPSimple;
 import com.intrbiz.vpp.api.model.InterfaceDetail;
 import com.intrbiz.vpp.api.model.InterfaceIndex;
@@ -18,6 +18,8 @@ import com.intrbiz.vpp.api.model.MTU;
 import com.intrbiz.vpp.api.model.Tag;
 import com.intrbiz.vpp.api.model.VhostUserMode;
 import com.intrbiz.vpp.api.recipe.VPPInterfaceRecipe;
+import com.intrbiz.vpp.api.recipe.VPPRecipeBase;
+import com.intrbiz.vpp.api.recipe.VPPRecipeContext;
 import com.intrbiz.vpp.util.RecipeWriter;
 
 /**
@@ -25,7 +27,7 @@ import com.intrbiz.vpp.util.RecipeWriter;
  */
 @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
 @JsonTypeName("interface.vhostuser")
-public class VhostUserInterface implements VPPInterfaceRecipe
+public class VhostUserInterface extends VPPRecipeBase implements VPPInterfaceRecipe
 {
     @JsonProperty("socket")
     private String socket;
@@ -44,8 +46,9 @@ public class VhostUserInterface implements VPPInterfaceRecipe
 
     private transient InterfaceIndex currentInterfaceIndex;
 
-    public VhostUserInterface(String socket, VhostUserMode mode, MACAddress macAddress, MTU mtu, Tag tag)
+    public VhostUserInterface(String name, String socket, VhostUserMode mode, MACAddress macAddress, MTU mtu, Tag tag)
     {
+        super(name);
         this.socket = Objects.requireNonNull(socket);
         this.mode = mode;
         this.macAddress = Objects.requireNonNull(macAddress);
@@ -140,11 +143,17 @@ public class VhostUserInterface implements VPPInterfaceRecipe
     }
 
     @Override
-    public void apply(VPPSimple session) throws InterruptedException, ExecutionException
+    public void apply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
     {
         this.currentInterfaceIndex = this.findExistingInterface(session);
         if (this.currentInterfaceIndex == null) this.currentInterfaceIndex = this.createInterface(session);
         this.setupInterface(session);
+    }
+    
+    @Override
+    public void unapply(VPPSimple session, VPPRecipeContext context) throws InterruptedException, ExecutionException
+    {
+        // TODO
     }
     
     public String toString()
@@ -166,6 +175,6 @@ public class VhostUserInterface implements VPPInterfaceRecipe
     
     public static VhostUserInterface forVM(MACAddress vmMACAddress)
     {
-        return new VhostUserInterface(getVMSocket(vmMACAddress), VhostUserMode.CLIENT, MACAddress.random(), MTU.DEFAULT, Tag.getVMInterfaceTag(vmMACAddress));
+        return new VhostUserInterface("vm-" + vmMACAddress.toCompactString(), getVMSocket(vmMACAddress), VhostUserMode.CLIENT, MACAddress.random(), MTU.DEFAULT, Tag.getVMInterfaceTag(vmMACAddress));
     }
 }

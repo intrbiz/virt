@@ -1,0 +1,10 @@
+---
+type: interface.host
+name: interconnect
+depends: []
+dependCount: 0
+host_interface_name: enp1s0
+mac: null
+mtu: 9000
+tag: interconnect
+ip: 172.16.40.12/24
