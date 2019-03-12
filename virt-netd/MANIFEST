@@ -1,0 +1,8 @@
+lib/Virt/NetD.pm
+lib/Virt/NetD
+lib/Virt/NetD/LinkManager.pm
+lib/Virt/NetD/LibvirtdHook.pm
+lib/Virt/NetD/Config.pm
+bin/virt-netd.pl
+Makefile.PL
+MANIFEST

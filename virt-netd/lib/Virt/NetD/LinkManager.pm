@@ -12,13 +12,14 @@ has 'logger' => (
 
 ## TODO
 has 'config' => (
-    is  => 'rw',
-    default => sub { {
-        'vxlan_group'            => '239.1.1.1',
-        'vxlan_port'             => '4789',
-        'interconnect_interface' => 'enp0s31f6'
-    } }
+    is  => 'rw'
 );
+
+sub BUILD
+{
+    my ($self, $opts) = @_;
+    $self->config($opts->{'config'});
+}
 
 
 ##
@@ -31,7 +32,7 @@ sub ip
     #print $log "Executing ${full_command}\n";
     my $out  = qx($full_command);
     my $exit = $?;
-    $self->logger()->debug("Executed $full_command => exit: $exit, stdout: '$out'");
+    $self->logger()->info("Executed $full_command => exit: $exit, stdout: '$out'");
     my $data = (length($out) > 0) ? from_json($out) : {};
     return {
         'exit' => $exit,
@@ -275,6 +276,21 @@ sub release_virtual_network
         $self->remove_link($bridge_name);
         $self->remove_link($tunnel_name);
     }
+}
+
+sub create_metadata_interface
+{
+    my ($self, $metadata_server_interface, $metadata_vms_interface, $metadata_server_address) = @_;
+    $self->ip("link add name ${metadata_server_interface} type veth peer name ${metadata_vms_interface}");
+    $self->ip("link set up dev ${metadata_server_interface}");
+    $self->ip("link set up dev ${metadata_vms_interface}");
+    $self->add_address($metadata_server_interface, $metadata_server_address);
+}
+
+sub add_address
+{
+    my ($self, $interface_name, $address) = @_;
+    $self->ip("addr add dev $interface_name $address");
 }
 
 1; 

@@ -31,10 +31,10 @@ sub BUILD
 {
     my ($self) = @_;
     # Read hook command line
-    $self->object(@ARGV[0]);
-    $self->operation(@ARGV[1]);
-    $self->sub_operation(@ARGV[2]);
-    $self->extra(@ARGV[3]);
+    $self->object($ARGV[0]);
+    $self->operation($ARGV[1]);
+    $self->sub_operation($ARGV[2]);
+    $self->extra($ARGV[3]);
     # Read the domain XML from std in
     my $xs = XML::Simple->new();
     $self->domain($xs->XMLin('-'));
