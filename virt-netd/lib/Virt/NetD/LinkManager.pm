@@ -10,7 +10,6 @@ has 'logger' => (
 	default => sub { Log::Log4perl->get_logger('Virt::NetD::LinkManager') }
 );
 
-## TODO
 has 'config' => (
     is  => 'rw'
 );
@@ -29,7 +28,23 @@ sub ip
 {
     my ($self, $command) = @_;
     my $full_command = 'ip -j -d ' . $command . ' 2>/dev/null';
-    #print $log "Executing ${full_command}\n";
+    my $out  = qx($full_command);
+    my $exit = $?;
+    $self->logger()->info("Executed $full_command => exit: $exit, stdout: '$out'");
+    my $data = (length($out) > 0) ? from_json($out) : {};
+    return {
+        'exit' => $exit,
+        'data' => $data
+    };
+}
+
+##
+## Low-level execution handling for iproute2 `bridge` command
+##
+sub bridge
+{
+    my ($self, $command) = @_;
+    my $full_command = 'bridge -j -d ' . $command . ' 2>/dev/null';
     my $out  = qx($full_command);
     my $exit = $?;
     $self->logger()->info("Executed $full_command => exit: $exit, stdout: '$out'");
@@ -198,6 +213,8 @@ sub create_bridge
         $self->logger()->info("Bringing up bridge for network $network_id");
         $self->ip("link set dev ${bridge_name} up");
     }
+    # Set MTU
+    $self->ip("link set mtu 8900 dev ${bridge_name}");
     return $bridge_name;
 }
 
@@ -207,20 +224,41 @@ sub create_bridge
 sub create_vxlan_tunnel
 {
     my ($self, $network_id) = @_;
+    my $vxlan_mode = $self->config()->vxlan_mode();
     my $tunnel_name = $self->vxlan_name($network_id);
     my $link = $self->get_vxlan_tunnel($tunnel_name);
     if (! defined $link)
     {
         $self->logger()->info("Creating VXLAN tunnel for network $network_id");
-        my $vxlan_group            = $self->config()->{'vxlan_group'};
-        my $interconnect_interface = $self->config()->{'interconnect_interface'};
-        my $vxlan_port             = $self->config()->{'vxlan_port'};
-        $self->ip("link add ${tunnel_name} type vxlan id ${network_id} group ${vxlan_group} dev ${interconnect_interface} dstport ${vxlan_port}");
+        if ($vxlan_mode eq 'routing')
+        {
+            my $interconnect_address = $self->config()->interconnect_address();
+            my $vxlan_port             = $self->config()->vxlan_port();
+            $self->ip("link add ${tunnel_name} type vxlan id ${network_id} local ${interconnect_address} dstport ${vxlan_port} ttl 64");
+        }
+        else
+        {
+            my $vxlan_group            = $self->config()->vxlan_group();
+            my $interconnect_interface = $self->config()->interconnect_interface();
+            my $vxlan_port             = $self->config()->vxlan_port();
+            $self->ip("link add ${tunnel_name} type vxlan id ${network_id} group ${vxlan_group} dev ${interconnect_interface} dstport ${vxlan_port}");
+        }
     }
     if (! (defined $link && $link->{'operstate'} eq 'UP'))
     {
         $self->logger()->info("Bringing up VXLAN tunnel for network $network_id");
         $self->ip("link set dev ${tunnel_name} up");
+    }
+    # Set MTU
+    $self->ip("link set mtu 8900 dev ${tunnel_name}");
+    # Add hosts to vxlan FIB
+    if ($vxlan_mode eq 'routing')
+    {
+        foreach my $host (@{$self->config()->hosts()})
+        {
+            $self->logger()->info("Adding unicast flooding entry for ${tunnel_name} to ${host}");
+            $self->bridge("fdb append 00:00:00:00:00:00 dev ${tunnel_name} dst ${host}");
+        }
     }
     return $tunnel_name;
 }
@@ -270,11 +308,11 @@ sub release_virtual_network
     my $tunnel_name = $self->vxlan_name($network_id);
     my $bridge_name = $self->bridge_name($network_id);
     my $links_in_bridge = $self->get_links_in_bridge($bridge_name);
-    if (scalar(@{$links_in_bridge}) == 0 || (scalar(@{$links_in_bridge}) == 1 && $links_in_bridge->[0]->{'ifname'} eq $tunnel_name))
+    if (scalar(@{$links_in_bridge}) == 1 && $links_in_bridge->[0]->{'ifname'} eq $tunnel_name)
     {
         $self->logger()->info("No VMs connected to network $network_id, releasing network");
-        $self->remove_link($bridge_name);
-        $self->remove_link($tunnel_name);
+        #$self->remove_link($bridge_name);
+        #$self->remove_link($tunnel_name);
     }
 }
 

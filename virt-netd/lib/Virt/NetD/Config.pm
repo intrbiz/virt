@@ -19,6 +19,12 @@ sub BUILD
     $self->raw_config($xs->XMLin('/etc/virt/netd.xml'));
 }
 
+sub vxlan_mode
+{
+    my ($self) = @_;
+    return $self->raw_config()->{'vxlan'}->{'mode'};
+}
+
 sub vxlan_group
 {
     my ($self) = @_;
@@ -35,6 +41,12 @@ sub interconnect_interface
 {
     my ($self) = @_;
     return $self->raw_config()->{'interconnect'}->{'interface'};
+}
+
+sub interconnect_address
+{
+    my ($self) = @_;
+    return $self->raw_config()->{'interconnect'}->{'address'};
 }
 
 sub metadata_interface_prefix
@@ -74,6 +86,12 @@ sub networks
         });
     }
     return \@nets;
+}
+
+sub hosts
+{
+    my ($self) = @_;
+    return $self->raw_config()->{'host'}
 }
 
 

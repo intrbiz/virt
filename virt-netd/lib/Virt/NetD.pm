@@ -22,6 +22,7 @@ use Data::Dump qw(dump);
 use Log::Log4perl;
 use Virt::NetD::Config;
 use Virt::NetD::LinkManager;
+use Virt::NetD::FirewallManager;
 use Virt::NetD::LibvirtdHook;
 
 has 'logger' => (
@@ -34,6 +35,10 @@ has 'config' => (
 );
 
 has 'link_manager' => (
+	is  => 'rw'
+);
+
+has 'firewall_manager' => (
 	is  => 'rw'
 );
 
@@ -53,6 +58,7 @@ log4perl.appender.LOGFILE.layout.ConversionPattern=[%r] %F %L %c - %m%n
     # Load our configuration
     $self->config(Virt::NetD::Config->new());
     $self->link_manager(Virt::NetD::LinkManager->new({ 'config' => $self->config() }));
+    $self->firewall_manager(Virt::NetD::FirewallManager->new({ 'config' => $self->config() }));
 }
 
 ###
@@ -73,8 +79,11 @@ sub process_prepare
         if ($interface->{'type'} eq 'bridge')
         {
             my $network_id  = $self->link_manager()->from_bridge_name($interface->{'source'}->{'bridge'});
-            $self->logger()->info("Preparing network $network_id");
-            $self->link_manager()->create_virtual_network($network_id);
+            if ($network_id >= 100)
+            {
+                $self->logger()->info("Preparing network $network_id");
+                $self->link_manager()->create_virtual_network($network_id);
+            }
         }
         $ifindex++;
     }
@@ -104,8 +113,11 @@ sub process_release
         if ($interface->{'type'} eq 'bridge')
         {
             my $network_id  = $self->link_manager()->from_bridge_name($interface->{'source'}->{'bridge'});
-            $self->logger()->info("Releasing network $network_id");
-            $self->link_manager()->release_virtual_network($network_id);
+            if ($network_id >= 100)
+            {
+                $self->logger()->info("Releasing network $network_id");
+                $self->link_manager()->release_virtual_network($network_id);
+            }
         }
         $ifindex++;
     }
@@ -157,6 +169,10 @@ sub cli_boot
             print "  Setting address ", $net->{'address'}, " of ", $bridge, "\n";
         }
     }
+    # Start firewall
+    $self->logger()->info("Loading firewall rules");
+    $self->firewall_manager->boot();
+    print "Loaded firewall rules\n";
 }
 
 ##
@@ -166,9 +182,11 @@ sub cli_show_config
 {
     my ($self) = @_;
     print "Virt::NetD Config\n";
+    print "  VXLAN Mode: ", $self->config()->vxlan_mode(), "\n";
     print "  VXLAN Group Address: ", $self->config()->vxlan_group(), "\n";
     print "  VXLAN Port: ", $self->config()->vxlan_port(), "\n";
     print "  Interconnect Interface: ", $self->config()->interconnect_interface(), "\n";
+    print "  Interconnect Address: ", $self->config()->interconnect_address(), "\n";
     print "  Metadata Interface Prefix: ", $self->config()->metadata_interface_prefix(), "\n";
     print "  Metadata Server Interface: ", $self->config()->metadata_server_interface(), "\n";
     print "  Metadata Server Address: ", $self->config()->metadata_server_address(), "\n";
@@ -182,6 +200,11 @@ sub cli_show_config
             print " address ", $net->{'address'};
         }
         print "\n";
+    }
+    print "  Hosts:\n";
+    foreach my $host (@{$self->config()->hosts()})
+    {
+        print "    $host\n";
     }
 }
 

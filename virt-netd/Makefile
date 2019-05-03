@@ -189,6 +189,7 @@ PERL_ARCHIVE_AFTER =
 
 TO_INST_PM = lib/Virt/NetD.pm \
 	lib/Virt/NetD/Config.pm \
+	lib/Virt/NetD/FirewallManager.pm \
 	lib/Virt/NetD/LibvirtdHook.pm \
 	lib/Virt/NetD/LinkManager.pm
 
@@ -898,6 +899,7 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
 	  'lib/Virt/NetD.pm' 'blib/lib/Virt/NetD.pm' \
 	  'lib/Virt/NetD/Config.pm' 'blib/lib/Virt/NetD/Config.pm' \
+	  'lib/Virt/NetD/FirewallManager.pm' 'blib/lib/Virt/NetD/FirewallManager.pm' \
 	  'lib/Virt/NetD/LibvirtdHook.pm' 'blib/lib/Virt/NetD/LibvirtdHook.pm' \
 	  'lib/Virt/NetD/LinkManager.pm' 'blib/lib/Virt/NetD/LinkManager.pm' 
 	$(NOECHO) $(TOUCH) pm_to_blib
