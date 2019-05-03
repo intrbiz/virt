@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "channel")
 @XmlType(name = "channel")
-public class ChannelDef
+public class ChannelDef extends DeviceDef
 {
     private String type;
     

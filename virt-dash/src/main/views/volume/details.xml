@@ -1,11 +1,11 @@
 <!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
 <?RenderLibrary com.intrbiz.balsa?>
 <!-- The index view -->
-<fragment xmlns="com.intrbiz.balsa" title="Volume #{network.name}">
+<fragment xmlns="com.intrbiz.balsa" title="Volume #{volume.name}">
   	<div class="row">
     	<div class="col-md-12">
     		<div class="card">
-				<h5 class="card-header">Volume #{network.name}</h5>
+				<h5 class="card-header">Volume #{volume.name}</h5>
 				<div class="card-body">
 					<h5 class="card-title">Volume Details</h5>
 					<p class="card-text">Basic details for the volume.</p>
@@ -25,8 +25,8 @@
       						<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
       						<td>#{if(volume.shared, 'yes', 'no')}</td>
       						<container rendered="#{balsa().permission('global_admin')}">
-	      							<td><span class="badge badge-info">#{volume.volumeType}</span></td>
-	      						</container>
+	      						<td><span class="badge badge-info">#{volume.volumeType}</span></td>
+	      					</container>
       					</tr>
 	      			</table>
 	      			<p class="card-text">#{volume.description}</p>
@@ -39,11 +39,14 @@
 		      			</tr>
 		      			<data-set var="vol" value="#{volume.attachments}">
 		      				<tr>
-		      					<td>#{vol.machine.name}</td>
+		      					<td><a href="/machine/id/#{vol.machineId}">#{vol.machine.name}</a></td>
 		      					<td>#{vol.name}</td>
 		      				</tr>
 	      				</data-set>
 		      		</table>
+		      		<container rendered="#{balsa().permission('storage_manage', currentAccount) and (! volume.attached)}">
+		      			<a href="/volume/id/#{volume.id}/destroy" class="btn btn-danger mr-3">Destroy Volume</a>
+		      		</container>
 		      	</div>
       		</div>
     	</div>

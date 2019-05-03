@@ -1,0 +1,60 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Shared Network">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Shared Network</h5>
+				<div class="card-body">
+					<p class="card-text">Shared networks provide global services to all accounts.</p>
+		      		<form method="post" action="#{path('/admin/network/new')}">
+		      			<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="public-a-1"/>
+					    	<small id="nameHelp" class="form-text text-muted">The name for this nework, eg: public-a-1</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="zone">Zone:</label>
+		      				<select class="form-control" aria-describedby="typeHelp" id="zone" name="zone">
+		      					<data-set var="option" value="#{zones}">
+		      						<option value="#{option.id}">#{option.summary}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The zone this network will be created in.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="cidr">CIDR:</label>
+					    	<input type="text" class="form-control" id="cidr" name="cidr" aria-describedby="cidrHelp" placeholder="172.18.0.0/16"/>
+					    	<small id="cidrHelp" class="form-text text-muted">What is the CIDR for this network, eg: 172.18.0.0/16</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="vxlanid">VXLAN Id:</label>
+					    	<input type="text" class="form-control" id="vxlanid" name="vxlanid" aria-describedby="vxlanidHelp" placeholder="10"/>
+					    	<small id="vxlanidHelp" class="form-text text-muted">What is the VXLAN ID for this shared network, eg: 10</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="purpose">Purpose:</label>
+		      				<select class="form-control" aria-describedby="purposeHelp" id="purpose" name="purpose">
+		      					<option value="none" selected="selected"></option>
+		      					<data-set var="option" value="#{list('public', 'service', 'transfer')}">
+		      						<option value="#{option}">#{ucfirst(option)}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The zone this network will be created in.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2"></textarea>
+					    	<small id="descriptionHelp" class="form-text text-muted">What is this network for?</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Create Network</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

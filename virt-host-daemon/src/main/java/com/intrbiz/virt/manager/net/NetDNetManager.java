@@ -23,19 +23,13 @@ import com.intrbiz.virt.manager.net.model.InterfaceInfo;
  */
 public class NetDNetManager implements NetManager
 {    
-    private final Set<String> supportedTypes = Collections.unmodifiableSet(new TreeSet<String>(Arrays.asList("vxlan", "public", "transfer", "service")));
+    private final Set<String> supportedTypes = Collections.unmodifiableSet(new TreeSet<String>(Arrays.asList("vxlan")));
     
     private NetManagerCfg config;
     
     private String interconnectAddress;
     
     private String metadataVMInterface;
-    
-    private int publicNetworkId;
-    
-    private int serviceNetworkId;
-    
-    private int transferNetworkId;
     
     public NetDNetManager()
     {
@@ -47,9 +41,6 @@ public class NetDNetManager implements NetManager
     {
         this.config = cfg;
         this.metadataVMInterface = cfg.getStringParameterValue("metadata.vm.interface", "metadata_vms");
-        this.publicNetworkId = cfg.getIntParameterValue("public.network.id", 20);
-        this.serviceNetworkId = cfg.getIntParameterValue("service.network.id", 30);
-        this.transferNetworkId = cfg.getIntParameterValue("transfer.network.id", 40);
         this.interconnectAddress = cfg.getStringParameterValue("host.interconnect.address", "127.0.0.1");
     }
 
@@ -67,21 +58,6 @@ public class NetDNetManager implements NetManager
     public String getMetadataVMInterface()
     {
         return metadataVMInterface;
-    }
-
-    public int getPublicNetworkId()
-    {
-        return publicNetworkId;
-    }
-
-    public int getServiceNetworkId()
-    {
-        return serviceNetworkId;
-    }
-
-    public int getTransferNetworkId()
-    {
-        return transferNetworkId;
     }
 
     @Override
@@ -115,6 +91,8 @@ public class NetDNetManager implements NetManager
     @Override
     public InterfaceInfo setupGuestMetadataNIC(MachineEO machine)
     {
+        // NetD will manage the interfaces directly via a hook from libvirtd
+        // As such we only need to provide the configuration
         // For metadata we can just use a MacVTap in private mode
         String mac = machine.getCfgMac();
         return new DirectInterfaceInfo(mac, this.metadataVMInterface, MacVTapMode.PRIVATE);
@@ -123,18 +101,15 @@ public class NetDNetManager implements NetManager
     @Override
     public InterfaceInfo setupGuestNIC(MachineInterfaceEO nic)
     {
+        // NetD will manage the interfaces directly via a hook from libvirtd
+        // As such we only need to provide the configuration
         return new BridgedInterfaceInfo(nic.getMac(), this.bridgeName(nic.getNetwork()));
     }
     
     protected String bridgeName(NetworkEO network)
     {
-        switch (network.getType())
-        {
-            case "vxlan":    return bridgeName(network.getVxlanid());
-            case "service":  return bridgeName(this.serviceNetworkId);
-            case "transfer": return bridgeName(this.transferNetworkId);
-            case "public":   return bridgeName(this.publicNetworkId);
-        }
+        if ("vxlan".equals(network.getType())) 
+            return bridgeName(network.getVxlanid());
         return null;
     }
     
@@ -170,6 +145,16 @@ public class NetDNetManager implements NetManager
 
     @Override
     public void removeGuestNIC(MachineInterfaceEO nic)
+    {
+    }
+    
+    @Override
+    public void releaseGuestMetadataNIC(MachineEO machine)
+    {        
+    }
+
+    @Override
+    public void releaseGuestNIC(MachineInterfaceEO nic)
     {
     }
 }

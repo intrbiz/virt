@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "video")
 @XmlType(name = "video")
-public class VideoDef
+public class VideoDef extends DeviceDef
 {
     private ModelDef model;
 

@@ -8,6 +8,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -34,6 +35,8 @@ public class VirtHostCfg extends Configuration
     private DatabasePoolConfiguration database;
     
     private Set<String> capabilities = new HashSet<String>();
+    
+    private String placementGroup;
 
     public VirtHostCfg()
     {
@@ -105,6 +108,17 @@ public class VirtHostCfg extends Configuration
     public void setCapabilities(Set<String> capabilities)
     {
         this.capabilities = capabilities;
+    }
+
+    @XmlAttribute(name = "placement-group")
+    public String getPlacementGroup()
+    {
+        return placementGroup;
+    }
+
+    public void setPlacementGroup(String placementGroup)
+    {
+        this.placementGroup = placementGroup;
     }
 
     public static VirtHostCfg read(File file) throws JAXBException

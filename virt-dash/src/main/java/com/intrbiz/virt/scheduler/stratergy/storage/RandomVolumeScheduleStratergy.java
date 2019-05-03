@@ -22,7 +22,7 @@ public class RandomVolumeScheduleStratergy extends BaseVolumeScheduleStratergy
         logger.debug("Capable hosts: " + capableHosts.size() + " " + capableHosts);
         if (capableHosts.isEmpty()) return null;
         // choose a host at random
-        int choice = this.random.nextInt() % capableHosts.size();
+        int choice = Math.abs(this.random.nextInt() % capableHosts.size());
         return capableHosts.get(choice);
     }
 }

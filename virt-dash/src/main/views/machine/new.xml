@@ -20,7 +20,7 @@
 					    	<small id="descriptionHelp" class="form-text text-muted">What is this machine for?</small>
 					  	</div>
 					  	<div class="form-group">
-					    	<label for="type">Zone:</label>
+					    	<label for="zone">Zone:</label>
 		      				<select class="form-control" aria-describedby="zoneHelp" id="zone" name="zone">
 		      					<data-set var="option" value="#{zones}">
 		      						<option value="#{option.id}">#{option.summary}</option>
@@ -29,10 +29,23 @@
 		      				<small id="zoneHelp" class="form-text text-muted">The zone this machine will be created in.</small>
 					  	</div>
 					  	<div class="form-group">
+					    	<label for="placementRule">Placement Rule:</label>
+		      				<select class="form-control" aria-describedby="placementRuleHelp" id="placementRule" name="placementRule">
+		      					<option value="any">Anywhere</option>
+		      					<option value="a">Group A</option>
+		      					<option value="b">Group B</option>
+		      					<option value="c">Group C</option>
+		      					<option value="!a">Not group A</option>
+		      					<option value="!b">Not group B</option>
+		      					<option value="!c">Not group C</option>
+		      				</select>
+		      				<small id="placementRuleHelp" class="form-text text-muted">How this machine should be placed within the zone.</small>
+					  	</div>
+					  	<div class="form-group">
 					    	<label for="type">Machine Type:</label>
 		      				<select class="form-control" aria-describedby="typeHelp" id="type" name="type">
 		      					<data-set var="option" value="#{types}">
-		      						<option value="#{option.id}">#{option.family}.#{option.name} #{option.cpus} CPUs #{option.memory / 1024 / 1024} MiB Memory</option>
+		      						<option value="#{option.id}">#{option.family}.#{option.name} - #{option.cpus} CPUs #{option.memory / 1024 / 1024} MiB Memory - #{coalesce(option.machineTypeFamily.summary, '')} #{coalesce(option.summary, '')}</option>
 		      					</data-set>
 		      				</select>
 		      				<small id="typeHelp" class="form-text text-muted">The machine type</small>

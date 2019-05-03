@@ -26,7 +26,7 @@
       						<td>#{network.zone.summary}</td>
       						<td>#{network.name}</td>
       						<td>#{network.cidr}</td>
-      						<td>#{network.getUsableAddresses()}</td>
+      						<td>#{network.getIPv4UsableAddresses()}</td>
       						<td>#{network.ipv4Router}</td>
       						<td>#{network.ipv4DNS1}, #{network.ipv4DNS2}</td>
       						<container rendered="#{balsa().permission('global_admin')}">
@@ -50,6 +50,7 @@
 		      				</tr>
 	      				</data-set>
 		      		</table>
+		      		<a rendered="#{network.account != null and network.allocations.size == 0}" href="/network/id/#{network.id}/destroy" class="btn btn-danger mr-3">Destroy</a>
 		      	</div>
       		</div>
     	</div>

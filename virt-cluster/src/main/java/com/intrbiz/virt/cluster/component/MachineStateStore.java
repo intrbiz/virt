@@ -22,8 +22,6 @@ public class MachineStateStore<C extends Configuration> implements ClusterCompon
     
     private static final String MACHINE_HEALTH_MAP = "virt.machine.health";
     
-    private String localMemberId;
-    
     private IMap<UUID, MachineState> machineState;
     
     private IMap<UUID, MachineHealth> machineHealth;
@@ -44,7 +42,6 @@ public class MachineStateStore<C extends Configuration> implements ClusterCompon
     @Override
     public void start(ClusterManager<C> manager, HazelcastInstance instance)
     {
-        this.localMemberId = instance.getCluster().getLocalMember().getUuid();
         this.machineState = instance.getMap(MACHINE_STATE_MAP);
         this.machineHealth = instance.getMap(MACHINE_HEALTH_MAP);
     }
@@ -52,12 +49,6 @@ public class MachineStateStore<C extends Configuration> implements ClusterCompon
     @Override
     public void shutdown()
     {
-    }
-    
-    public void mergeLocalMachineState(MachineState state)
-    {
-        state.setHost(this.localMemberId);
-        this.setMachineState(state);
     }
     
     public MachineState getMachineState(UUID id)

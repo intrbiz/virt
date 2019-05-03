@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.intrbiz.virt.config.StoreManagerCfg;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
+import com.intrbiz.virt.event.model.PersistentVolumeEO;
 import com.intrbiz.virt.manager.Manager;
 import com.intrbiz.virt.manager.store.model.VolumeInfo;
 
@@ -13,12 +14,16 @@ public interface StoreManager extends Manager<StoreManagerCfg>
     
     boolean isSupported(MachineVolumeEO vol);
     
+    void createPersistentVolume(PersistentVolumeEO pvol);
+    
+    void destroyPersistentVolume(PersistentVolumeEO pvol);
+    
     /**
      * Create a volume and return the path for it
      * @param vol the volume to create
      * @return information about the created volume
      */
-    VolumeInfo createVolume(MachineVolumeEO vol);
+    VolumeInfo createOrAttachVolume(MachineVolumeEO vol);
     
     /**
      * Release a volume from this host.

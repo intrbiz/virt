@@ -20,8 +20,8 @@ import com.intrbiz.virt.event.schedule.CreateMachine;
 import com.intrbiz.virt.event.schedule.CreateVolume;
 import com.intrbiz.virt.event.schedule.VirtScheduleEvent;
 import com.intrbiz.virt.scheduler.model.ZoneSchedulerState;
+import com.intrbiz.virt.scheduler.stratergy.machine.LeastUsedHostMachineScheduleStratergy;
 import com.intrbiz.virt.scheduler.stratergy.machine.MachineScheduleStratergy;
-import com.intrbiz.virt.scheduler.stratergy.machine.RandomMachineScheduleStratergy;
 import com.intrbiz.virt.scheduler.stratergy.storage.RandomVolumeScheduleStratergy;
 import com.intrbiz.virt.scheduler.stratergy.storage.VolumeScheduleStratergy;
 
@@ -43,7 +43,7 @@ public class ZoneScheduler
     
     private volatile boolean restart = false;
     
-    private MachineScheduleStratergy machineStratergy = new RandomMachineScheduleStratergy();
+    private MachineScheduleStratergy machineStratergy = new LeastUsedHostMachineScheduleStratergy();
     
     private VolumeScheduleStratergy volumeStratergy = new RandomVolumeScheduleStratergy();
     
@@ -195,12 +195,13 @@ public class ZoneScheduler
                 if (chosenHost == null) throw new SchedulerException("No suitable hosts to create machine.");
                 logger.info("Create machine " + machine.getId() + " onto host " + chosenHost.getId() + " (" + chosenHost.getName() + ") in zone " + this.zoneId);
                 // update the machine state
-                this.manager.getMachineStore().setMachineState(machineState.scheduled(chosenHost.getId()));
+                this.manager.getMachineStore().setMachineState(machineState.scheduled(chosenHost.getId(), chosenHost.getName()));
                 // fire off an event to the host
                 this.manager.getHostEvents().sendEvent(chosenHost.getId(), new ManageMachine(machine, ManageMachine.Action.CREATE));
             }
             catch (Exception e)
             {
+                logger.error("Failed to schedule machine: " + machine.getId(), e);
                 // damn, we can't create this machine currently
                 // update the machine state
                 this.manager.getMachineStore().setMachineState(machineState.pending());
@@ -234,6 +235,7 @@ public class ZoneScheduler
             }
             catch (Exception e)
             {
+                logger.error("Failed to schedule volume: " + volume.getSource(), e);
                 // damn, we can't create this volume currently
                 // fire off error reporting
             }

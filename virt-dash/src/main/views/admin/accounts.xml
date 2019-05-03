@@ -12,6 +12,7 @@
 		      			<tr>
 		      				<th>Owners</th>
 		      				<th>Name</th>
+		      				<th>Slug</th>
 		      				<th>Created</th>
 		      				<th>Active</th>
 		      				<th>&nbsp;</th>
@@ -26,6 +27,7 @@
 		      						</ul>
 		      					</td>
 		      					<td>#{account.summary}</td>
+		      					<td>#{account.name}</td>
 		      					<td>#{dateformat('yyyy-MM-dd hh:mm:ss', account.created)}</td>
 		      					<td>#{if(account.active, 'Active', 'Inactive')}</td>
 		      					<td>

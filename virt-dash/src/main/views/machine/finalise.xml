@@ -70,25 +70,27 @@
 						<p class="card-text">The user data for this machine which will be provided to Cloud Init</p>
 						<pre class="card-text">#{coalesce(currentMachine.userData, 'No User Data')}</pre>
 			      		<container rendered="#{currentMachine.type.volumeLimit > 1}">
-							<h5 class="card-title pt-3">Machine Volumes</h5>
-							<p class="card-text">These are the details for any volumes not defined by the machine type or image, that this machine will have.</p>
+							<h5 class="card-title pt-3">Machine Persistent Volumes</h5>
+							<p class="card-text">These are the persistent volumes which should be attached to this machine.</p>
 							<table class="table">
 				      			<tr>
 				      				<th>Device</th>
 				      				<th>Size</th>
-				      				<th>Source</th>
+				      				<th>Attached Persistent Volume</th>
 				      			</tr>
 				      			<data-set var="volume" value="#{currentMachineVolumes}">
 				      				<tr>
 				      					<td>#{volume.name}</td>
 				      					<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
-				      					<td>#{volume.attached.name}</td>
+				      					<td><a href="/volume/id/#{volume.persistentVolumeId}">#{volume.attached.name}</a></td>
 				      				</tr>
 			      				</data-set>
 				      		</table>
-			      			<div class="clearfix">
-			      				<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachVolumeModal">Attach Volume</button>
-							</div>
+				      		<container rendered="#{currentMachine.type.volumeLimit > currentMachineVolumes.size}">
+				      			<div class="clearfix">
+				      				<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachVolumeModal">Attach Volume</button>
+								</div>
+							</container>
 						</container>
 						<h5 class="card-title pt-3">Machine Network Interfaces</h5>
 						<p class="card-text">These are the details for the network interfaces this machine will have.</p>
@@ -102,7 +104,7 @@
 			      			<data-set var="nic" value="#{currentMachineNICs}">
 			      				<tr>
 			      					<td>#{nic.name}</td>
-			      					<td>#{nic.network.name}</td>
+			      					<td><a href="/network/id/#{nic.networkId}">#{nic.network.name}</a></td>
 			      					<td>#{nic.mac}</td>
 			      					<td>
 			      						<input type="text" class="form-control" name="#{nic.name}_ipv4" id="#{nic.name}_ipv4" value="#{nic.ipv4}"/>
@@ -110,7 +112,7 @@
 			      				</tr>
 		      				</data-set>
 			      		</table>
-			      		<container rendered="#{currentMachine.type.nicLimit > 1}">
+			      		<container rendered="#{currentMachine.type.nicLimit > currentMachineNICs.size}">
 			      			<div class="clearfix">
 								<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachNetworkModal">Attach Network</button>
 							</div>
@@ -124,7 +126,7 @@
     </div>
     
     <!-- Attach Volume Modal -->
-	<div class="modal fade" id="attachVolumeModal" tabindex="-1" role="dialog" aria-labelledby="attachVolumeModalLabel" aria-hidden="true">
+	<div class="modal fade" id="attachVolumeModal" tabindex="-1" role="dialog" aria-labelledby="attachVolumeModalLabel" aria-hidden="true" rendered="#{currentMachine.type.volumeLimit > currentMachineVolumes.size}">
   		<div class="modal-dialog" role="document">
     		<div class="modal-content">
     			<form method="post" action="#{path('/machine/finalise/volume/attach')}">
@@ -154,7 +156,7 @@
 	</div>
 	
 	<!-- Attach Network Modal -->
-	<div class="modal fade" id="attachNetworkModal" tabindex="-1" role="dialog" aria-labelledby="attachNetworkModalLabel" aria-hidden="true">
+	<div class="modal fade" id="attachNetworkModal" tabindex="-1" role="dialog" aria-labelledby="attachNetworkModalLabel" aria-hidden="true" rendered="#{currentMachine.type.nicLimit > currentMachineNICs.size}">
   		<div class="modal-dialog" role="document">
     		<div class="modal-content">
     			<form method="post" action="#{path('/machine/finalise/network/attach')}">

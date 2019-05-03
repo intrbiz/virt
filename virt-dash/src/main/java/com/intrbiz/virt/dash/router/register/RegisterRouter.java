@@ -1,6 +1,11 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.register;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -21,6 +26,7 @@ import com.intrbiz.virt.model.Config;
 import com.intrbiz.virt.model.Role;
 import com.intrbiz.virt.model.User;
 import com.intrbiz.virt.model.UserAccountGrant;
+import com.intrbiz.virt.util.NameUtil;
 
 // Register Account
 @Prefix("/account")
@@ -28,6 +34,14 @@ import com.intrbiz.virt.model.UserAccountGrant;
 public class RegisterRouter extends Router<VirtDashApp>
 {
     private static Logger logger = Logger.getLogger(RegisterRouter.class);
+    
+    private Map<String, String> defaultAccounts = new HashMap<>();
+    
+    public RegisterRouter()
+    {
+        this.defaultAccounts.put("dev-", "Development");
+        this.defaultAccounts.put("", "Production");
+    }
     
     @Get("/register")
     public void register()
@@ -39,7 +53,9 @@ public class RegisterRouter extends Router<VirtDashApp>
     @RequireValidAccessTokenForURL()
     @WithDataAdapter(VirtDB.class)
     public void register(
-            VirtDB db, 
+            VirtDB db,
+            @Param("organisation_name") @CheckStringLength(mandatory = true, min = 3, max = 100) String organisationName,
+            @Param("organisation_slug") @CheckStringLength(mandatory = true, min = 3, max = 40) String organisationSlug,
             @Param("full_name") @CheckStringLength(mandatory = true, max = 100) String fullName, 
             @Param("given_name") @CheckStringLength(mandatory = true, max = 30) String givenName,
             @Param("email") @CheckStringLength(mandatory = true, max = 200) String email, 
@@ -53,30 +69,44 @@ public class RegisterRouter extends Router<VirtDashApp>
         if (db.getUserByName(email) != null)
             throw new ValidationException("Account already exists");
         logger.info("Registering user: " + email + " " + fullName);
+        String accountSlug = NameUtil.toSafeName(organisationSlug);
         db.execute(() -> {
             // Create the User
             User user = new User(email, fullName, givenName, mobile);
             user.hashPassword(passwordNew);
             db.setUser(user);
             // Create the account
-            Account account = new Account("Production");
-            db.setAccount(account);
-            // Grants
-            UserAccountGrant grant = new UserAccountGrant(user.getId(), account.getId(), Role.ACCOUNT_OWNER);
-            db.setUserAccountGrant(grant);
+            Set<Account> accounts = new HashSet<>();
+            for (Entry<String, String> prefix : this.defaultAccounts.entrySet())
+            {
+                Account account = new Account(prefix.getKey() + accountSlug, organisationName + " " + prefix.getValue());
+                accounts.add(account);
+                db.setAccount(account);
+                // Grants
+                UserAccountGrant grant = new UserAccountGrant(user.getId(), account.getId(), Role.ACCOUNT_OWNER);
+                db.setUserAccountGrant(grant);
+            }
             // First Install
             Config firstInstallComplete = db.getOrCreateConfig(Config.FIRST_INSTALL_COMPLETE);
             if (! firstInstallComplete.getBooleanValue())
             {
-                account.setActive(true);
+                // Make the user a super user
                 user.setSuperuser(true);
-                firstInstallComplete.setBooleanValue(true);
-                db.setAccount(account);
                 db.setUser(user);
+                // Activate the accounts
+                for (Account account : accounts)
+                {
+                    account.setActive(true);
+                    db.setAccount(account);
+                }
+                // Finish first install
+                firstInstallComplete.setBooleanValue(true);
                 db.setConfig(firstInstallComplete);
             }
         });
         // redirect to login
         redirect("/login");
     }
+    
+    
 }

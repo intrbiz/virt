@@ -1,0 +1,87 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Edit Machine Type #{machineType.family}.#{machineType.name}">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Edit Machine Type #{machineType.family}.#{machineType.name}</h5>
+				<div class="card-body">
+					<p class="card-text">Machine types define the key parameters of machines that users can create.</p>
+					<p class="card-text">Any changes made to a machine type will not alter running machine and will only apply to machines started in the future.</p>
+	      			<form method="post" action="#{path('/admin/machine-type/id/' + machineType.id + '/edit')}">
+					  	<div class="form-group">
+					    	<label for="summary">Summary:</label>
+					    	<input type="text" class="form-control" aria-describedby="summaryHelp" id="summary" name="summary" value="#{coalesce(machineType.summary, '')}"/>
+					    	<small id="summaryHelp" class="form-text text-muted">A quick summary of this machine type, eg: Micro</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="cpus">CPUs:</label>
+		      				<select class="form-control" aria-describedby="cpusHelp" id="cpus" name="cpus">
+		      					<data-set var="cpusOption" value="#{list(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)}">
+		      						<option value="#{cpusOption}" selected="#{cpusOption == machineType.cpus}">#{cpusOption}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="cpusHelp" class="form-text text-muted">The number of CPU cores this type has</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="memory">Memory:</label>
+		      				<select class="form-control" aria-describedby="memoryHelp" id="memory" name="memory">
+		      					<data-set var="memoryOption" value="#{list(256, 512, 768)}">
+		      						<option value="#{memoryOption}" selected="#{memoryOption == machineType.memory / (1024 * 1024)}">#{memoryOption} MiB</option>
+		      					</data-set>
+		      					<data-set var="memoryOption" value="#{list(1, 2, 4, 6, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64)}">
+		      						<option value="#{memoryOption * 1024}" selected="#{memoryOption == machineType.memory / (1024 * 1024 * 1024)}">#{memoryOption} GiB</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="memoryHelp" class="form-text text-muted">The amount of memory this type has</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="volume_limit">Volumes:</label>
+	      					<input type="text" class="form-control" aria-describedby="volumeLimitHelp" id="volume_limit" name="volume_limit" value="#{machineType.volumeLimit}"/>
+	      					<small id="volumeLimitHelp" class="form-text text-muted">The maximum number of volumes this type can have</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="volume_types">Volume Types:</label>
+		      				<select class="form-control" aria-describedby="volumeTypesHelp" id="volume_types" name="volume_types" multiple="multiple">
+		      					<data-set var="volumeTypeOption" value="#{list('ceph')}">
+		      						<option value="#{volumeTypeOption}" selected="#{machineType.supportedVolumeTypes.contains(volumeTypeOption)}">#{volumeTypeOption}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="volumeTypesHelp" class="form-text text-muted">The types of volumes this type can have</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="nic_limit">NICs:</label>
+	      					<input type="text" class="form-control" aria-describedby="nicLimitHelp" id="nic_limit" name="nic_limit" value="#{machineType.nicLimit}"/>
+	      					<small id="nicLimitHelp" class="form-text text-muted">The maximum number of NICS this type can have</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="network_types">Network Types:</label>
+		      				<select class="form-control" aria-describedby="networkTypesHelp" id="network_types" name="network_types" multiple="multiple">
+		      					<data-set var="networkTypeOption" value="#{list('vxlan')}">
+		      						<option value="#{networkTypeOption}" selected="#{machineType.supportedNetworkTypes.contains(networkTypeOption)}">#{networkTypeOption}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="networkTypesHelp" class="form-text text-muted">The types of networks this type can access</small>
+	      				</div>
+	      				<div class="form-group">
+					    	<label for="ephemeral_volumes">Ephemeral Volumes:</label>
+		      				<textarea class="form-control" id="ephemeral_volumes" name="ephemeral_volumes" aria-describedby="ephemeral_volumesHelp" rows="2">#{machineType.toEphemeralVolumesString()}</textarea>
+		      				<small id="ephemeral_volumesHelp" class="form-text text-muted">The Ephemeral Volume definitions of this machine type, one per line, in the format: type(option;options):size, eg: local(type=ssd;format=qcow2):100G</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+		      				<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2">#{coalesce(machineType.description, '')}</textarea>
+		      				<small id="descriptionHelp" class="form-text text-muted">The description of this machine type family</small>
+					  	</div>
+	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Save Machine Type</button>
+	      			</form>
+	      		</div>
+	      	</div>
+    	</div>
+    </div>
+	
+</fragment>

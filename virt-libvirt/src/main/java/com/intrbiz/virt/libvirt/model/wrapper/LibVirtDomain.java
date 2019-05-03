@@ -15,6 +15,7 @@ import com.intrbiz.virt.libvirt.LibVirtAdapter;
 import com.intrbiz.virt.libvirt.LibVirtEventHandler;
 import com.intrbiz.virt.libvirt.event.LibVirtDomainLifecycleEventHandler;
 import com.intrbiz.virt.libvirt.event.LibVirtDomainRebootEventHandler;
+import com.intrbiz.virt.libvirt.model.definition.DeviceDef;
 import com.intrbiz.virt.libvirt.model.definition.DiskDef;
 import com.intrbiz.virt.libvirt.model.definition.InterfaceDef;
 import com.intrbiz.virt.libvirt.model.definition.LibVirtDomainDef;
@@ -25,6 +26,23 @@ import com.intrbiz.virt.libvirt.model.util.LibVirtCleanupWrapper;
  */
 public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
 {
+    protected static class DomainModificationImpact {
+        /**
+         * Affect current domain state.
+         */
+        public static final int VIR_DOMAIN_AFFECT_CURRENT   =   0x0;
+
+        /**
+         * Affect running domain state.
+         */
+        public static final int VIR_DOMAIN_AFFECT_LIVE      =   0x1;
+        
+        /**
+         * Affect persistent domain state.
+         */
+        public static final int VIR_DOMAIN_AFFECT_CONFIG    =   0x2;
+    }
+    
     protected final LibVirtAdapter adapter;
 
     protected final Domain domain;
@@ -289,6 +307,20 @@ public abstract class LibVirtDomain implements Comparable<LibVirtDomain>
         catch (LibvirtException e)
         {
             throw new DataException("Failed to configure domain", e);
+        }
+    }
+    
+    public void attachDevice(DeviceDef device)
+    {
+        try
+        {
+            String deviceXml = device.toString();
+            System.out.println("Attaching: " + deviceXml);
+            this.domain.attachDeviceFlags(deviceXml, DomainModificationImpact.VIR_DOMAIN_AFFECT_CURRENT | DomainModificationImpact.VIR_DOMAIN_AFFECT_CONFIG);
+        }
+        catch (LibvirtException e)
+        {
+            throw new DataException("Failed to attach device to domain", e);
         }
     }
 

@@ -22,6 +22,7 @@ import com.intrbiz.virt.cluster.model.MachineState;
 import com.intrbiz.virt.config.VirtHostCfg;
 import com.intrbiz.virt.event.VirtEvent;
 import com.intrbiz.virt.event.host.ManageMachine;
+import com.intrbiz.virt.event.host.ManageVolume;
 import com.intrbiz.virt.manager.net.DefaultNetManager;
 import com.intrbiz.virt.manager.net.NetDNetManager;
 import com.intrbiz.virt.manager.net.NetManager;
@@ -214,14 +215,14 @@ public class HostManager implements ClusterComponent<VirtHostCfg>
     {
         for (MachineState state : this.virtManager.discoverMachines())
         {
-            this.machineStore.mergeLocalMachineState(state);
+            this.machineStore.setMachineState(state.onHost(this.hostEvents.getLocalMemberId(), this.hostName));
         }
     }
 
     private HostState getHostState()
     {
         HostInfo info = this.virtManager.getHostInfo();
-        HostState state = new HostState(this.hostZone, this.hostName, this.status, this.config.getCapabilities());
+        HostState state = new HostState(this.hostZone, this.hostName, this.status, this.config.getCapabilities(), this.config.getPlacementGroup());
         state.setInterconnectAddress(this.netManager.getInterconnectAddress());
         state.setHostCPUs(info.getHostCPUs());
         state.setHostMemory(info.getHostMemory());
@@ -262,41 +263,64 @@ public class HostManager implements ClusterComponent<VirtHostCfg>
         logger.info("Got event: " + event);
         if (event instanceof ManageMachine)
         {
-            this.updateMachine((ManageMachine) event);
+            this.manageMachine((ManageMachine) event);
+        }
+        else if (event instanceof ManageVolume)
+        {
+            this.manageVolume((ManageVolume) event);
+        }
+    }
+    
+    private void manageVolume(ManageVolume volume)
+    {
+        switch (volume.getAction())
+        {
+            case CREATE:
+                this.storeManager.createPersistentVolume(volume.getVolume());
+                break;
+            case DESTROY:
+                this.storeManager.destroyPersistentVolume(volume.getVolume());
+                break;
         }
     }
     
     /**
      * Update the state of a machine on this host
      */
-    private void updateMachine(ManageMachine update)
+    private void manageMachine(ManageMachine event)
     {
-        switch (update.getAction())
+        switch (event.getAction())
         {
             case CREATE:
-                this.virtManager.createMachine(update.getMachine());
-                this.virtManager.start(update.getMachine());
-                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                this.virtManager.createMachine(event.getMachine());
+                this.virtManager.start(event.getMachine());
+                this.machineStore.setMachineState(this.virtManager.getMachine(event.getMachine().getId()).onHost(this.hostEvents.getLocalMemberId(), this.hostName));
                 break;
             case REBOOT:
-                this.virtManager.reboot(update.getMachine(), update.isForce());
-                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                this.virtManager.reboot(event.getMachine(), event.isForce());
+                this.machineStore.setMachineState(this.virtManager.getMachine(event.getMachine().getId()).onHost(this.hostEvents.getLocalMemberId(), this.hostName));
                 break;
             case START:
-                this.virtManager.start(update.getMachine());
-                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                this.virtManager.start(event.getMachine());
+                this.machineStore.setMachineState(this.virtManager.getMachine(event.getMachine().getId()).onHost(this.hostEvents.getLocalMemberId(), this.hostName));
                 break;
             case STOP:
-                this.virtManager.stop(update.getMachine(), update.isForce());
-                this.machineStore.mergeLocalMachineState(this.virtManager.getMachine(update.getMachine().getId()));
+                this.virtManager.stop(event.getMachine(), event.isForce());
+                this.machineStore.setMachineState(this.virtManager.getMachine(event.getMachine().getId()).onHost(this.hostEvents.getLocalMemberId(), this.hostName));
                 break;
             case RELEASE:
-                this.virtManager.releaseMachine(update.getMachine());
-                this.machineStore.removeMachineState(update.getMachine().getId());
+                this.virtManager.releaseMachine(event.getMachine());
+                this.machineStore.removeMachineState(event.getMachine().getId());
                 break;
             case TERMINATE:
-                this.virtManager.terminateMachine(update.getMachine());
-                this.machineStore.removeMachineState(update.getMachine().getId());
+                this.virtManager.terminateMachine(event.getMachine());
+                this.machineStore.removeMachineState(event.getMachine().getId());
+                break;
+            case MIGRATE:
+                // TODO
+                break;
+            case ATTACH_VOLUME:
+                this.virtManager.attachVolumeToMachine(event.getMachine(), event.getVolume());
                 break;
         }
     }

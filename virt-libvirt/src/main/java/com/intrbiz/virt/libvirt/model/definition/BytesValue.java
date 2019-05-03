@@ -9,6 +9,24 @@ public class BytesValue
     private String unit;
 
     private long value;
+    
+    public BytesValue()
+    {
+        super();
+    }
+    
+    public BytesValue(long value)
+    {
+        super();
+        this.setBytesValue(value);
+    }
+    
+    public BytesValue(long value, String unit)
+    {
+        super();
+        this.setUnit(unit);
+        this.setBytesValue(value);
+    }
 
     @XmlAttribute(name = "unit")
     public String getUnit()

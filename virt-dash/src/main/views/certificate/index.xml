@@ -1,0 +1,63 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Certificates">
+
+<div class="row mb-3">
+		<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Certificates</h5>
+				<div class="card-body">
+					<p class="card-text">These are the TLS certificates that you can use for various services in the #{currentAccount.summary} account.</p>
+					<table class="table">
+	      				<tr>
+	      					<th></th>
+	      					<th>Domain Names</th>
+	      					<th>Status</th>
+	      					<th>Issued</th>
+	      					<th>Expires</th>
+	      					<th>In Use</th>
+	      					<th>&nbsp;</th>
+	      				</tr>
+	      				<data-set var="cert" value="#{certificates}">
+	      					<tr>
+	      						<td><span class="badge badge-warning" rendered="#{cert.generated}">Auto</span></td>
+	      						<td>
+	      							<ul>
+	      								<data-set var="name" value="#{cert.domains}">
+	      									<li>#{name}</li>
+	      								</data-set>
+	      							</ul>
+	      						</td>
+	      						<td>
+	      							<span class="badge badge-warning" rendered="#{cert.isPending()}">Pending</span>
+	      							<span class="badge badge-success" rendered="#{cert.isIssued()}">Issued</span>
+	      							<span class="badge badge-danger" rendered="#{cert.isExpired()}">Expired</span>
+	      						</td>
+	      						<td>#{if(cert.issuedAt == null, 'Not issued', dateformat('yyyy-MM-dd hh:mm:ss', cert.issuedAt))}</td>
+	      						<td>#{if(cert.issuedAt == null, 'Not issued', dateformat('yyyy-MM-dd hh:mm:ss', cert.expiresAt))}</td>
+	      						<td><span class="badge badge-info">Unknown</span></td>
+	      						<td>
+	      							<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Certificate</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/certificate/id/#{cert.id}">Details</a>
+								            <div class="dropdown-divider"></div>
+								            <a class="dropdown-item text-warning" href="/certificate/id/#{cert.id}/reissue">Reissue</a>
+								            <container rendered="#{! cert.generated}">
+								            	<div class="dropdown-divider"></div>
+								            	<a class="dropdown-item text-danger" href="/certificate/id/#{cert.id}/revoke">Revoke</a>
+								            </container>
+										</div>
+									</div>
+	      						</td>
+	      					</tr>
+	      				</data-set>
+	      			</table>
+					<a href="/certificate/request" class="btn btn-primary mr-3">Request Certificate</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</fragment>

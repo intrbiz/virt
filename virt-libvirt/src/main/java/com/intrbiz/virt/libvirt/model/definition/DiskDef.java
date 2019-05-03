@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "disk")
 @XmlType(name = "disk")
-public class DiskDef
+public class DiskDef extends DeviceDef
 {
     private String type;
 

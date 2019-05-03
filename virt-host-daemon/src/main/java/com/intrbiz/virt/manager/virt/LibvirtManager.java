@@ -39,6 +39,7 @@ import com.intrbiz.virt.manager.net.model.BridgedInterfaceInfo;
 import com.intrbiz.virt.manager.net.model.DirectInterfaceInfo;
 import com.intrbiz.virt.manager.net.model.InterfaceInfo;
 import com.intrbiz.virt.manager.net.model.VhostUserInterfaceInfo;
+import com.intrbiz.virt.manager.store.model.BlockVolumeInfo;
 import com.intrbiz.virt.manager.store.model.CephVolumeInfo;
 import com.intrbiz.virt.manager.store.model.FileVolumeInfo;
 import com.intrbiz.virt.manager.store.model.FileVolumeInfo.Format;
@@ -59,6 +60,10 @@ public class LibvirtManager implements VirtManager
 
     private VirtManagerCfg config;
     
+    private String cephCacheMode = "writethrough";
+    
+    private String cephIoMode = "native";
+    
     private transient HostManagerContext context;
 
     public LibvirtManager()
@@ -71,7 +76,9 @@ public class LibvirtManager implements VirtManager
     {
         this.config = cfg;
         this.libvirtURL = cfg.getStringParameterValue("libvirt.url", "qemu+tcp://root@127.0.0.1:16509/system");
-        this.machineTypes = new LibvirtMachineTypes(new File(cfg.getStringParameterValue("virt.types", "/etc/virt/types")));
+        this.cephCacheMode = cfg.getStringParameterValue("ceph.cache.mode", "writethrough");
+        this.cephIoMode = cfg.getStringParameterValue("ceph.io.mode", "threads");
+        this.machineTypes = new LibvirtMachineTypes(new File(cfg.getStringParameterValue("virt.types", "/etc/virt/host/types")));
     }
 
     @Override
@@ -94,6 +101,7 @@ public class LibvirtManager implements VirtManager
 
     protected LibVirtAdapter getConnection()
     {
+        // TODO: block trying to connect ?
         return connection;
     }
 
@@ -217,7 +225,7 @@ public class LibvirtManager implements VirtManager
             if (domain.isRunning()) domain.terminate();
             domain.remove();
             // Release network interfaces
-            this.removeInterfaces(machine);
+            this.releaseInterfaces(machine);
             // Release volumes
             this.releaseVolumes(machine);
         }
@@ -262,6 +270,17 @@ public class LibvirtManager implements VirtManager
     }
     
     @Override
+    public void attachVolumeToMachine(MachineEO machine, MachineVolumeEO attachVolume)
+    {
+        if (!this.isConnected()) throw new VirtError("Cannot attach volume at this time");
+        // Lookup the domain
+        LibVirtDomain domain = this.getConnection().lookupDomainByUuid(machine.getId());
+        if (domain == null) throw new VirtError("Cannot attach volume, the machine " + machine.getId() + " is not defined on this host");
+        // Get the disk attachment information and attach
+        domain.attachDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(attachVolume), attachVolume.getName()));
+    }
+    
+    @Override
     public void createMachine(MachineEO machine)
     {
         if (!this.isConnected()) throw new VirtError("Cannot create machine at this time");
@@ -280,6 +299,7 @@ public class LibvirtManager implements VirtManager
         // set core domain details
         domainDef.setUuid(machine.getId().toString());
         domainDef.setName(("m-" + machine.getId()).toLowerCase());
+        domainDef.setTitle(machine.getAccount().getName() + "::" + machine.getName());
         domainDef.getVcpu().setCount(machine.getCpus());
         domainDef.getCurrentMemory().setBytesValue(machine.getMemory());
         domainDef.getMemory().setBytesValue(machine.getMemory());
@@ -288,22 +308,23 @@ public class LibvirtManager implements VirtManager
         if (sysInfo != null)
         {
             sysInfo.getBaseBoard().add(new SysInfoEntryDef("version", machine.getMachineType()));
+            sysInfo.getSystem().add(new SysInfoEntryDef("serial", "ds=intrbiz;a=" + machine.getCfgIPv4() + "/16;s=172.16.0.1"));
         }
         // configure the cfgMac (must be first)
-        domainDef.getDevices().getInterfaces().add(this.fromInterfaceInfo(this.context.getNetManager().setupGuestMetadataNIC(machine)));
+        domainDef.getDevices().addDevice(this.fromInterfaceInfo(this.context.getNetManager().setupGuestMetadataNIC(machine)));
         // create our network interfaces
         for (MachineInterfaceEO nic : machine.getInterfaces())
         {
-            domainDef.getDevices().getInterfaces().add(this.fromInterfaceInfo(this.context.getNetManager().setupGuestNIC(nic)));
+            domainDef.getDevices().addDevice(this.fromInterfaceInfo(this.context.getNetManager().setupGuestNIC(nic)));
         }
         // create our storage volumes
         for (MachineVolumeEO vol : machine.getVolumes())
         {
-            domainDef.getDevices().getDisks().add(this.fromVolumeInfo(this.context.getStoreManager().createVolume(vol), vol.getName()));
+            domainDef.getDevices().addDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(vol), vol.getName()));
         }
         // Define the domain
         logger.info("Defining VM from domain definition: \n" + domainDef);
-        LibVirtDomain domain = this.connection.addDomain(domainDef);
+        LibVirtDomain domain = this.getConnection().addDomain(domainDef);
         logger.info("Defined libvirt domain: " + domain.getUUID() + " " + domain.getName());
     }
 
@@ -315,12 +336,17 @@ public class LibvirtManager implements VirtManager
         if (vol instanceof CephVolumeInfo)
         {
             CephVolumeInfo ceph = (CephVolumeInfo) vol;
-            return new DiskDef("network", "disk", DriverDef.raw(), SourceDef.rbd(ceph.getHosts(), 6789, ceph.getSource()), TargetDef.scsi(targetDev), new AuthDef("libvirt", new SecretDef("ceph", ceph.getAuth())));
+            return new DiskDef("network", "disk", DriverDef.raw(this.cephCacheMode, this.cephIoMode), SourceDef.rbd(ceph.getHosts().split(", ?"), 6789, ceph.getSource()), TargetDef.scsi(targetDev), new AuthDef("libvirt", new SecretDef("ceph", ceph.getAuth())));
         }
         else if (vol instanceof FileVolumeInfo)
         {
             FileVolumeInfo file = (FileVolumeInfo) vol;
-            return new DiskDef("file", "disk", file.getFormat() == Format.QCOW2 ? DriverDef.qcow2() : DriverDef.raw(), SourceDef.file(file.getPath()), TargetDef.scsi(targetDev));
+            return new DiskDef("file", "disk", file.getFormat() == Format.QCOW2 ? DriverDef.qcow2("none") : DriverDef.raw("none"), SourceDef.file(file.getPath()), TargetDef.scsi(targetDev));
+        }
+        else if (vol instanceof BlockVolumeInfo)
+        {
+            BlockVolumeInfo block = (BlockVolumeInfo) vol;
+            return new DiskDef("block", "disk", DriverDef.raw("none"), SourceDef.device(block.getDevicePath()), TargetDef.scsi(targetDev));
         }
         throw new VirtError("Unsupported VolumeInfo type: " + vol);
     }
@@ -371,6 +397,17 @@ public class LibvirtManager implements VirtManager
         for (MachineInterfaceEO nic : machine.getInterfaces())
         {
             this.context.getNetManager().removeGuestNIC(nic);
+        }
+    }
+    
+    protected void releaseInterfaces(MachineEO machine)
+    {
+        // start the metadata interface
+        this.context.getNetManager().releaseGuestMetadataNIC(machine);
+        // start the network interfaces
+        for (MachineInterfaceEO nic : machine.getInterfaces())
+        {
+            this.context.getNetManager().releaseGuestNIC(nic);
         }
     }
 

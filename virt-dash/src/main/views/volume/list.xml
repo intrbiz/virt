@@ -1,0 +1,50 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa">
+	<div class="row" style="margin-top: 30px;">
+    	<div class="col-md-12">
+    		<div class="card">
+    			<h5 class="card-header">Volumes</h5>
+				<div class="card-body">
+					<p class="card-text">These are you persistent volumes in the #{currentAccount.summary} Account.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Zone</th>
+	      					<th>Volume</th>
+	      					<th>Size</th>
+	      					<th>Shared</th>
+	      					<th>Status</th>
+	      					<th>&nbsp;</th>
+	      				</tr>
+	      				<data-set var="volume" value="#{volumes}">
+	      					<tr>
+	      						<td>#{volume.zone.summary}</td>
+	      						<td>#{volume.name}</td>
+	      						<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
+	      						<td>#{if(volume.shared, 'yes', 'no')}</td>
+	      						<td><span class="badge badge-info">#{if(volume.attached, 'Attached', 'Available')}</span></td>
+	      						<td>
+	      							<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Volume</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/volume/id/#{volume.id}">Details</a>
+											<container rendered="#{balsa().permission('storage_manage', currentAccount) and (! volume.attached)}">
+									            <div class="dropdown-divider"></div>
+									            <a class="dropdown-item text-danger" href="/volume/id/#{volume.id}/destroy">Destroy</a>
+								            </container>
+										</div>
+									</div>
+	      						</td>
+	      					</tr>
+	      				</data-set>
+	      			</table>
+	      			<a rendered="#{manage == 'show'}" href="/volume/" class="btn btn-info mr-3">Manage Volumes</a>
+	      			<container rendered="#{balsa().permission('storage_manage', currentAccount)}">
+						<a href="/volume/new" class="btn btn-primary">Create a Volume</a>
+					</container>
+				</div>
+			</div>
+    	</div>
+    </div>
+</fragment>

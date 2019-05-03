@@ -7,13 +7,17 @@ import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 
+import com.intrbiz.virt.VirtError;
 import com.intrbiz.virt.config.StoreManagerCfg;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
 import com.intrbiz.virt.libvirt.CloseListener;
 import com.intrbiz.virt.libvirt.LibVirtAdapter;
+import com.intrbiz.virt.libvirt.model.definition.storage.LibVirtStorageVolumeDef;
+import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStoragePool;
+import com.intrbiz.virt.libvirt.model.wrapper.LibVirtStorageVol;
 import com.intrbiz.virt.manager.HostManagerContext;
 import com.intrbiz.virt.manager.HostMetadataStoreContext;
-import com.intrbiz.virt.manager.store.model.FileVolumeInfo;
+import com.intrbiz.virt.manager.store.model.BlockVolumeInfo;
 import com.intrbiz.virt.manager.store.model.VolumeInfo;
 
 public class LibvirtEphemeralStoreManager extends LocalStoreManager
@@ -106,14 +110,14 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
     }
     
     @Override
-    public VolumeInfo createVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
             case EPHEMERAL:
                 return this.setupEphemeralVolume(vol);
         }
-        return super.createVolume(vol);
+        return super.createOrAttachVolume(vol);
     }
     
     @Override
@@ -123,7 +127,7 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
         {
             case EPHEMERAL:
                 this.releaseEphemeralVolume(vol);
-                break;
+                return;
         }
         super.releaseVolume(vol);
     }
@@ -135,25 +139,53 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
         {
             case EPHEMERAL:
                 this.removeEphemeralVolume(vol);
-                break;
+                return;
         }
         super.removeVolume(vol);
     }
     
-    private FileVolumeInfo setupEphemeralVolume(MachineVolumeEO vol)
+    private String getVolTypeMetadata(MachineVolumeEO vol, String key, String defaultValue)
     {
-        // TODO
-        return null;
+        if (vol == null || vol.getTypeMetadata() == null) return defaultValue;
+        String value = vol.getTypeMetadata().get(key);
+        return value == null ? defaultValue : value;
+    }
+    
+    private BlockVolumeInfo setupEphemeralVolume(MachineVolumeEO vol)
+    {
+        if (!this.isConnected()) throw new VirtError("Cannot setup ephemeral volume at this time, please try again.");
+        String poolName = this.getVolTypeMetadata(vol, "pool", "ephemeral");
+        LibVirtStoragePool pool = this.connection.lookupStoragePoolByName(poolName);
+        if (pool == null) throw new VirtError("Could not find storage pool " + poolName);
+        // Create the volume
+        LibVirtStorageVolumeDef volDef = LibVirtStorageVolumeDef.createFull(vol.getSource(), vol.getSize());
+        logger.info("Creating ephemeral volume " + vol.getName() + " in pool " + pool.getName() + ": " + volDef);
+        LibVirtStorageVol lvVol = pool.addStorageVol(volDef);
+        String devicePath = lvVol.getStorageVolDef().getTarget().getPath();
+        logger.info("Created ephemeral volume: " + devicePath);
+        return new BlockVolumeInfo(vol.getSize(), devicePath);
     }
     
     private void removeEphemeralVolume(MachineVolumeEO vol)
     {
-        // TODO
+        if (!this.isConnected()) throw new VirtError("Cannot remove ephemeral volume at this time, please try again.");
+        String poolName = this.getVolTypeMetadata(vol, "pool", "ephemeral");
+        LibVirtStoragePool pool = this.connection.lookupStoragePoolByName(poolName);
+        if (pool == null) throw new VirtError("Could not find storage pool " + poolName);
+        // Get the volume
+        logger.info("Looking for volume " + vol.getSource() + " in pool " + pool.getName());
+        LibVirtStorageVol lvVol = pool.lookupStorageVolByName(vol.getSource());
+        if (lvVol != null)
+        {
+            lvVol.delete();
+            logger.info("Volume " + lvVol.getPath() + " deleted");
+        }
     }
     
     private void releaseEphemeralVolume(MachineVolumeEO vol)
     {
-        // TODO
+        // Delete the volume on release
+        this.removeEphemeralVolume(vol);
     }
     
 }

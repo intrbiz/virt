@@ -52,6 +52,16 @@
 			<groupId>com.intrbiz.virt</groupId>
 			<artifactId>virt-cluster</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.intrbiz.util</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>${intrbiz.util.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.shredzone.acme4j</groupId>
+		    <artifactId>acme4j-client</artifactId>
+		    <version>2.6</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>virt-dash</finalName>
@@ -69,7 +79,7 @@
                 <artifactId>balsa-executor-compiler-plugin</artifactId>
                 <version>${intrbiz.balsa.version}</version>
                 <configuration>
-                	<appClass>com.intrbiz.virt.dash.App</appClass>
+                	<appClass>com.intrbiz.virt.VirtDashApp</appClass>
                 </configuration>
                 <executions>
                     <execution>

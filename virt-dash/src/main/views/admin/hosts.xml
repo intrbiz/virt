@@ -11,6 +11,7 @@
 		      		<table class="table">
 		      			<tr>
 		      				<th>Zone</th>
+		      				<th>Group</th>
 		      				<th>Name</th>
 		      				<th>State</th>
 		      				<th>Last Seen</th>
@@ -23,10 +24,12 @@
 		      				<th>Network Types</th>
 		      				<th>Running Machines</th>
 		      				<th>Defined Memory</th>
+		      				<th>Capabilities</th>
 		      			</tr>
 		      			<data-set var="host" value="#{hosts}">
 		      				<tr>
 		      					<td>#{host.zone}</td>
+		      					<td>#{host.placementGroup}</td>
 		      					<td>#{host.name}</td>
 		      					<td>#{host.state}</td>
 		      					<td>#{host.lastUpdatedAgo / 1000}s ago</td>
@@ -51,6 +54,11 @@
 		      					</td>
 		      					<td>#{host.runningMachines}</td>
 		      					<td>#{host.definedMemory / 1024 / 1024} MiB</td>
+		      					<td>
+		      						<data-set var="cap" value="#{host.capabilities}">
+		      							<span class="badge badge-info">#{cap}</span>
+		      						</data-set>
+		      					</td>
 		      				</tr>
 		      			</data-set>
 		      		</table>

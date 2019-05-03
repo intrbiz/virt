@@ -36,6 +36,10 @@ public class VirtHostApp extends BalsaApplication implements Configurable<VirtHo
     
     private List<String> metadataSearchDomain;
     
+    private String internalZone;
+    
+    private String rootAccountName;
+    
     public VirtHostApp()
     {
         super();
@@ -49,6 +53,9 @@ public class VirtHostApp extends BalsaApplication implements Configurable<VirtHo
         this.metadataGateway = config.getStringParameterValue("metadata.gateway", "172.16.0.1");
         this.metadataNameservers = Arrays.asList(config.getStringParameterValue("metadata.nameservers", "172.16.0.1").split(", ?"));
         this.metadataSearchDomain = Arrays.asList(config.getStringParameterValue("metadata.search.domain", "local").split(", ?"));
+        this.internalZone = config.getStringParameterValue("internal.zone", "intrbiz.cloud.");
+        if (! this.internalZone.endsWith(".")) this.internalZone += ".";
+        this.rootAccountName = config.getStringParameterValue("root.account.name", "intrbiz_cloud");
     }
     
     public VirtHostCfg getConfiguration()
@@ -123,9 +130,19 @@ public class VirtHostApp extends BalsaApplication implements Configurable<VirtHo
         return metadataSearchDomain;
     }
 
+    public String getInternalZone()
+    {
+        return internalZone;
+    }
+
+    public String getRootAccountName()
+    {
+        return rootAccountName;
+    }
+
     public static File getConfigFile()
     {
-        return new File(System.getProperty("virt-host.config", "/etc/virt-host/virt-host.xml"));
+        return new File(System.getProperty("virt-host.config", "/etc/virt/host.xml"));
     }
 
     public static void main(String[] args)

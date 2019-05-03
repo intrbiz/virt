@@ -1,0 +1,27 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Request Certificate">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Request Certificate</h5>
+				<div class="card-body">
+					<p class="card-text">Enter the domain names you want this certificate issued for.</p>
+					<p class="card-text">Note that you can only request certificates for domains which have DNS managed by us.</p>
+		      		<form method="post" action="#{path('/certificate/request')}">
+					  	<div class="form-group">
+					    	<label for="names">Domain Names:</label>
+					    	<input type="text" class="form-control" id="names" name="names" aria-describedby="namesHelp" placeholder="mysite.net, mysite.org"/>
+					    	<small id="namesHelp" class="form-text text-muted">The domain names separated by a comma for this certificate, eg: mysite.net, mysite.org.</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Request Certificate</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

@@ -1,6 +1,7 @@
 package com.intrbiz.virt.event.host;
 
 import com.intrbiz.virt.event.model.MachineEO;
+import com.intrbiz.virt.event.model.MachineVolumeEO;
 
 public class ManageMachine extends VirtHostEvent
 {
@@ -12,7 +13,9 @@ public class ManageMachine extends VirtHostEvent
         STOP,
         REBOOT,
         RELEASE,
-        TERMINATE
+        TERMINATE,
+        MIGRATE,
+        ATTACH_VOLUME
     }
 
     private MachineEO machine;
@@ -20,6 +23,10 @@ public class ManageMachine extends VirtHostEvent
     private Action action;
     
     private boolean force;
+    
+    private String destinationHost;
+    
+    private MachineVolumeEO volume;
 
     public ManageMachine()
     {
@@ -70,6 +77,38 @@ public class ManageMachine extends VirtHostEvent
     public void setForce(boolean force)
     {
         this.force = force;
+    }
+
+    public String getDestinationHost()
+    {
+        return destinationHost;
+    }
+
+    public void setDestinationHost(String destinationHost)
+    {
+        this.destinationHost = destinationHost;
+    }
+
+    public MachineVolumeEO getVolume()
+    {
+        return volume;
+    }
+
+    public void setVolume(MachineVolumeEO attachVolume)
+    {
+        this.volume = attachVolume;
+    }
+    
+    public ManageMachine withDestinationHost(String destinationHost)
+    {
+        this.destinationHost = destinationHost;
+        return this;
+    }
+    
+    public ManageMachine withVolume(MachineVolumeEO volume)
+    {
+        this.volume = volume;
+        return this;
     }
 
     public String toString()

@@ -1,5 +1,6 @@
 package com.intrbiz.virt.router.guest;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ import com.intrbiz.virt.model.metadata.MachineMetadataV1;
 import com.intrbiz.virt.model.metadata.network.v2.EthernetNetworkV2;
 import com.intrbiz.virt.model.metadata.network.v2.NameserverNetworkV2;
 import com.intrbiz.virt.model.metadata.network.v2.NetworkV2;
+import com.intrbiz.virt.model.metadata.network.v2.RouteV2;
 
 @Prefix("/")
 public class GuestMetadataRouter extends Router<VirtHostApp>
@@ -89,21 +91,27 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
         NetworkV2 network = new NetworkV2();
         // Nameserver
         String accountName = machine.getAccount().getName();
-        List<String> search = app().getMetadataSearchDomain().stream().map(e -> accountName + "." + e).collect(Collectors.toList());
+        List<String> search = new LinkedList<String>();
+        search.add(accountName + "." + app().getInternalZone());
+        // TODO: search.addAll(app().getMetadataSearchDomain());
         NameserverNetworkV2 nameserver = NameserverNetworkV2.nameserver(app().getMetadataNameservers(), search);
         // eth0 - metadata and outbound nic
-        EthernetNetworkV2 metadataEthernet = EthernetNetworkV2.ethernetDhcp(machine.getCfgMac()).withGateway4(app().getMetadataGateway()).withNameserver(nameserver);
+        EthernetNetworkV2 metadataEthernet = EthernetNetworkV2.ethernetStatic(machine.getCfgMac(), machine.getCfgIPv4() + "/16").withNameserver(nameserver);
+        metadataEthernet.withRoute(new RouteV2("0.0.0.0/0", "172.16.0.1", 600));
         network.withEthernet("eth0", metadataEthernet);
         // eth1..n user nics
         int i = 1;
         for (MachineNIC nic : machine.getInterfaces())
         {
             Network net = nic.getNetwork();
-            EthernetNetworkV2 ethernet = EthernetNetworkV2.ethernetStatic(nic.getMac(), nic.getIpv4() + "/" + net.getIPv4NetworkMaskBits()).withNameserver(nameserver);
+            EthernetNetworkV2 ethernet = EthernetNetworkV2.ethernetStatic(nic.getMac(), nic.getIpv4() + "/" + net.getIPv4NetworkMaskBits());
+            if ("public".equals(net.getPurpose()))
+            {
+                metadataEthernet.withRoute(new RouteV2("0.0.0.0/0", net.getIpv4Router(), 50));
+            }
             network.withEthernet("eth" + i, ethernet);
             i++;
         }
-        // TODO: Routing and Nameservers
         return network;
     }
     
@@ -116,6 +124,7 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
                "/metadata/name\n" +
                "/metadata/hostname\n" +
                "/metadata/cfg_mac\n" +
+               "/metadata/cfg_ipv4\n" +
                "/metadata/public_keys\n" +
                "/metadata/type/name\n" +
                "/metadata/type/family\n" +
@@ -138,6 +147,7 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
                "/metadata/account/id\n" +
                "/metadata/account/name\n" +
                "/metadata/host/name\n" +
+               "/metadata/host/placement_group\n" +
                "/metadata/user_data\n" +
                "/metadata/vendor_data\n";
                
@@ -176,6 +186,13 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
     public String cfgMac(@Var("machine") Machine machine)
     {
         return machine.getCfgMac();
+    }
+    
+    @Any("/metadata/cfg_ipv4")
+    @Text
+    public String cfgIpv4(@Var("machine") Machine machine)
+    {
+        return machine.getCfgIPv4();
     }
     
     @Any(value="metadata/public[_-]keys", regex=true)
@@ -295,7 +312,7 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
     public String machineNics(@Var("machine") Machine machine)
     {
         StringBuilder nics = new StringBuilder();
-        nics.append("eth0 dhcp mac " + machine.getCfgMac() + " net metadata\n");
+        nics.append("eth0 static mac " + machine.getCfgMac() + " addr " + machine.getCfgIPv4() + " net metadata\n");
         for (MachineNIC nic : machine.getInterfaces())
         {
             Network net = nic.getNetwork();
@@ -316,10 +333,6 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
             if (pvol != null)
             {
                 vols.append(" size ").append(pvol.getSize()).append(" attached ").append(pvol.getName());
-            }
-            else
-            {
-                vols.append(" size ").append(vol.getSize());
             }
             vols.append("\n");
         }
@@ -363,5 +376,12 @@ public class GuestMetadataRouter extends Router<VirtHostApp>
     public String hostName()
     {
         return app().getConfiguration().getName();
+    }
+    
+    @Any("/metadata/host/placement_group")
+    @Text
+    public String hostPlacementGroup()
+    {
+        return app().getConfiguration().getPlacementGroup();
     }
 }

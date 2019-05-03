@@ -13,6 +13,7 @@ import com.intrbiz.system.exec.SystemExecutorService;
 import com.intrbiz.virt.VirtError;
 import com.intrbiz.virt.config.StoreManagerCfg;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
+import com.intrbiz.virt.event.model.PersistentVolumeEO;
 import com.intrbiz.virt.event.model.MachineVolumeEO.VolumeMode;
 import com.intrbiz.virt.manager.store.model.FileVolumeInfo;
 import com.intrbiz.virt.manager.store.model.FileVolumeInfo.Format;
@@ -58,14 +59,14 @@ public class LocalStoreManager extends BaseStoreManager
     }
 
     @Override
-    public VolumeInfo createVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
             case LOCAL:
                 return this.setupLocalVolume(vol);
         }
-        return super.createVolume(vol);
+        return super.createOrAttachVolume(vol);
     }
     
     @Override
@@ -75,7 +76,7 @@ public class LocalStoreManager extends BaseStoreManager
         {
             case LOCAL:
                 this.releaseLocalVolume(vol);
-                break;
+                return;
         }
         super.releaseVolume(vol);
     }
@@ -87,9 +88,61 @@ public class LocalStoreManager extends BaseStoreManager
         {
             case LOCAL:
                 this.removeLocalVolume(vol);
-                break;
+                return;
         }
         super.removeVolume(vol);
+    }
+    
+    @Override
+    public void createPersistentVolume(PersistentVolumeEO pvol)
+    {
+        switch (pvol.getType())
+        {
+            case LOCAL:
+                this.createPersistentLocalVolume(pvol);
+                return;
+        }
+        super.createPersistentVolume(pvol);
+    }
+    
+    @Override
+    public void destroyPersistentVolume(PersistentVolumeEO pvol)
+    {
+        switch (pvol.getType())
+        {
+            case LOCAL:
+                this.destroyPersistentLocalVolume(pvol);
+                return;
+        }
+        super.destroyPersistentVolume(pvol);
+    }
+    
+    private void createPersistentLocalVolume(PersistentVolumeEO pvol)
+    {
+        File source = new File(this.localDir, pvol.getSource() + "." + QCOW2);
+        if (! source.exists())
+        {
+            logger.info("Creating new local qcow2 volumne " + source.getAbsolutePath());
+            source.getParentFile().mkdirs();
+            List<String> args = Arrays.asList(CREATE, FORMAT, QCOW2, source.getAbsolutePath(), String.valueOf(pvol.getSize()));
+            try
+            {
+                this.executor.expect(command(QEMU_IMG, args), QEMU_IMG_SUCCESS_CODES);
+            }
+            catch (SystemExecutionException e) 
+            {
+                throw new VirtError("Failed to create persistent volume qcow2 image", e);
+            }
+        }
+    }
+    
+    private void destroyPersistentLocalVolume(PersistentVolumeEO pvol)
+    {
+        File source = new File(this.localDir, pvol.getSource() + "." + QCOW2);
+        if (source.exists())
+        {
+            source.delete();
+        }
     }
     
     private FileVolumeInfo setupLocalVolume(MachineVolumeEO vol)

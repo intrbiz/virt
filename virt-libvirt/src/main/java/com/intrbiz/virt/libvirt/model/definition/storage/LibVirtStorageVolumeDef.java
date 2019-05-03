@@ -35,6 +35,35 @@ public class LibVirtStorageVolumeDef
     {
         super();
     }
+    
+    public LibVirtStorageVolumeDef(String name)
+    {
+        super();
+        this.name = name;
+    }
+    
+    public static LibVirtStorageVolumeDef create(String name, long size, boolean thin)
+    {
+        LibVirtStorageVolumeDef vol = new LibVirtStorageVolumeDef(name);
+        vol.setCapacity(new CapacityDef(size));
+        vol.setAllocation(new AllocationDef( thin ? 0 : size));
+        return vol;
+    }
+    
+    public static LibVirtStorageVolumeDef create(String name, long size)
+    {
+        return create(name, size, false);
+    }
+    
+    public static LibVirtStorageVolumeDef createFull(String name, long size)
+    {
+        return create(name, size, false);
+    }
+    
+    public static LibVirtStorageVolumeDef createThin(String name, long size)
+    {
+        return create(name, size, true);
+    }
 
     @XmlElement(name = "name")
     public String getName()

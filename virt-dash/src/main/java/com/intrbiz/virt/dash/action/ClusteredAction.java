@@ -12,7 +12,6 @@ import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 
 public class ClusteredAction
 {
-    
     protected DashClusterManager getClusterManager()
     {
         return ((VirtDashApp) Balsa().app()).getClusterManager();

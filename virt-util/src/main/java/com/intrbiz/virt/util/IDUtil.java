@@ -1,10 +1,34 @@
 package com.intrbiz.virt.util;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 
 public class IDUtil
 {
     private static final String HEX_CHARS = "0123456789abcdef";
+    
+    
+    public static String randomCfgAddr()
+    {
+        int b3 = new SecureRandom().nextInt(250) + 4;
+        int b4 = new SecureRandom().nextInt(255);
+        return "172.16." + b3 + "." + b4;
+    }
+    
+    /**
+     * Generate a random OUI locally administered MAC address
+     * @return a 6 byte MAC address
+     */
+    public static byte[] randomMac(UUID accountId)
+    {
+        byte[] mac = new byte[6];
+        new SecureRandom().nextBytes(mac);
+        //mac[0] = (byte) ((mac[0] & 0xFC) | 0x02);
+        mac[0] = 0x52;
+        mac[1] = 0x54;
+        mac[2] = (byte) (accountId.getLeastSignificantBits() & 0xFFL);
+        return mac;
+    }
     
     /**
      * Generate a random OUI locally administered MAC address
@@ -84,6 +108,6 @@ public class IDUtil
      */
     public static int randomVxlanId()
     {
-        return new SecureRandom().nextInt() & 0x00FFFFFF;
+        return ((new SecureRandom().nextInt() & 0x00FFFFFF) + 100) & 0x00FFFFFF;
     }
 }

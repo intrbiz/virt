@@ -25,18 +25,24 @@ public class MachineEO implements Serializable
     
     private String cfgMac;
     
+    private String cfgIPv4;
+    
     private List<MachineInterfaceEO> interfaces = new LinkedList<MachineInterfaceEO>();
     
     private List<MachineVolumeEO> volumes = new LinkedList<MachineVolumeEO>();
     
     private MachineAdminStatus adminStatus;
     
+    private String placementRule;
+    
+    private AccountEO account;
+    
     public MachineEO()
     {
         super();
     }
 
-    public MachineEO(UUID id, String zone, String name, String machineTypeFamily, String machineType, int cpus, long memory, String cfgMac, MachineAdminStatus adminStatus)
+    public MachineEO(UUID id, String zone, String name, String machineTypeFamily, String machineType, int cpus, long memory, String cfgMac, String cfgAddr, MachineAdminStatus adminStatus, String placementRule, AccountEO account)
     {
         super();
         this.id = id;
@@ -47,7 +53,10 @@ public class MachineEO implements Serializable
         this.cpus = cpus;
         this.memory = memory;
         this.cfgMac = cfgMac;
+        this.cfgIPv4 = cfgAddr;
         this.adminStatus = adminStatus;
+        this.placementRule = placementRule;
+        this.account = account;
     }
 
     public UUID getId()
@@ -130,6 +139,16 @@ public class MachineEO implements Serializable
         this.cfgMac = cfgMac;
     }
 
+    public String getCfgIPv4()
+    {
+        return cfgIPv4;
+    }
+
+    public void setCfgIPv4(String cfgIPv4)
+    {
+        this.cfgIPv4 = cfgIPv4;
+    }
+
     public List<MachineInterfaceEO> getInterfaces()
     {
         return interfaces;
@@ -160,9 +179,29 @@ public class MachineEO implements Serializable
         this.adminStatus = adminStatus;
     }
 
+    public String getPlacementRule()
+    {
+        return placementRule;
+    }
+
+    public void setPlacementRule(String placementRule)
+    {
+        this.placementRule = placementRule;
+    }
+
+    public AccountEO getAccount()
+    {
+        return account;
+    }
+
+    public void setAccount(AccountEO account)
+    {
+        this.account = account;
+    }
+
     @Override
     public String toString()
     {
-        return "MachineEO[id=" + id + ", zone=" + zone + ", name=" + name + ", machineTypeFamily=" + machineTypeFamily + ", adminStatus=" + this.adminStatus + ", cpus=" + cpus + ", memory=" + memory + ", cfgMac=" + cfgMac + ", interfaces=" + interfaces + ", volumes=" + volumes + "]";
+        return "MachineEO [id=" + id + ", zone=" + zone + ", name=" + name + ", machineTypeFamily=" + machineTypeFamily + ", machineType=" + machineType + ", cpus=" + cpus + ", memory=" + memory + ", cfgMac=" + cfgMac + ", cfgIPv4=" + cfgIPv4 + ", interfaces=" + interfaces + ", volumes=" + volumes + ", adminStatus=" + adminStatus + ", placementRule=" + placementRule + ", account=" + account + "]";
     }
 }

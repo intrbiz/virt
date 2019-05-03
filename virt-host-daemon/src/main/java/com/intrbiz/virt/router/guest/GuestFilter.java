@@ -28,6 +28,6 @@ public class GuestFilter extends Router<VirtHostApp>
         Machine machine = db.getMachineByCfgMAC(cfgMac);
         require(machine != null, "No such machine");
         var("machine", machine);
-        logger.info("Got metadata request " + request().getPathInfo() + " for machine: " + request().getRemoteAddress() + " ==> " + cfgMac + ", " + machine.getId());
+        logger.debug("Got metadata request " + request().getPathInfo() + " for machine: " + request().getRemoteAddress() + " ==> " + cfgMac + ", " + machine.getId());
     }
 }

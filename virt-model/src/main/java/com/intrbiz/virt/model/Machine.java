@@ -3,6 +3,12 @@ package com.intrbiz.virt.model;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.intrbiz.data.db.compiler.meta.Action;
 import com.intrbiz.data.db.compiler.meta.SQLColumn;
 import com.intrbiz.data.db.compiler.meta.SQLForeignKey;
@@ -16,71 +22,98 @@ import com.intrbiz.virt.event.model.MachineEO;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
 import com.intrbiz.virt.model.MachineType.EphemeralVolume;
 import com.intrbiz.virt.util.IDUtil;
+import com.intrbiz.virt.util.NameUtil;
 
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "kind")
+@JsonTypeName("machine")
 @SQLTable(schema = VirtDB.class, name = "machine", since = @SQLVersion({ 1, 0, 0 }))
 public class Machine
 {
+    
+    @JsonProperty("id")
     @SQLColumn(index = 1, name = "id", since = @SQLVersion({ 1, 0, 0 }))
     @SQLPrimaryKey()
     private UUID id;
 
+    @JsonProperty("account_id")
     @SQLColumn(index = 2, name = "account_id", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLForeignKey(references = Account.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID accountId;
 
+    @JsonIgnore
     @SQLColumn(index = 3, name = "type_id", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLForeignKey(references = MachineType.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID typeId;
 
+    @JsonIgnore
     @SQLColumn(index = 4, name = "image_id", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLForeignKey(references = Image.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID imageId;
 
+    @JsonProperty("name")
     @SQLColumn(index = 5, name = "name", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLUnique(name = "machine_name_unq", columns = { "account_id", "name" })
     private String name;
 
+    @JsonProperty("config_mac")
     @SQLColumn(index = 6, name = "cfg_mac", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLUnique(name = "cfg_mac_unq")
     private String cfgMac;
 
+    @JsonIgnore
     @SQLColumn(index = 7, name = "ssh_key_id", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLForeignKey(references = SSHKey.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID sshKeyId;
 
+    @JsonProperty("description")
     @SQLColumn(index = 8, name = "description", since = @SQLVersion({ 1, 0, 0 }))
     private String description;
 
+    @JsonIgnore
     @SQLColumn(index = 9, name = "metadata", type = "JSONB", since = @SQLVersion({ 1, 0, 0 }))
     private String metadata;
     
+    @JsonIgnore
     @SQLColumn(index = 10, name = "zone_id", since = @SQLVersion({ 1, 0, 4 }))
     @SQLForeignKey(references = Zone.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 4 }))
     private UUID zoneId;
     
+    @JsonProperty("admin_status")
     @SQLColumn(index = 11, name = "admin_status", since = @SQLVersion({ 1, 0, 9 }))
     private MachineAdminStatus adminStatus;
     
+    @JsonProperty("user_data")
     @SQLColumn(index = 12, name = "user_data", since = @SQLVersion({ 1, 0, 10 }))
     private String userData;
+    
+    @JsonProperty("config_ipv4")
+    @SQLColumn(index = 6, name = "cfg_ipv4", notNull = true, since = @SQLVersion({ 1, 0, 19 }))
+    @SQLUnique(name = "cfg_ipv4_unq")
+    private String cfgIPv4;
+    
+    @JsonProperty("placement_rule")
+    @SQLColumn(index = 6, name = "placement_rule", since = @SQLVersion({ 1, 0, 28 }))
+    private String placementRule;
 
     public Machine()
     {
         super();
     }
 
-    public Machine(Account account, Zone zone, MachineType type, Image image, String name, SSHKey sshKey, String description)
+    public Machine(Account account, Zone zone, MachineType type, Image image, String name, SSHKey sshKey, String description, String placementRule)
     {
         super();
-        this.id = UUID.randomUUID();
+        this.id = account.randomObjectId();
         this.cfgMac = IDUtil.formatMac(IDUtil.randomMac());
+        this.cfgIPv4 = IDUtil.randomCfgAddr();
         this.accountId = account.getId();
         this.zoneId = zone.getId();
         this.typeId = type.getId();
         this.imageId = image.getId();
-        this.name = name;
+        this.name = NameUtil.toSafeName(name);
         this.sshKeyId = sshKey.getId();
         this.description = description;
+        this.placementRule = placementRule;
     }
 
     public UUID getId()
@@ -143,6 +176,16 @@ public class Machine
         this.cfgMac = cfgMac;
     }
 
+    public String getCfgIPv4()
+    {
+        return cfgIPv4;
+    }
+
+    public void setCfgIPv4(String cfgIPv4)
+    {
+        this.cfgIPv4 = cfgIPv4;
+    }
+
     public UUID getSshKeyId()
     {
         return sshKeyId;
@@ -203,6 +246,17 @@ public class Machine
         this.userData = userData;
     }
 
+    public String getPlacementRule()
+    {
+        return placementRule;
+    }
+
+    public void setPlacementRule(String placementRule)
+    {
+        this.placementRule = placementRule;
+    }
+
+    @JsonProperty("zone")
     public Zone getZone()
     {
         try (VirtDB db = VirtDB.connect())
@@ -211,6 +265,7 @@ public class Machine
         }
     }
 
+    @JsonProperty("machine_type")
     public MachineType getType()
     {
         try (VirtDB db = VirtDB.connect())
@@ -219,6 +274,7 @@ public class Machine
         }
     }
     
+    @JsonProperty("image")
     public Image getImage()
     {
         try (VirtDB db = VirtDB.connect())
@@ -227,6 +283,7 @@ public class Machine
         }
     }
     
+    @JsonProperty("ssh_key_set")
     public SSHKey getSSHKey()
     {
         try (VirtDB db = VirtDB.connect())
@@ -235,6 +292,7 @@ public class Machine
         }
     }
     
+    @JsonProperty("interfaces")
     public List<MachineNIC> getInterfaces()
     {
         try (VirtDB db = VirtDB.connect())
@@ -243,6 +301,7 @@ public class Machine
         }
     }
     
+    @JsonProperty("volumes")
     public List<MachineVolume> getVolumes()
     {
         try (VirtDB db = VirtDB.connect())
@@ -251,6 +310,7 @@ public class Machine
         }
     }
     
+    @JsonIgnore
     public Account getAccount()
     {
         try (VirtDB db = VirtDB.connect())
@@ -262,25 +322,27 @@ public class Machine
     /**
      * Get the storage source path for this machines root volume
      */
+    @JsonIgnore
     public String getSource()
     {
-        return "z/" + this.getZone().getName() + "/a/" + this.accountId + "/m/" + this.id + ".sda";
+        return "z_" + this.getZone().getName() + "_a_" + this.accountId + "_m_" + this.id + ".sda";
     }
     
     public String getEphemeralVolumeSource(int evIndex)
     {
-        return "z/" + this.getZone().getName() + "/a/" + this.accountId + "/m/" + this.id + "." + volumeName(evIndex);
+        return "z_" + this.getZone().getName() + "_a_" + this.accountId + "_m_" + this.id + "." + volumeName(evIndex);
     }
     
     public MachineEO toEvent()
     {
+        Account account = this.getAccount();
         Zone zone = this.getZone();
         MachineType type = this.getType();
         Image image = this.getImage();
         List<MachineVolume> volumes = this.getVolumes();
         List<MachineNIC> interfaces = this.getInterfaces();
         // machine basics
-        MachineEO eo = new MachineEO(this.id, zone.getName(), this.name, type.getFamily(), type.getName(), type.getCpus(), type.getMemory(), this.cfgMac, this.adminStatus);
+        MachineEO eo = new MachineEO(this.id, zone.getName(), this.name, type.getFamily(), type.getName(), type.getCpus(), type.getMemory(), this.cfgMac, this.cfgIPv4, this.adminStatus, this.placementRule, account.toEvent());
         // add the list of NICs to various networks
         for (MachineNIC nic : interfaces)
         {
@@ -297,7 +359,7 @@ public class Machine
                     this.getEphemeralVolumeSource(evIndex), 
                     volume.getSize(), 
                     volume.getVolumeType(), 
-                    volume.toVolumeTypeMetadataString()));
+                    volume.getVolumeTypeMetadata()));
             evIndex++;
         }
         // add the persistent volumes

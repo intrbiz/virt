@@ -1,4 +1,4 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.dashboard;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -33,6 +33,15 @@ import com.intrbiz.virt.model.Zone;
 @RequireValidPrincipal()
 public class VolumeRouter extends Router<VirtDashApp>
 {   
+    @Any("/")
+    @WithDataAdapter(VirtDB.class)
+    public void index(VirtDB db, @SessionVar("currentAccount") Account currentAccount)
+    {
+        var("volumes", db.getPersistentVolumesForAccount(currentAccount.getId()));
+        // render
+        encode("volume/index");
+    }
+    
     @Get("/new")
     @WithDataAdapter(VirtDB.class)
     public void newVolume(VirtDB db)
@@ -79,7 +88,7 @@ public class VolumeRouter extends Router<VirtDashApp>
         action("volume.create", volume);
         // remove the vars
         sessionVar("currentVolume", null);
-        redirect("/");
+        redirect("/volume/");
     }
     
     @Any("/id/:id")

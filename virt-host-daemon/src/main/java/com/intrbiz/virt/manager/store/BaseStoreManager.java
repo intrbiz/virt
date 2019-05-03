@@ -6,6 +6,7 @@ import java.util.TreeSet;
 import com.intrbiz.virt.VirtError;
 import com.intrbiz.virt.config.StoreManagerCfg;
 import com.intrbiz.virt.event.model.MachineVolumeEO;
+import com.intrbiz.virt.event.model.PersistentVolumeEO;
 import com.intrbiz.virt.manager.HostManagerContext;
 import com.intrbiz.virt.manager.HostMetadataStoreContext;
 import com.intrbiz.virt.manager.store.model.VolumeInfo;
@@ -55,7 +56,7 @@ public abstract class BaseStoreManager implements StoreManager
     }
 
     @Override
-    public VolumeInfo createVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
     {
         throw new VirtError("Volume type " + vol.getType() + " is not supported");
     }
@@ -70,5 +71,17 @@ public abstract class BaseStoreManager implements StoreManager
     public void removeVolume(MachineVolumeEO vol)
     {
         throw new VirtError("Volume type " + vol.getType() + " is not supported");
+    }
+    
+    @Override
+    public void createPersistentVolume(PersistentVolumeEO pvol)
+    {
+        throw new VirtError("Persistent volumes are not supported");
+    }
+    
+    @Override
+    public void destroyPersistentVolume(PersistentVolumeEO pvol)
+    {
+        throw new VirtError("Persistent volumes are not supported");
     }
 }

@@ -10,6 +10,8 @@ import com.intrbiz.virt.dash.cfg.VirtDashCfg;
 import com.intrbiz.virt.event.host.ManageMachine;
 import com.intrbiz.virt.event.schedule.CreateMachine;
 import com.intrbiz.virt.model.Machine;
+import com.intrbiz.virt.model.MachineVolume;
+import com.intrbiz.virt.model.PersistentVolume;
 
 public class MachineActions extends ClusteredAction
 {
@@ -30,9 +32,9 @@ public class MachineActions extends ClusteredAction
     {
         // lookup the machine state to know which host the machine is current assigned too
         MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
-        if (state != null && state.getStatus() == MachineStatus.RUNNING)
+        // send a reboot event
+        if (state != null)
         {
-            // send a reboot event
             this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.REBOOT, force));
         }
     }
@@ -42,9 +44,9 @@ public class MachineActions extends ClusteredAction
     {
         // lookup the machine state to know which host the machine is current assigned too
         MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
-        if (state != null && state.getStatus() == MachineStatus.RUNNING)
+        // send a start event
+        if (state != null)
         {
-            // send a start event
             this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.STOP, force));
         }
     }
@@ -54,11 +56,7 @@ public class MachineActions extends ClusteredAction
     {
         // lookup the machine state to know which host the machine is current assigned too
         MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
-        if (state != null && state.getStatus() == MachineStatus.RUNNING)
-        {
-            logger.info("Ignoring request to start machine " + machine.getId() + " since it is already running.");
-        }
-        else if (state != null && state.getStatus() == MachineStatus.STOPPED)
+        if (state != null)
         {
             // send a start event
             this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.START));   
@@ -74,9 +72,9 @@ public class MachineActions extends ClusteredAction
     {
         // lookup the machine state to know which host the machine is current assigned too
         MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
-        if (state != null && (state.getStatus() == MachineStatus.RUNNING || state.getStatus() == MachineStatus.STOPPED))
+        if (state != null)
         {
-            // send a destroy event
+            // send a release event
             this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.RELEASE));
         }
     }
@@ -88,8 +86,27 @@ public class MachineActions extends ClusteredAction
         MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
         if (state != null && (state.getStatus() == MachineStatus.RUNNING || state.getStatus() == MachineStatus.STOPPED))
         {
-            // send a destroy event
+            // send a terminate event
             this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.TERMINATE));
+        }
+    }
+    
+    @Action("machine.cleanup")
+    public void cleanupMachine(Machine machine)
+    {
+        // remove the machine state
+        this.getMachineStateStore().removeMachineState(machine.getId());
+    }
+    
+    @Action("machine.attach_volume")
+    public void attachVolumeToMachine(Machine machine, MachineVolume toAttach, PersistentVolume volume)
+    {
+        // lookup the machine state to know which host the machine is current assigned too
+        MachineState state = this.getMachineStateStore().getMachineState(machine.getId());
+        if (state != null)
+        {
+            // send an attach event
+            this.getHostEventManager().sendEvent(state.getHost(), new ManageMachine(machine.toEvent(), ManageMachine.Action.ATTACH_VOLUME).withVolume(toAttach.toEvent()));
         }
     }
 }

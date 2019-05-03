@@ -1,0 +1,31 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create DNS Zone">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create DNS Zone</h5>
+				<div class="card-body">
+					<p class="card-text">Enter the domain name for the zone you want to create.</p>
+		      		<form method="post" action="#{path('/dns/zone/new')}">
+		      			<div class="form-group">
+					    	<label for="zoneName">Zone Name:</label>
+					    	<input type="text" class="form-control" id="zoneName" name="zoneName" aria-describedby="zoneNameHelp" placeholder="mysite.com"/>
+					    	<small id="zoneNameHelp" class="form-text text-muted">The domain name for this zone, eg: mysite.com</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="aliases">Aliases:</label>
+					    	<input type="text" class="form-control" id="aliases" name="aliases" aria-describedby="aliasesHelp" placeholder="mysite.net, mysite.org"/>
+					    	<small id="aliasesHelp" class="form-text text-muted">The alias domain names for this zone, eg: mysite.net.  Comma separated</small>
+					  	</div>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Create DNS Zone</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

@@ -23,7 +23,7 @@
 		      					<td>#{machine.id}</td>
 		      					<td>#{machine.name}</td>
 		      					<td><span class="badge badge-#{status_class(machine.status)}">#{machine.status}</span></td>
-		      					<td>#{machine.host}</td>
+		      					<td>#{machine.hostName}</td>
 		      					<td>#{if(machine.autostart, 'yes', 'no')}</td>
 		      					<td>#{if(machine.persistent, 'yes', 'no')}</td>
 		      					<td>#{if(machine.isUnmanaged(), 'yes', 'no')}</td>

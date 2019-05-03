@@ -1,0 +1,53 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Load Balancers">
+
+<div class="row mb-3">
+		<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Load Balancers</h5>
+				<div class="card-body">
+					<p class="card-text">These are the load balancers that you can use for various services in the #{currentAccount.summary} account.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Mode</th>
+	      					<th>Name</th>
+	      					<th>Endpoint</th>
+	      					<th>Pool</th>
+	      					<th>&nbsp;</th>
+	      				</tr>
+	      				<data-set var="balancer" value="#{balancers}">
+	      					<tr>
+	      						<td><span class="badge badge-info">#{balancer.mode}</span></td>
+	      						<td>#{balancer.name}</td>
+	      						<td>#{balancer.name}.#{balancer.account.name}.#{hosted_domain}</td>
+	      						<th>#{balancer.pool.summary}</th>
+	      						<td>
+	      							<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/balancer/id/#{balancer.id}">Details</a>
+								            <div class="dropdown-divider"></div>
+								            <a class="dropdown-item text-danger" href="/balancer/id/#{balancer.id}/destroy">Destroy</a>
+										</div>
+									</div>
+	      						</td>
+	      					</tr>
+	      				</data-set>
+	      			</table>
+					<div class="btn-group">
+						<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Create Load Balancer</button>
+						<div class="dropdown-menu dropdown-menu-right">
+							<a class="dropdown-item text-primary" href="/balancer/new/https">Create HTTPS Load Balancer</a>
+							<a class="dropdown-item text-primary" href="/balancer/new/http">Create HTTP Load Balancer</a>
+							<!-- <a class="dropdown-item text-primary" href="/balancer/new/tls">Create TLS Load Balancer</a> -->
+							<a class="dropdown-item text-primary" href="/balancer/new/tcp">Create TCP Load Balancer</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</fragment>

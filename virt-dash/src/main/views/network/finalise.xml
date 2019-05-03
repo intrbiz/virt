@@ -27,7 +27,7 @@
 	      						<td>#{currentNetwork.zone.summary}</td>
 	      						<td>#{currentNetwork.name}</td>
 	      						<td>#{currentNetwork.cidr}</td>
-	      						<td>#{currentNetwork.getUsableAddresses()}</td>
+	      						<td>#{currentNetwork.getIPv4UsableAddresses()}</td>
 	      						<td>#{currentNetwork.ipv4Router}</td>
 	      						<td>#{currentNetwork.ipv4DNS1}, #{currentNetwork.ipv4DNS2}</td>
 	      						<container rendered="#{balsa().permission('global_admin')}">

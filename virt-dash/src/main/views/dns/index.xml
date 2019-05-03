@@ -1,0 +1,206 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="DNS Records">
+
+  	<div class="row">
+  		<div class="col-md-10">
+		  	<ul class="nav nav-pills">
+				<data-set var="scope" value="#{list('internal', 'external')}">
+				  	<li class="nav-item">
+				    	<a class="nav-link mr-1 #{if(scope_rownum == 0, 'active', '')}" id="scope-#{scope}-tab" data-toggle="tab" href="#scope-#{scope}" role="tab" aria-controls="scope-#{scope}" aria-selected="#{if(scope_rownum == 0, 'true', 'false')}">#{ucfirst(scope)}</a>
+				  	</li>
+				</data-set>
+				<data-set var="zone" value="#{zones}">
+				  	<li class="nav-item">
+				    	<a class="nav-link mr-1" id="zone-#{zone.id}-tab" data-toggle="tab" href="#zone-#{zone.id}" role="tab" aria-controls="zone-#{zone.id}" >#{zone.name}</a>
+				  	</li>
+				</data-set>
+			</ul>
+		</div>
+		<div class="col-md-2">
+			<a href="/dns/zone/new" class="btn btn-primary float-right">Add DNS Zone</a>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12 mt-3">
+  			<div class="tab-content" id="dns-scopes">
+  				<data-set var="scope" value="#{list('internal', 'external')}">
+	  				<div class="tab-pane #{if(scope_rownum == 0, 'show active', '')}" id="scope-#{scope}" role="tabpanel" aria-labelledby="scope-#{scope}-tab">			    	
+						<div class="card">
+							<h5 class="card-header">#{ucfirst(scope)} DNS Records <small>(#{currentAccount.name}.#{hosted_domain})</small></h5>
+							<div class="card-body">
+								<p class="card-text">These are your custom #{scope} DNS records.</p>
+								<p class="card-text">Note that records will already exist for every host and are not listed here.</p>
+					      		<table class="table">
+					      			<tr>
+					      				<th></th>
+					      				<th>Type</th>
+					      				<th>Name</th>
+					      				<th>Content</th>
+					      				<th>TTL (s)</th>
+					      				<th>Priority</th>
+					      				<th></th>
+					      			</tr>
+					      			<data-set var="record" value="#{Balsa().var(scope)}">
+					      				<tr>
+					      					<td><span class="badge badge-warning" rendered="#{record.generated}">Auto</span></td>
+					      					<td><span class="badge badge-info">#{record.type}</span></td>
+					      					<td><span class="font-weight-bold">#{record.name}</span></td>
+					      					<td>#{record.content}</td>
+					      					<td>#{record.ttl}</td>
+					      					<td>#{record.priority}</td>
+					      					<td>
+					      						<div class="btn-group">
+													<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage</button>
+													<div class="dropdown-menu dropdown-menu-right">
+											            <a class="dropdown-item text-danger" href="/dns/id/#{record.id}/remove">Remove</a>
+													</div>
+												</div>
+					      					</td>
+					      				</tr>
+					      			</data-set>
+					      		</table>
+			      			</div>
+			      		</div>
+			    		<div class="card mt-3">
+							<h5 class="card-header">Add #{ucfirst(scope)} DNS Record</h5>
+							<div class="card-body">
+								<p class="card-text"></p>
+					      		<form method="post" action="#{path('/dns/new/scope/' + scope)}">
+					      			<div class="form-group">
+								    	<label for="#{scope}type">Type:</label>
+								    	<select class="form-control" aria-describedby="#{scope}typeHelp" id="#{scope}type" name="type">
+								    		<option selected="selected" value="A">A</option>
+								    		<option value="CNAME">CNAME</option>
+								    		<option value="MX">MX</option>
+								    		<option value="TXT">TXT</option>
+								    		<option value="SRV">SRV</option>
+								    	</select>
+					      				<small id="#{scope}typeHelp" class="form-text text-muted">The type of this DNS record.</small>
+								  	</div>
+					      			<div class="form-group">
+								    	<label for="#{scope}name">Name:</label>
+								    	<input type="text" class="form-control" aria-describedby="#{scope}nameHelp" id="#{scope}name" name="name" placeholder="www"/>
+					      				<small id="#{scope}nameHelp" class="form-text text-muted">The name of this DNS record: <span class="font-italic">name</span>.#{currentAccount.name}.#{hosted_domain}</small>
+								  	</div>
+								  	<div class="form-group" rendered="#{scope == 'external'}">
+								    	<label for="zone#{zone.id}alias">Alias:</label>
+					      				<input type="checkbox" aria-describedby="zone#{zone.id}aliasHelp" id="zone#{zone.id}alias" name="alias" value="yes"/>
+					      				<small id="zone#{zone.id}aliasHelp" class="form-text text-muted">This record is an alias of the DNS name given as content.</small>
+								  	</div>
+				      				<div class="form-group">
+								    	<label for="#{scope}content">Content:</label>
+					      				<input type="text" class="form-control" aria-describedby="#{scope}contentHelp" id="#{scope}content" name="content" placeholder="10.1.2.3"/>
+					      				<small id="#{scope}contentHelp" class="form-text text-muted">The content of the DNS record.</small>
+								  	</div>
+								  	<div class="form-group">
+								    	<label for="#{scope}ttl">Time To Live (Seconds):</label>
+								    	<input type="text" class="form-control" aria-describedby="#{scope}ttlHelp" id="#{scope}ttl" name="ttl" placeholder="3600"/>
+					      				<small id="#{scope}ttlHelp" class="form-text text-muted">The time to live for this DNS record.</small>
+								  	</div>
+								  	<div class="form-group">
+								    	<label for="#{scope}priority">Priority:</label>
+								    	<input type="text" class="form-control" aria-describedby="#{scope}priorityHelp" id="#{scope}priority" name="priority" placeholder="10"/>
+					      				<small id="#{scope}priorityHelp" class="form-text text-muted">The record priority (for MX records).</small>
+								  	</div>
+					      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+					      				#{balsa().getValidationErrors()}
+					      			</div>
+				      				<button type="submit" class="btn btn-primary">Add #{ucfirst(scope)} DNS Record</button>
+					      		</form>
+					      	</div>
+	    				</div>
+	    			</div>
+    			</data-set>
+    			<data-set var="zone" value="#{zones}">
+	  				<div class="tab-pane" id="zone-#{zone.id}" role="tabpanel" aria-labelledby="zone-#{zone.id}-tab">			    	
+						<div class="card">
+							<h5 class="card-header">#{zone.name} DNS Records</h5>
+							<div class="card-body">
+								<p class="card-text">Records for #{zone.names}</p>
+					      		<table class="table">
+					      			<tr>
+					      				<th></th>
+					      				<th>Type</th>
+					      				<th>Name</th>
+					      				<th>Content</th>
+					      				<th>TTL (s)</th>
+					      				<th>Priority</th>
+					      				<th></th>
+					      			</tr>
+					      			<data-set var="record" value="#{zone.getRecords()}">
+					      				<tr>
+					      					<td><span class="badge badge-warning" rendered="#{record.generated}">Auto</span></td>
+					      					<td><span class="badge badge-info">#{record.type}</span></td>
+					      					<td><span class="font-weight-bold">#{record.name}</span></td>
+					      					<td><span class="badge badge-info" rendered="#{record.alias}">Aliased to</span>#{record.content}</td>
+					      					<td>#{record.ttl}</td>
+					      					<td>#{record.priority}</td>
+					      					<td>
+					      						<div class="btn-group">
+													<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage</button>
+													<div class="dropdown-menu dropdown-menu-right">
+											            <a class="dropdown-item text-danger" href="/dns/zone/record/id/#{record.id}/remove">Remove</a>
+													</div>
+												</div>
+					      					</td>
+					      				</tr>
+					      			</data-set>
+					      		</table>
+			      			</div>
+			      		</div>
+			    		<div class="card mt-3">
+							<h5 class="card-header">Add #{zone.name} DNS Record</h5>
+							<div class="card-body">
+								<p class="card-text"></p>
+					      		<form method="post" action="#{path('/dns/new/zone/' + zone.id)}">
+					      			<div class="form-group">
+								    	<label for="zone#{zone.id}type">Type:</label>
+								    	<select class="form-control" aria-describedby="zone#{zone.id}typeHelp" id="zone#{zone.id}type" name="type">
+								    		<option selected="selected" value="A">A</option>
+								    		<option value="CNAME">CNAME</option>
+								    		<option value="MX">MX</option>
+								    		<option value="TXT">TXT</option>
+								    		<option value="SRV">SRV</option>
+								    	</select>
+					      				<small id="zone#{zone.id}typeHelp" class="form-text text-muted">The type of this DNS record.</small>
+								  	</div>
+					      			<div class="form-group">
+								    	<label for="zone#{zone.id}name">Name:</label>
+								    	<input type="text" class="form-control" aria-describedby="zone#{zone.id}nameHelp" id="zone#{zone.id}name" name="name" placeholder="www"/>
+					      				<small id="zone#{zone.id}nameHelp" class="form-text text-muted">The name of this DNS record: <span class="font-italic">name</span>.#{zone.zoneName}  You can use '*' for wildcards and '@' for the zone</small>
+								  	</div>
+								  	<div class="form-group">
+								    	<label for="zone#{zone.id}alias">Alias:</label>
+					      				<input type="checkbox" aria-describedby="zone#{zone.id}aliasHelp" id="zone#{zone.id}alias" name="alias" value="yes"/>
+					      				<small id="zone#{zone.id}aliasHelp" class="form-text text-muted">This record is an alias of the DNS name given as content.</small>
+								  	</div>
+				      				<div class="form-group">
+								    	<label for="zone#{zone.id}content">Content:</label>
+					      				<input type="text" class="form-control" aria-describedby="zone#{zone.id}contentHelp" id="zone#{zone.id}content" name="content" placeholder="10.1.2.3"/>
+					      				<small id="zone#{zone.id}contentHelp" class="form-text text-muted">The content of the DNS record.</small>
+								  	</div>
+								  	<div class="form-group">
+								    	<label for="zone#{zone.id}ttl">Time To Live (Seconds):</label>
+								    	<input type="text" class="form-control" aria-describedby="zone#{zone.id}ttlHelp" id="zone#{zone.id}ttl" name="ttl" placeholder="3600"/>
+					      				<small id="zone#{zone.id}ttlHelp" class="form-text text-muted">The time to live for this DNS record.</small>
+								  	</div>
+								  	<div class="form-group">
+								    	<label for="zone#{zone.id}priority">Priority:</label>
+								    	<input type="text" class="form-control" aria-describedby="zone#{zone.id}priorityHelp" id="zone#{zone.id}priority" name="priority" placeholder="10"/>
+					      				<small id="zone#{zone.id}priorityHelp" class="form-text text-muted">The record priority (for MX records).</small>
+								  	</div>
+					      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+					      				#{balsa().getValidationErrors()}
+					      			</div>
+				      				<button type="submit" class="btn btn-primary">Add #{zone.name} DNS Record</button>
+					      		</form>
+					      	</div>
+	    				</div>
+	    			</div>
+    			</data-set>
+    		</div>
+    	</div>
+    </div>
+</fragment>

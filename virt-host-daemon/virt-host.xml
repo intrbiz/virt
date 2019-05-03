@@ -1,20 +1,20 @@
-<virt-host name="chris-t480">
+<virt-host name="chris-t480" placement-group="a">
 	<net-manager type="netd">
-        <parameter name="public.network.id">20</parameter>
-        <parameter name="service.network.id">30</parameter>
-        <parameter name="transfer.network.id">40</parameter>
         <parameter name="host.interconnect.address">172.26.40.30</parameter>
         <parameter name="metadata.vm.interface">metadata_vms</parameter>
 	</net-manager>
 	<store-manager type="ceph">
 		<parameter name="local.file.directory">/srv/vms</parameter>
 		<parameter name="ceph.monitor.hosts">172.26.30.31,172.26.30.32,172.26.30.33,172.26.30.3,172.26.30.34,172.26.30.35,172.26.30.36,172.26.30.37</parameter>
-        <parameter name="ceph.machine.pool.name">important</parameter>
+        <parameter name="ceph.machine.pool.name">machine-1</parameter>
+        <parameter name="ceph.persistent.pool.name">persistent-1</parameter>
         <parameter name="ceph.auth.uuid">6f3128fa-fada-463a-989f-b965c83e5da9</parameter>
 	</store-manager>
 	<virt-manager type="libvirt">
 		<parameter name="libvirt.url">qemu+tcp://root@127.0.0.1:16509/system</parameter>
         <parameter name="virt.types">/data/cellis/Intrbiz/workspace2/virt/virt-host-daemon/src/main/cfg/types</parameter>
+        <parameter name="ceph.cache.mode">writethrough</parameter>
+        <parameter name="ceph.io.mode">native</parameter>
 	</virt-manager>
 	<database-pool>
 		<url>jdbc:postgresql://127.0.0.1:5411/virt</url>
@@ -29,6 +29,8 @@
 	</capabilities>
 	<parameter name="metadata.server.url">http://172.16.0.1:8888</parameter>
 	<parameter name="metadata.gateway">172.16.0.1</parameter>
-	<parameter name="metadata.nameservers">8.8.8.8</parameter>
+	<parameter name="metadata.nameservers">172.16.0.1</parameter>
 	<parameter name="metadata.search.domain">intrbiz.cloud</parameter>
+	<parameter name="internal.zone">user.intrbiz.cloud</parameter>
+	<parameter name="root.account.name">intrbiz-cloud</parameter>
 </virt-host>

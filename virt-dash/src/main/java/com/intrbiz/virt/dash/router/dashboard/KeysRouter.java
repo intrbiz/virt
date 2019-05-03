@@ -1,4 +1,4 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.dashboard;
 
 import java.io.IOException;
 
@@ -43,7 +43,7 @@ public class KeysRouter extends Router<VirtDashApp>
     ) throws IOException
     {
         String[] keys = keyLines.split("(?:\r\n|\n|\r)");
-        db.setSSHKey(new SSHKey(currentAccount.getId(), name, keys));
+        db.setSSHKey(new SSHKey(currentAccount, name, keys));
         redirect("/keys/");
     }
     

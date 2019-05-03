@@ -2,8 +2,7 @@ package com.intrbiz.virt.router.dns;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -16,18 +15,19 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.virt.VirtHostApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.Account;
+import com.intrbiz.virt.model.DNSContent;
 import com.intrbiz.virt.model.DNSRecord;
-import com.intrbiz.virt.model.Machine;
+import com.intrbiz.virt.model.DNSZone;
 import com.intrbiz.virt.model.MachineNIC;
 import com.intrbiz.virt.model.dns.DNSResult;
 import com.intrbiz.virt.model.dns.DNSResultSet;
 
 @Prefix("/dns/")
 public class DNSRouter extends Router<VirtHostApp>
-{   
+{
     private Logger logger = Logger.getLogger(DNSRouter.class);
     
-    private Set<String> zones = new HashSet<String>(Arrays.asList("intrbiz.cloud."));
+    private static final Pattern VALID_IPV4 = Pattern.compile("[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}");
     
     @Before
     @Any("/**")
@@ -54,24 +54,24 @@ public class DNSRouter extends Router<VirtHostApp>
                 this.lookupNS(db, name, result);
                 this.lookupAny(db, name, type, result);
         }
-        // Send the result
+        // TODO: fix content length
         String response = result.toString();
         response().ok().json().header("Content-Length", String.valueOf(response.length())).write(response);
     }
     
     private void lookupSOA(VirtDB db, String name, DNSResultSet result)
     {
-        if (this.zones.contains(name))
+        if (app().getInternalZone().equals(name))
         {
-            result.add(new DNSResult("SOA", name, "ns1.intrbiz.cloud. hostmaster.intrbiz.cloud. 1 7200 3600 86400 600", 7200));
+            result.add(new DNSResult("SOA", name, "ns1." + app().getInternalZone() + " hostmaster." + app().getInternalZone() + " 1 7200 3600 86400 600", 7200));
         }
     }
     
     private void lookupNS(VirtDB db, String name, DNSResultSet result)
     {
-        if (this.zones.contains(name))
+        if (app().getInternalZone().equals(name))
         {
-            result.add(new DNSResult("NS", name, "ns1.intrbiz.cloud.", 7200));
+            result.add(new DNSResult("NS", name, "ns1." + app().getInternalZone(), 7200));
         }
     }
     
@@ -81,48 +81,75 @@ public class DNSRouter extends Router<VirtHostApp>
         {
             result.add(new DNSResult("A", name, app().getMetadataGateway(), 3600));
         }
-        // Look up the name    
-        String[] parts = name.split("[.]");
-        logger.info("Lookup: " + Arrays.asList(parts));
-        if (parts.length >= 3)
+        // Look up the name
+        String internalZone = app().getInternalZone();
+        if (name.endsWith(internalZone))
         {
-            Account account = db.getAccountByName(parts[parts.length - 3]);
+            String zonelessName = name.substring(0, name.length() - internalZone.length());
+            String[] parts = zonelessName.split("[.]");
+            logger.info("Lookup: '" + zonelessName + "' -> " + Arrays.asList(parts));
+            Account account = (parts.length >= 1) ? db.getAccountByName(parts[parts.length - 1]) : db.getAccountByName(app().getRootAccountName());
+            logger.info("Looking up within account " + account.getId() + " " + account.getName());
             if (account != null)
             {
-                if (parts.length == 4 && ("ANY".equals(type) || "A".equals(type)))
+                String accountZoneName = account.getName() + "." + internalZone;
+                if (parts.length == 2 && ("ANY".equals(type) || "A".equals(type)))
                 {
-                    // Lookup a host
-                    this.lookupHost(db, account, parts[0], result);
+                    this.lookupHost(db, accountZoneName, account, parts[0], result);
                 }
-                this.lookupDNSRecords(db, account, parts.length == 3 ? "@" : buildName(parts, parts.length - 3), type, result);
+                if (parts.length == 3 && ("ANY".equals(type) || "A".equals(type)))
+                {
+                    this.lookupHostInNetwork(db, accountZoneName, account, parts[0], parts[1], result);
+                }
+                this.lookupDNSRecords(db, internalZone, account, parts.length == 1 ? "@" : buildName(parts, parts.length - 1), type, result);
             }
-            // TODO: assume a default account for prod services?
         }
     }
     
-    private void lookupHost(VirtDB db, Account account, String name, DNSResultSet result)
+    private void lookupHost(VirtDB db, String accountZoneName, Account account, String name, DNSResultSet result)
     {
-        logger.info("Looking up Host: " + account.getId() + " " + name);
-        // Lookup the host in the account
-        Machine machine = db.getMachineByName(account.getId(), name);
-        if (machine != null)
+        logger.info("Looking up Host: " + account.getId() + " " + name + " for " + accountZoneName);
+        for (MachineNIC nic : db.lookupMachineNIC(account.getId(), name))
         {
-            MachineNIC mainNic = machine.getInterfaces().stream().findFirst().orElse(null);
-            if (mainNic != null)
-            {
-                result.add(new DNSResult("A", name, mainNic.getIpv4(), 3600));
-            }
+            result.add(new DNSResult("A", name + "." + accountZoneName, nic.getIpv4(), 3600));
         }
     }
     
-    private void lookupDNSRecords(VirtDB db, Account account, String name, String type, DNSResultSet result)
+    private void lookupHostInNetwork(VirtDB db, String accountZoneName, Account account, String name, String networkName, DNSResultSet result)
     {
-        logger.info("Looking up DNS Records: " + account.getId() + " " + name + "::" + type);
+        logger.info("Looking up Host: " + account.getId() + " " + name + " in " + networkName + " for " + accountZoneName);
+        for (MachineNIC nic : db.lookupMachineNICOnNetwork(account.getId(), name, networkName))
+        {
+            result.add(new DNSResult("A", name + "." + networkName + "." + accountZoneName, nic.getIpv4(), 3600));
+        }
+    }
+    
+    private void lookupDNSRecords(VirtDB db, String accountZoneName, Account account, String name, String type, DNSResultSet result)
+    {
+        logger.info("Looking up DNS Records: " + account.getId() + " " + name + "::" + type + " for " + accountZoneName);
         for (DNSRecord record : db.lookupDNSRecordsForAccount(account.getId(), DNSRecord.Scope.INTERNAL, type, name))
         {
-            // TODO: handle priority
-            // TODO: handle @
-            result.add(new DNSResult(record.getType(), name, record.getContent(), record.getTtl()));
+            formatRecord(accountZoneName, name, record, result);
+        }
+    }
+    
+    private void formatRecord(String accountZoneName, String name, DNSContent record, DNSResultSet result)
+    {
+        switch (record.getType())
+        {
+            case "MX":
+                result.add(new DNSResult(record.getType(), name, record.getPriority() + " " + record.getContent(), record.getTtl()));
+                break;
+            case "CNAME":
+                result.add(new DNSResult(record.getType(), name, DNSZone.qualifyName(record.getContent(), record.getZoneName(accountZoneName)), record.getTtl()));
+                break;
+            case "A":
+                // Ensure the IP address is valid
+                if (VALID_IPV4.matcher(record.getContent()).matches())
+                    result.add(new DNSResult(record.getType(), name, record.getContent(), record.getTtl()));    
+                break;
+            default:
+                result.add(new DNSResult(record.getType(), name, record.getContent(), record.getTtl()));
         }
     }
     

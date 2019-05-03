@@ -54,7 +54,7 @@ public class VirtDashSecurityEngine extends SecurityEngineImpl
     {
         // map the object to the account
         UUID accountId = null;
-        if (object instanceof UUID) accountId = (UUID) object;
+        if (object instanceof UUID) accountId = Account.getAccountId((UUID) object);
         else if (object instanceof Account) accountId = ((Account) object).getId();
         // check the permission on the account
         Permission perm = Permission.fromString(permission);

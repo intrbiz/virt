@@ -1,10 +1,11 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.dashboard;
 
 import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.intrbiz.Util;
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.balsa.error.BalsaConversionError;
 import com.intrbiz.balsa.error.BalsaValidationError;
@@ -44,11 +45,11 @@ public class ProfileRouter extends Router<VirtDashApp>
     }
     
     @Any("/account/switch/id/:id")
-    public void switchAccount(@IsaUUID UUID id) throws IOException
+    public void switchAccount(@IsaUUID UUID id, @Param("redirect") String redirect) throws IOException
     {
         User user = currentPrincipal();
         sessionVar("currentAccount", notNull(user.getAccounts().stream().filter((a) -> a.getId().equals(id)).findFirst().orElse(null)));
-        redirect("/");
+        redirect(Util.coalesceEmpty(redirect, "/"));
     }
     
     @Get("/account/request")
@@ -61,14 +62,15 @@ public class ProfileRouter extends Router<VirtDashApp>
     @WithDataAdapter(VirtDB.class)
     public void requestAccount(
             VirtDB db,
-            @Param("name") @CheckStringLength(mandatory = true, min=3) String name,
+            @Param("name") @CheckStringLength(mandatory = true, min=3, max = 100) String name,
+            @Param("slug") @CheckStringLength(mandatory = true, min=3, max = 40) String slug,
             @Param("reason") String reason,
             @CurrentPrincipal User user
     ) throws IOException
     {
-        logger.info("Requesting account for " + user + " " + name + " because " + reason);
+        logger.info("Requesting account for " + user + " " + name + "(" + slug + ") because " + reason);
         db.execute(() -> {
-            Account account = new Account(name);
+            Account account = new Account(slug, name);
             db.setAccount(account);
             UserAccountGrant grant = new UserAccountGrant(user.getId(), account.getId(), Role.ACCOUNT_OWNER);
             db.setUserAccountGrant(grant);

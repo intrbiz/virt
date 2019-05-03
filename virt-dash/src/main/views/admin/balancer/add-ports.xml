@@ -1,0 +1,37 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Add TCP Ports">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Add TCP Ports</h5>
+				<div class="card-body">
+					<p class="card-text">Load balancer ports can offer a number of TCP ports which accounts may use.</p>
+	      			<form method="post" action="#{path('/admin/balancer/pool/id/' + pool.id + '/add/tcp_ports')}">
+					  	<div class="form-group">
+					    	<label for="endpoint">Endpoint:</label>
+					    	<input type="text" class="form-control" aria-describedby="endpointHelp" id="endpoint" name="endpoint" placeholder="lb1a.intrbiz.cloud"/>
+					    	<small id="endpointHelp" class="form-text text-muted">The public endpoint, eg: lb1a.intrbiz.cloud.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="bind">Bind:</label>
+					    	<input type="text" class="form-control" aria-describedby="bindHelp" id="bind" name="bind" placeholder="172.18.0.10"/>
+					    	<small id="endpointHelp" class="form-text text-muted">The address the load balancer will bind on, eg: 172.18.0.10.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="range">Ranges:</label>
+					    	<input type="text" class="form-control" aria-describedby="rangeHelp" id="range" name="range" placeholder="25,1883,8080-8180"/>
+					    	<small id="rangeHelp" class="form-text text-muted">A comma separated list of port ranges, eg: 25,1883,8080-8180.</small>
+					  	</div>
+	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Add TCP Ports</button>
+	      			</form>
+	      		</div>
+	      	</div>
+    	</div>
+    </div>
+	
+</fragment>

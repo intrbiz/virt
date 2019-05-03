@@ -16,7 +16,7 @@ import com.intrbiz.virt.libvirt.model.definition.SourceDef.MacVTapMode;
 
 @XmlRootElement(name = "interface")
 @XmlType(name = "interface")
-public class InterfaceDef
+public class InterfaceDef extends DeviceDef
 {
     private String type;
 

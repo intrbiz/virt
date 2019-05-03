@@ -11,7 +11,7 @@
 		<dependency>
 			<groupId>com.intrbiz.util</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>1.4.0</version>
+			<version>${intrbiz.util.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -46,9 +46,14 @@
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-data</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.ceph</groupId>
+			<artifactId>rados</artifactId>
+			<version>0.3.0</version>
+		</dependency>
 	</dependencies>
 	<build>
-		<finalName>virt-host-daemon</finalName>
+		<finalName>virt-hostd</finalName>
 		<plugins>
 			<plugin>
 				<groupId>com.intrbiz.util</groupId>

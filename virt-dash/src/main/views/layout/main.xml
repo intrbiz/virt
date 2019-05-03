@@ -11,10 +11,10 @@
 		<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
 		    <h5 class="my-0 mr-md-auto font-weight-normal"><a href="/">Virt Dash</a></h5>
 		    <div class="btn-group">
-				<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#{currentAccount.summary}</button>
+				<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#{currentAccount.summary}#{if(!currentAccount.active, ' - Inactive!','')}</button>
 				<div class="dropdown-menu dropdown-menu-right">
 				    <data-set var="account" value="#{currentPrincipal.accounts}">
-    					<a class="dropdown-item text-info" href="/profile/account/switch/id/#{account.id}" rendered="#{account.id != currentAccount.id}">#{account.summary}</a>
+    					<a class="dropdown-item text-info" href="/profile/account/switch/id/#{account.id}?redirect=#{urlencode(path_info())}" rendered="#{account.id != currentAccount.id}">#{account.summary}#{if(!account.active, ' - Inactive!','')}</a>
     				</data-set>
 				</div>
 			</div>
@@ -22,13 +22,21 @@
 				<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello #{currentPrincipal.givenName}</button>
 				<div class="dropdown-menu dropdown-menu-right">
 		            <a class="dropdown-item text-primary" href="/">Overview</a>
-		            <a class="dropdown-item text-primary" href="/keys/">SSH Keys</a>
+		            <a class="dropdown-item text-primary" href="/machine/">Machines</a>
+		            <a class="dropdown-item text-primary" href="/network/">Networks</a>
+		            <a class="dropdown-item text-primary" href="/volume/">Volumes</a>
+		            <a class="dropdown-item text-primary" href="/keys/">SSH Key Sets</a>
+		            <a class="dropdown-item text-primary" href="/dns/">DNS Records</a>
+		            <a class="dropdown-item text-primary" href="/certificate/">Certificates</a>
+		            <a class="dropdown-item text-primary" href="/balancer/">Load Balancers</a>
 		            <container rendered="#{balsa().permission('global_admin')}">
 		            	<div class="dropdown-divider"></div>
 		            	<h6 class="dropdown-header">Global Admin</h6>
 		            	<a class="dropdown-item text-primary" href="/admin/zone/">Zones</a>
 		            	<a class="dropdown-item text-primary" href="/admin/machine-type/">Machine Types</a>
 		            	<a class="dropdown-item text-primary" href="/admin/image/">Images</a>
+		            	<a class="dropdown-item text-primary" href="/admin/network/">Networks</a>
+		            	<a class="dropdown-item text-primary" href="/admin/balancer/pool/">Load Balancer Pools</a>
 		            	<a class="dropdown-item text-primary" href="/admin/account/">Accounts</a>
 		            	<a class="dropdown-item text-primary" href="/admin/host/">Hosts</a>
 		            	<a class="dropdown-item text-primary" href="/admin/machine/">Machines</a>

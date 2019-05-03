@@ -1,0 +1,48 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Load Balancer Pools">
+	
+    <div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Load Balancer Pools</h5>
+				<div class="card-body">
+					<p class="card-text">These are the load balancer pools which are available to accounts.</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Name</th>
+		      				<th>Summary</th>
+		      				<th>Endpoint</th>
+		      				<th>Network</th>
+		      				<th>TCP Ports</th>
+		      				<th>Id</th>
+		      				<th>&nbsp;</th>
+		      			</tr>
+		      			<data-set var="pool" value="#{pools}">
+		      				<tr>
+		      					<td>#{pool.name}</td>
+		      					<td>#{pool.summary}</td>
+		      					<td><span class="badge badge-info">#{pool.endpoint}</span></td>
+		      					<td>#{pool.network.name}</td>
+		      					<td>#{pool.getTCPPortCount()}</td>
+		      					<td>#{pool.id}</td>
+		      					<td>
+		      						<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Pool</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/admin/balancer/pool/id/#{pool.id}/add/tcp_ports">Add TCP Ports</a>
+								            <div class="dropdown-divider"></div>
+								            <a class="dropdown-item text-danger" href="/admin/balancer/pool/id/#{pool.id}/remove">Remove</a>
+										</div>
+									</div>
+		      					</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+		      		<a href="/admin/balancer/pool/new" class="btn btn-primary">Create Load Balancer Pool</a>
+		      	</div>
+      		</div>
+    	</div>
+    </div>	
+</fragment>

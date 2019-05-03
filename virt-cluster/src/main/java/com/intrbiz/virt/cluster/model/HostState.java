@@ -47,13 +47,15 @@ public class HostState implements Serializable, Comparable<HostState>
     private long hugepages1GiBTotal = 0;
     
     private long hugepages1GiBFree = 0;
+    
+    private String placementGroup;
 
     public HostState()
     {
         super();
     }
 
-    public HostState(String zone, String name, HostStatus state, Set<String> capabilities)
+    public HostState(String zone, String name, HostStatus state, Set<String> capabilities, String placementGroup)
     {
         super();
         this.zone = zone;
@@ -61,6 +63,7 @@ public class HostState implements Serializable, Comparable<HostState>
         this.state = state;
         this.capabilities = capabilities;
         this.lastUpdated = System.currentTimeMillis();
+        this.placementGroup = placementGroup;
     }
 
     public String getZone()
@@ -133,6 +136,11 @@ public class HostState implements Serializable, Comparable<HostState>
         this.hostMemory = hostMemory;
     }
 
+    public int getSupportedMachineTypeFamiliesCount()
+    {
+        return this.supportedMachineTypeFamilies.size();
+    }
+    
     public Set<String> getSupportedMachineTypeFamilies()
     {
         return supportedMachineTypeFamilies;
@@ -271,6 +279,16 @@ public class HostState implements Serializable, Comparable<HostState>
     public void setCapabilities(Set<String> capabilities)
     {
         this.capabilities = capabilities;
+    }
+
+    public String getPlacementGroup()
+    {
+        return placementGroup;
+    }
+
+    public void setPlacementGroup(String placementGroup)
+    {
+        this.placementGroup = placementGroup;
     }
 
     @Override

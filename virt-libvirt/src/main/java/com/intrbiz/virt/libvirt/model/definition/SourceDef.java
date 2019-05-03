@@ -1,5 +1,8 @@
 package com.intrbiz.virt.libvirt.model.definition;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -25,7 +28,7 @@ public class SourceDef
     
     private String name;
     
-    private HostDef hostDef;
+    private List<HostDef> hostDef = new LinkedList<HostDef>();
     
     private String type;
     
@@ -60,12 +63,22 @@ public class SourceDef
         return def;
     }
     
-    public static final SourceDef rbd(String hosts, int port, String image)
+    public static final SourceDef device(String devicePath)
+    {
+        SourceDef def = new SourceDef();
+        def.setDev(devicePath);
+        return def;
+    }
+    
+    public static final SourceDef rbd(String[] hosts, int port, String image)
     {
         SourceDef def = new SourceDef();
         def.setProtocol("rbd");
         def.setName(image);
-        def.setHostDef(new HostDef(hosts, String.valueOf(port)));
+        for (String host : hosts)
+        {
+            def.addHostDef(new HostDef(host.trim(), String.valueOf(port)));
+        }
         return def;
     }
     
@@ -159,14 +172,19 @@ public class SourceDef
     }
 
     @XmlElementRef(type = HostDef.class)
-    public HostDef getHostDef()
+    public List<HostDef> getHostDef()
     {
         return hostDef;
     }
 
-    public void setHostDef(HostDef hostDef)
+    public void setHostDef(List<HostDef> hostDef)
     {
         this.hostDef = hostDef;
+    }
+    
+    public void addHostDef(HostDef hostDef)
+    {
+        this.hostDef.add(hostDef);
     }
 
     @XmlAttribute(name = "type")

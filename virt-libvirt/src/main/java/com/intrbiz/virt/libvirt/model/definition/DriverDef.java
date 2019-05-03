@@ -91,4 +91,19 @@ public class DriverDef
     {
         return new DriverDef("qemu", "raw", "writethrough");
     }
+    
+    public static DriverDef qcow2(String cacheMode)
+    {
+        return new DriverDef("qemu", "qcow2", cacheMode);
+    }
+    
+    public static DriverDef raw(String cacheMode)
+    {
+        return new DriverDef("qemu", "raw", cacheMode);
+    }
+    
+    public static DriverDef raw(String cacheMode, String ioMode)
+    {
+        return new DriverDef("qemu", "raw", cacheMode, ioMode);
+    }
 }

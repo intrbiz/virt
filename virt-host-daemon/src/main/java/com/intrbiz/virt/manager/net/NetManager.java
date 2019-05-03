@@ -83,4 +83,14 @@ public interface NetManager extends Manager<NetManagerCfg>
      * Start the given guest NIC on this host
      */
     void removeGuestNIC(MachineInterfaceEO nic);
+    
+    /**
+     * Start the given guest metadata NIC on this host 
+     */
+    void releaseGuestMetadataNIC(MachineEO machine);
+    
+    /**
+     * Start the given guest NIC on this host
+     */
+    void releaseGuestNIC(MachineInterfaceEO nic);
 }

@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "serial")
 @XmlType(name = "serial")
-public class SerialDef
+public class SerialDef extends DeviceDef
 {
     private String type;
 

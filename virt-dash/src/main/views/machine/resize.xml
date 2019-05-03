@@ -1,0 +1,27 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Resize Machine #{machine.name}?">
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Resize Machine #{machine.name}?</h5>
+				<div class="card-body">
+					<p class="card-text">Please select the new machine type for #{machine.name}.  Please note these changes may not take effect until you're machine is redeployed.</p>
+					<form method="post" action="#{path('/machine/id/' + machine.id + '/resize')}">
+					  	<div class="form-group">
+					    	<label for="type">Machine Type:</label>
+		      				<select class="form-control" aria-describedby="typeHelp" id="type" name="type">
+		      					<data-set var="option" value="#{types}">
+		      						<option value="#{option.id}">#{option.family}.#{option.name} - #{option.cpus} CPUs #{option.memory / 1024 / 1024} MiB Memory - #{coalesce(option.machineTypeFamily.summary, '')} #{coalesce(option.summary, '')}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="typeHelp" class="form-text text-muted">The machine type to resize this machine to</small>
+					  	</div>
+					  	<button type="submit" class="btn btn-danger">Resize Machine #{machine.name}</button>
+					</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

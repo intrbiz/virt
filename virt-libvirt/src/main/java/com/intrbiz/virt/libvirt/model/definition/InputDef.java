@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "input")
 @XmlType(name = "input")
-public class InputDef
+public class InputDef extends DeviceDef
 {
     private String type;
 

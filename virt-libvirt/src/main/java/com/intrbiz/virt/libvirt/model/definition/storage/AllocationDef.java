@@ -9,5 +9,18 @@ import com.intrbiz.virt.libvirt.model.definition.BytesValue;
 @XmlType(name="allocation")
 public class AllocationDef extends BytesValue
 {
+    public AllocationDef()
+    {
+        super();
+    }
 
+    public AllocationDef(long value, String unit)
+    {
+        super(value, unit);
+    }
+
+    public AllocationDef(long value)
+    {
+        super(value);
+    }
 }

@@ -1,5 +1,6 @@
 package com.intrbiz.virt.model.metadata.network.v2;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class EthernetNetworkV2
     
     @JsonProperty("nameserver")
     private NameserverNetworkV2 nameserver;
+    
+    @JsonProperty("routes")
+    private List<RouteV2> routes = new LinkedList<RouteV2>();
     
     public EthernetNetworkV2()
     {
@@ -90,6 +94,16 @@ public class EthernetNetworkV2
         this.nameserver = nameserver;
     }
     
+    public List<RouteV2> getRoutes()
+    {
+        return routes;
+    }
+
+    public void setRoutes(List<RouteV2> routes)
+    {
+        this.routes = routes;
+    }
+
     public EthernetNetworkV2 withMatch(MatchNetworkV2 match)
     {
         this.match = match;
@@ -126,6 +140,18 @@ public class EthernetNetworkV2
     public EthernetNetworkV2 withNameserver(NameserverNetworkV2 nameserver)
     {
         this.nameserver = nameserver;
+        return this;
+    }
+    
+    public EthernetNetworkV2 withRoute(RouteV2 route)
+    {
+        this.routes.add(route);
+        return this;
+    }
+    
+    public EthernetNetworkV2 withRoutes(RouteV2... routes)
+    {
+        Collections.addAll(this.routes, routes);
         return this;
     }
     

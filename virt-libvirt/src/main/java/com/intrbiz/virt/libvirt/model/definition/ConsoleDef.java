@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "console")
 @XmlType(name = "console")
-public class ConsoleDef
+public class ConsoleDef extends DeviceDef
 {
     private String type;
 

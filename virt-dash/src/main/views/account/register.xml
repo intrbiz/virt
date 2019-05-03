@@ -2,27 +2,63 @@
 <?RenderLibrary com.intrbiz.balsa?>
 <!-- Install -->
 <fragment xmlns="com.intrbiz.balsa" title="Create Account">
-	<div>
-		<h3>Welcome to Virt Dash</h3>
-		<p>Please create an account to use Virt Dash</p>
-		<form method="post" action="#{path('/account/register')}">
-			<h4>Who Are You?</h4>
-			<p>Full Name</p>
-			<p><input type="text" id="full_name" name="full_name" placeholder="Joe Bloggs"/></p>
-			<p>Given Name</p>
-			<p><input type="text" id="given_name" name="given_name" placeholder="Joe"/></p>
-			<p>Email Address</p>
-			<p><input type="text" id="email" name="email" placeholder="joe@bloggs.com"/></p>
-			<p>Mobile Phone</p>
-			<p><input type="text" id="mobile" name="mobile" placeholder="+4407748123123"/></p>
-			<p>Choose Your Password</p>
-			<input type="password" id="password_new" name="password_new" placeholder="Enter your new password"/>
-			<p>Confirm Your Password</p>
-			<input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm your new password"/>
-			<p>
-				<access-token-for-url path="#{path('/account/register')}"/>
-				<input type="submit" id="create_account" name="create_account" value="Create Account"/>
-			</p>
-		</form>
+
+  	<div class="row">
+  		<div class="col-md-12">
+			<div class="card mt-3">
+				<h5 class="card-header">Welcome to Virt Dash</h5>
+				<div class="card-body">
+					<p class="card-text">Please create an account to use Virt Dash</p>
+					<form method="post" action="#{path('/account/register')}">
+						<div class="form-group">
+					    	<label for="organisation_name">Organisation Name:</label>
+					    	<input type="text" class="form-control" id="organisation_name" name="organisation_name" aria-describedby="organisation_nameHelp" placeholder="Intrbiz"/>
+					    	<small id="organisation_nameHelp" class="form-text text-muted">What is your organisation's name, this should be globally unique, eg: My Org.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="organisation_slug">Organisation Slug:</label>
+					    	<input type="text" class="form-control" id="organisation_slug" name="organisation_slug" aria-describedby="organisation_slugHelp" placeholder="intrbiz"/>
+					    	<small id="organisation_slugHelp" class="form-text text-muted">The DNS suffix that should be used for your organisations accounts, eg: my-org.</small>
+					  	</div>
+						<div class="form-group">
+							<label for="full_name">Your Full Name:</label>
+							<input type="text" class="form-control" aria-describedby="full_nameHelp" id="full_name" name="full_name" placeholder="Joe Bloggs" />
+							<small id="full_nameHelp" class="form-text text-muted">Your full legal name</small>
+						</div>
+						<div class="form-group">
+							<label for="given_name">Given Name:</label>
+							<input type="text" class="form-control" aria-describedby="given_nameHelp" id="given_name" name="given_name" placeholder="Joe" />
+							<small id="given_nameHelp" class="form-text text-muted">How you like to be referred too.</small>
+						</div>
+						<div class="form-group">
+							<label for="mobile">Your Phone Number:</label>
+							<input type="text" class="form-control" aria-describedby="mobileHelp" id="mobile" name="mobile" placeholder="+447848123456" />
+							<small id="mobileHelp" class="form-text text-muted">Your mobile phone number.</small>
+						</div>
+						<div class="form-group">
+							<label for="email">Your Email Address:</label>
+							<input type="text" class="form-control" aria-describedby="emailHelp" id="email" name="email" placeholder="joe@bloggs.com" />
+							<small id="emailHelp" class="form-text text-muted">Your email address.</small>
+						</div>
+						<div class="form-group">
+							<label for="password_new">Choose Your Password:</label>
+							<input type="password" class="form-control" aria-describedby="password_newHelp" id="password_new" name="password_new" />
+							<small id="password_newHelp" class="form-text text-muted">Choose your password for this account.</small>
+						</div>
+						<div class="form-group">
+							<label for="password_confirm">Confirm Your Password:</label>
+							<input type="password" class="form-control" aria-describedby="password_confirmHelp" id="password_confirm" name="password_confirm" />
+							<small id="password_confirmHelp" class="form-text text-muted">Confirm your password for this account.</small>
+						</div>
+						<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+							#{balsa().getValidationErrors()}
+						</div>
+						<access-token-for-url path="#{path('/account/register')}"/>
+						<button type="submit" class="btn btn-primary">Create Account</button>
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
+
 </fragment>

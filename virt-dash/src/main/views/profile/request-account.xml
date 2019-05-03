@@ -10,12 +10,17 @@
 					<p class="card-text">To request another account we need to know what it should be called and why you need it.</p>
 		      		<form method="post" action="#{path('/profile/account/request')}">
 		      			<div class="form-group">
-					    	<label for="name">Account name:</label>
-					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="Development"/>
-					    	<small id="nameHelp" class="form-text text-muted">What you would like to call this account, eg: Production, Development, Staging</small>
+					    	<label for="name">Account Name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="Intrbiz Staging"/>
+					    	<small id="nameHelp" class="form-text text-muted">What you would like to call this account, eg: My Org Staging</small>
 					  	</div>
 					  	<div class="form-group">
-					    	<label for="reason">Account reason:</label>
+					    	<label for="slug">Account Slug:</label>
+					    	<input type="text" class="form-control" id="slug" name="slug" aria-describedby="slugHelp" placeholder="intrbiz-stg"/>
+					    	<small id="slugHelp" class="form-text text-muted">What DNS name do you want for this account, eg: my-org-stg</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="reason">Account Reason:</label>
 					    	<textarea class="form-control" id="reason" name="reason" aria-describedby="reasonHelp" rows="2"></textarea>
 					    	<small id="reasonHelp" class="form-text text-muted">Why do you require another account?</small>
 					  	</div>

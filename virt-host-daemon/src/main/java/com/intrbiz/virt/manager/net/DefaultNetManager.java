@@ -238,4 +238,14 @@ public class DefaultNetManager implements NetManager
     public void removeGuestNIC(MachineInterfaceEO nic)
     {
     }
+    
+    @Override
+    public void releaseGuestMetadataNIC(MachineEO machine)
+    {
+    }
+
+    @Override
+    public void releaseGuestNIC(MachineInterfaceEO nic)
+    {
+    }
 }

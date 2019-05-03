@@ -2,6 +2,12 @@ package com.intrbiz.virt.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.intrbiz.data.db.compiler.meta.Action;
 import com.intrbiz.data.db.compiler.meta.SQLColumn;
 import com.intrbiz.data.db.compiler.meta.SQLForeignKey;
@@ -13,26 +19,33 @@ import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.event.model.MachineInterfaceEO;
 import com.intrbiz.virt.util.IDUtil;
 
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "kind")
+@JsonTypeName("machine.nic")
 @SQLTable(schema = VirtDB.class, name = "machine_nic", since = @SQLVersion({ 1, 0, 0 }) )
 public class MachineNIC
 {
+    @JsonProperty("machine_id")
     @SQLColumn(index = 1, name = "machine_id", since = @SQLVersion({ 1, 0, 0 }) )
     @SQLForeignKey(references = Machine.class, on = "id", onDelete = Action.CASCADE, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }) )
     @SQLPrimaryKey()
     private UUID machineId;
     
+    @JsonIgnore
     @SQLColumn(index = 2, name = "network_id", since = @SQLVersion({ 1, 0, 0 }) )
     @SQLForeignKey(references = Network.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }) )
     @SQLPrimaryKey()
     private UUID networkId;
     
+    @JsonProperty("name")
     @SQLColumn(index = 3, name = "name", notNull = true, since = @SQLVersion({ 1, 0, 0 }) )
     private String name;
     
+    @JsonProperty("mac")
     @SQLColumn(index = 4, name = "mac", notNull = true, since = @SQLVersion({ 1, 0, 0 }) )
     @SQLUnique(name = "network_mac_unq", columns = { "network_id", "mac" })
     private String mac;
     
+    @JsonProperty("ipv4")
     @SQLColumn(index = 5, name = "ipv4", since = @SQLVersion({ 1, 0, 0 }) )
     @SQLUnique(name = "network_ipv4_unq", columns = { "network_id", "ipv4" })
     private String ipv4;
@@ -104,6 +117,7 @@ public class MachineNIC
         this.ipv4 = ipv4;
     }
     
+    @JsonIgnore
     public Machine getMachine()
     {
         try (VirtDB db = VirtDB.connect())
@@ -112,6 +126,7 @@ public class MachineNIC
         }
     }
     
+    @JsonProperty("network")
     public Network getNetwork()
     {
         try (VirtDB db = VirtDB.connect())

@@ -1,13 +1,14 @@
 package com.intrbiz.virt.event.model;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class MachineVolumeEO implements Serializable
 {
     private static final long serialVersionUID = 1L;
     
     public enum VolumeMode {
-        CLONE, CREATE, ATTACH, DEATTACH
+        CLONE, CREATE, ATTACH, DETACH
     }
     
     private String name;
@@ -20,7 +21,7 @@ public class MachineVolumeEO implements Serializable
     
     private String type;
     
-    private String typeMetadata;
+    private Map<String, String> typeMetadata;
     
     private VolumeMode mode; 
     
@@ -41,7 +42,7 @@ public class MachineVolumeEO implements Serializable
         return vol;
     }
     
-    public static MachineVolumeEO create(String name, String source, long size, String type, String typeMetadata)
+    public static MachineVolumeEO create(String name, String source, long size, String type, Map<String, String> typeMetadata)
     {
         MachineVolumeEO vol = new MachineVolumeEO();
         vol.name = name;
@@ -67,7 +68,7 @@ public class MachineVolumeEO implements Serializable
         return vol;
     }
     
-    public static MachineVolumeEO deattach(String name)
+    public static MachineVolumeEO detach(String name)
     {
         MachineVolumeEO vol = new MachineVolumeEO();
         vol.name = name;
@@ -76,7 +77,7 @@ public class MachineVolumeEO implements Serializable
         vol.size = 0L;
         vol.type = null;
         vol.typeMetadata = null;
-        vol.mode = VolumeMode.DEATTACH;
+        vol.mode = VolumeMode.DETACH;
         return vol;
     }
 
@@ -140,12 +141,12 @@ public class MachineVolumeEO implements Serializable
         this.mode = mode;
     }
 
-    public String getTypeMetadata()
+    public Map<String, String> getTypeMetadata()
     {
         return typeMetadata;
     }
 
-    public void setTypeMetadata(String typeMetadata)
+    public void setTypeMetadata(Map<String, String> typeMetadata)
     {
         this.typeMetadata = typeMetadata;
     }

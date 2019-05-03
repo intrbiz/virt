@@ -1,0 +1,114 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Load Balancer">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Load Balancer</h5>
+				<div class="card-body">
+					<p class="card-text">Lets setup the basics of your load balancer</p>
+		      		<form method="post" action="#{path('/balancer/new/' + mode)}">
+		      			<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" id="name" name="name" aria-describedby="nameHelp" placeholder="website"/>
+					    	<small id="nameHelp" class="form-text text-muted">The name for this load balancer, eg: website</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+					    	<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="1" style="height: 4em;"></textarea>
+					    	<small id="descriptionHelp" class="form-text text-muted">What is this load balancer for?</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="pool">Pool:</label>
+		      				<select class="form-control" aria-describedby="poolHelp" id="pool" name="pool">
+		      					<data-set var="option" value="#{pools}">
+		      						<option value="#{option.id}">#{option.summary}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="poolHelp" class="form-text text-muted">The load balancer pool to use.</small>
+					  	</div>
+					  	<container rendered="#{mode == 'https'}">
+						  	<div class="form-group">
+						    	<label for="certificate">Certificate:</label>
+			      				<select class="form-control" aria-describedby="certificateHelp" id="certificate" name="certificate">
+			      				<option value="" selected="selected">No custom certificate</option>
+			      					<data-set var="option" value="#{certificates}">
+			      						<option value="#{option.id}">#{option.getDomainsSummary()}</option>
+			      					</data-set>
+			      				</select>
+			      				<small id="zoneHelp" class="form-text text-muted">The TLS certificate for this load balancer.</small>
+						  	</div>
+						  	<div class="form-group">
+						    	<label for="redirectHttp">Redirect HTTP:</label>
+			      				<input type="checkbox" aria-describedby="redirectHttpHelp" id="redirectHttp" name="redirectHttp" value="yes" checked="checked"/>
+			      				<small id="redirectHttpHelp" class="form-text text-muted">Redirect all HTTP traffic to HTTPS.</small>
+						  	</div>
+					  	</container>
+					  	<container rendered="#{mode == 'tcp'}">
+						  	<div class="form-group">
+						    	<label for="port">TCP Port:</label>
+			      				<input type="text" class="form-control" id="port" name="port" aria-describedby="portHelp" placeholder="1883"/>
+			      				<small id="portHelp" class="form-text text-muted">The desired TCP port for this load balancer.</small>
+						  	</div>
+					  	</container>
+					  	<container rendered="#{mode == 'tls' or mode == 'http'}">
+						  	<div class="form-group">
+						    	<label for="names">Domain Names:</label>
+						    	<input type="text" class="form-control" id="names" name="names" aria-describedby="namesHelp" placeholder="mysite.net, mysite.org"/>
+						    	<small id="namesHelp" class="form-text text-muted">The domain names to load balance separated by a comma, eg: mysite.net, mysite.org www.mysite.net.</small>
+						  	</div>
+					  	</container>
+					  	<div class="form-group">
+					    	<label for="healthCheckInterval">Health Check Interval (Seconds):</label>
+					    	<input type="text" class="form-control" id="healthCheckInterval" name="healthCheckInterval" aria-describedby="healthCheckIntervalHelp" placeholder="30"/>
+					    	<small id="healthCheckIntervalHelp" class="form-text text-muted">How often to health check the backend servers, eg: 30 seconds</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="healthCheckTimeout">Health Check Timeout (Seconds):</label>
+					    	<input type="text" class="form-control" id="healthCheckTimeout" name="healthCheckTimeout" aria-describedby="healthCheckTimeoutHelp" placeholder="5"/>
+					    	<small id="healthCheckTimeoutHelp" class="form-text text-muted">How quickly a backend server should respond to a health check, eg: 5 seconds</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="healthCheckRise">Health Check Sucessful Checks:</label>
+					    	<input type="text" class="form-control" id="healthCheckRise" name="healthCheckRise" aria-describedby="healthCheckRise" placeholder="3"/>
+					    	<small id="healthCheckRiseHelp" class="form-text text-muted">How many health checks must be successful for a backend to be considered up, eg: 3</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="healthCheckFall">Health Check Fail Checks:</label>
+					    	<input type="text" class="form-control" id="healthCheckFall" name="healthCheckFall" aria-describedby="healthCheckFallHelp" placeholder="2"/>
+					    	<small id="healthCheckFallHelp" class="form-text text-muted">How many health checks must be failed for a backend to be considered down, eg: 2</small>
+					  	</div>
+					  	<container rendered="#{mode == 'https' or mode == 'http'}">
+						  	<div class="form-group">
+						    	<label for="healthCheckPath">Health Check HTTP Path:</label>
+						    	<input type="text" class="form-control" id="healthCheckPath" name="healthCheckPath" aria-describedby="healthCheckPathHelp" placeholder="/"/>
+						    	<small id="healthCheckPathHelp" class="form-text text-muted">The path used for the HTTP health check, eg: /alive or /</small>
+						  	</div>
+						  	<div class="form-group">
+						    	<label for="healthCheckStatus">Health Check Expected HTTP Status:</label>
+						    	<input type="text" class="form-control" id="healthCheckStatus" name="healthCheckStatus" aria-describedby="healthCheckStatusHelp" placeholder="200,3xx"/>
+						    	<small id="healthCheckStatusHelp" class="form-text text-muted">The expected HTTP status codes, eg: 200,3xx</small>
+						  	</div>
+					  	</container>
+					  	<container rendered="#{mode == 'tcp'}">
+					  		<div class="form-group">
+						    	<label for="healthCheckMode">Health Check Mode:</label>
+			      				<select class="form-control" aria-describedby="healthCheckModeHelp" id="healthCheckMode" name="healthCheckMode">
+			      						<option value="tcp">TCP</option>
+			      						<option value="tls">TLS</option>
+			      						<option value="pgsql">PostgreSQL</option>
+			      				</select>
+			      				<small id="healthCheckModeHelp" class="form-text text-muted">The mode of health check to be performed against backend servers.</small>
+						  	</div>
+					  	</container>
+		      			<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+		      			<button type="submit" class="btn btn-primary">Next</button>
+		      		</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

@@ -3,6 +3,40 @@
 <!-- The index view -->
 <fragment xmlns="com.intrbiz.balsa" title="Machine Types">
 	
+	<div class="row">
+    	<div class="col-md-12">
+			<div class="card">
+				<h5 class="card-header">Machine Type Families</h5>
+				<div class="card-body">
+					<p class="card-text">These are the available families for machine types</p>
+		      		<table class="table">
+		      			<tr>
+		      				<th>Family</th>
+		      				<th>Summary</th>
+		      				<th>&nbsp;</th>
+		      			</tr>
+		      			<data-set var="machineTypeFamily" value="#{machineTypeFamilies}">
+		      				<tr>
+		      					<td>#{machineTypeFamily.family}</td>
+		      					<td>#{machineTypeFamily.summary}</td>
+		      					<td>
+		      						<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Machine Type</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/admin/machine-type/family/#{machineTypeFamily.family}/edit">Edit</a>
+								            <a class="dropdown-item text-danger" href="/admin/machine-type/family/#{machineTypeFamily.family}/remove">Remove</a>
+										</div>
+									</div>
+		      					</td>
+		      				</tr>
+		      			</data-set>
+		      		</table>
+		      		<a href="/admin/machine-type/family/new" class="btn btn-primary">Create Machine Type Family</a>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+	
     <div class="row">
     	<div class="col-md-12">
 			<div class="card">
@@ -49,6 +83,7 @@
 		      						<div class="btn-group">
 										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Machine Type</button>
 										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/admin/machine-type/id/#{machineType.id}/edit">Edit</a>
 								            <a class="dropdown-item text-danger" href="/admin/machine-type/id/#{machineType.id}/remove">Remove</a>
 										</div>
 									</div>

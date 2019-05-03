@@ -27,6 +27,8 @@ public class MachineState implements Serializable
     
     private String host;
     
+    private String hostName;
+    
     private boolean autostart;
     
     private boolean persistent;
@@ -80,7 +82,7 @@ public class MachineState implements Serializable
     {
         this.name = name;
     }
-    
+
     public boolean isUnmanaged()
     {
         return ! (MANAGE_MACHINE_NAME_PREFIX + this.id).toLowerCase().equals(this.name);
@@ -104,6 +106,16 @@ public class MachineState implements Serializable
     public void setHost(String host)
     {
         this.host = host;
+    }
+    
+    public String getHostName()
+    {
+        return hostName;
+    }
+
+    public void setHostName(String hostName)
+    {
+        this.hostName = hostName;
     }
 
     public boolean isAutostart()
@@ -141,7 +153,14 @@ public class MachineState implements Serializable
         this.lastUpdated = System.currentTimeMillis();
     }
     
-    public MachineState scheduled(String chosenHost)
+    public MachineState onHost(String host, String hostName)
+    {
+        this.host = host;
+        this.hostName = hostName;
+        return this;
+    }
+    
+    public MachineState scheduled(String chosenHost, String hostName)
     {
         this.host = chosenHost;
         this.status = MachineStatus.SCHEDULED;
@@ -157,7 +176,7 @@ public class MachineState implements Serializable
         return this;
     }
     
-    public MachineState running(String host)
+    public MachineState running(String host, String hostName)
     {
         this.host = host;
         this.status = MachineStatus.RUNNING;
@@ -165,7 +184,7 @@ public class MachineState implements Serializable
         return this;
     }
     
-    public MachineState stopped(String host)
+    public MachineState stopped(String host, String hostName)
     {
         this.host = null;
         this.status = MachineStatus.STOPPED;
@@ -173,7 +192,7 @@ public class MachineState implements Serializable
         return this;
     }
     
-    public MachineState terminated(String host)
+    public MachineState terminated(String host, String hostName)
     {
         this.host = null;
         this.status = MachineStatus.TERMINATED;
@@ -181,7 +200,7 @@ public class MachineState implements Serializable
         return this;
     }
     
-    public MachineState failed(String host)
+    public MachineState failed(String host, String hostName)
     {
         this.host = null;
         this.status = MachineStatus.FAILED;

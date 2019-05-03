@@ -26,6 +26,8 @@ public class LibVirtDomainDef
     private String type;
 
     private String name;
+    
+    private String title;
 
     private String uuid;
     
@@ -81,6 +83,18 @@ public class LibVirtDomainDef
     public void setName(String name)
     {
         this.name = name;
+    }
+    
+    
+    @XmlElement(name = "title")
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle(String title)
+    {
+        this.title = title;
     }
 
     @XmlElement(name = "uuid")

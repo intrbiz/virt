@@ -12,6 +12,7 @@
 					<table class="table">
 	      				<tr>
 	      					<th>Zone</th>
+	      					<th>Placement</th>
 	      					<th>Name</th>
 	      					<th>Type</th>
 	      					<th>CPUs</th>
@@ -20,6 +21,7 @@
 	      				</tr>
       					<tr>
       						<td>#{machine.zone.summary}</td>
+      						<td>#{coalesce(machine.placementRule, 'any')}</td>
       						<td>#{machine.name}</td>
       						<td>#{machine.type.family}.#{machine.type.name}</td>
       						<td>#{machine.type.cpus}</td>
@@ -58,7 +60,7 @@
 	      					<td>#{machine.SSHKey.name}</td>
 	      					<td>
 	      						<ul>
-		      						<data-set var="key" value="#{key.getAllKeysWrapped(100)}">
+		      						<data-set var="key" value="#{machine.SSHKey.getAllKeysWrapped(100)}">
 		      							<li><pre>#{key}</pre></li>
 		      						</data-set>
 	      						</ul>
@@ -68,22 +70,27 @@
 		      		<h5 class="card-title pt-3">User Data</h5>
 					<p class="card-text">The user data for this machine which will be provided to Cloud Init</p>
 					<pre class="card-text">#{coalesce(machine.userData, 'No User Data')}</pre>
-					<h5 class="card-title pt-3">Machine Volumes</h5>
-					<p class="card-text">These are the details for any volumes not defined by the machine type or image, that this machine has.</p>
+					<h5 class="card-title pt-3">Machine Persistent Volumes</h5>
+					<p class="card-text">These are the persistent volumes which are attached to this machine.</p>
 					<table class="table">
 		      			<tr>
 		      				<th>Device</th>
 		      				<th>Size</th>
-		      				<th>Source</th>
+		      				<th>Attached Persistent Volume</th>
 		      			</tr>
 		      			<data-set var="volume" value="#{machine.volumes}">
 		      				<tr>
 		      					<td>#{volume.name}</td>
 		      					<td>#{volume.size / 1000 / 1000 / 1000} GB</td>
-		      					<td>#{volume.source}</td>
+		      					<td><a href="/volume/id/#{volume.persistentVolumeId}">#{volume.attached.name}</a></td>
 		      				</tr>
 	      				</data-set>
 		      		</table>
+		      		<container rendered="#{machine.type.volumeLimit > machine.volumes.size}">
+		      			<div class="clearfix">
+		      				<button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#attachVolumeModal">Attach Volume</button>
+		      			</div>
+		      		</container>
 					<h5 class="card-title pt-3">Machine Network Interfaces</h5>
 					<p class="card-text">These are the details for the network interfaces this machine has.</p>
 					<table class="table">
@@ -96,14 +103,51 @@
 		      			<data-set var="nic" value="#{machine.interfaces}">
 		      				<tr>
 		      					<td>#{nic.name}</td>
-		      					<td>#{nic.network.name}</td>
+		      					<td><a href="/network/id/#{nic.networkId}">#{nic.network.name}</a></td>
 		      					<td>#{nic.mac}</td>
 		      					<td>#{nic.ipv4}</td>
 		      				</tr>
 	      				</data-set>
 		      		</table>
+	            	<a class="btn btn-success mr-3" href="/machine/id/#{machine.id}/start">Start</a>
+	            	<a class="btn btn-warning mr-3" href="/machine/id/#{machine.id}/reboot">Reboot</a>
+	            	<a class="btn btn-warning mr-3" href="/machine/id/#{machine.id}/stop">Stop</a>
+	            	<a class="btn btn-danger mr-3" href="/machine/id/#{machine.id}/release">Release</a>
+	            	<a class="btn btn-secondary ml-6 mr-3" href="/machine/id/#{machine.id}/Resize">Resize</a>
+		            <a class="btn btn-danger ml-6 mr-3" href="/machine/id/#{machine.id}/terminate">Terminate</a>
 		      	</div>
       		</div>
     	</div>
     </div>
+    
+    <!-- Attach Volume Modal -->
+	<div class="modal fade" id="attachVolumeModal" tabindex="-1" role="dialog" aria-labelledby="attachVolumeModalLabel" aria-hidden="true" rendered="#{machine.type.volumeLimit > machine.volumes.size}">
+  		<div class="modal-dialog" role="document">
+    		<div class="modal-content">
+    			<form method="post" action="#{path('/machine/id/' + machine.id + '/attach')}">
+	      			<div class="modal-header">
+	        			<h5 class="modal-title" id="attachVolumeModalLabel">Attach Volume</h5>
+	        			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          				<span aria-hidden="true">&times;</span>
+	        			</button>
+	      			</div>
+	      			<div class="modal-body">
+        				<label class="sr-only" for="volume">Volume</label>
+		      			<div class="form-group">
+		      				<select class="form-control" id="volume" name="volume">
+		      					<data-set var="option" value="#{volumes}">
+		      						<option value="#{option.id}">#{option.name} - #{option.size / 1000 / 1000 / 1000} GB#{if(option.shared, ' (Shared!)', '')}</option>
+		      					</data-set>
+		      				</select>
+					  	</div>
+	      			</div>
+	      			<div class="modal-footer">
+	        			<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+	        			<button type="submit" class="btn btn-primary">Attach</button>
+	      			</div>
+      			</form>
+    		</div>
+  		</div>
+	</div>
+    
 </fragment>

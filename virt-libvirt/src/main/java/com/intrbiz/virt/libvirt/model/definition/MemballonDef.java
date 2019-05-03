@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "memballoon")
 @XmlType(name = "memballoon")
-public class MemballonDef
+public class MemballonDef extends DeviceDef
 {
     private String model;
 

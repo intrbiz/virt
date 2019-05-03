@@ -1,0 +1,31 @@
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - build
+  - package
+#  - deploy
+
+maven-build:
+  image: maven:3-jdk-8
+  stage: build
+  script: 
+    - './.settings.sh'
+    - 'mvn package -B'
+  artifacts:
+    paths:
+      - '*/target/*.jar'
+      - '*/target/*.app'
+      - 'connectedkanban-ui/src/main/public'
+
+docker-build:
+  stage: package
+  script:
+    - 'docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com'
+    - './connectedkanban-ui/build-images.sh'
+    - './connectedkanban-mqttserver/build-images.sh'
+    - './connectedkanban-hubserver/build-images.sh'
+    - './connectedkanban-integration-server/build-images.sh'
+    - './connectedkanban-integration-jira/build-images.sh'
+

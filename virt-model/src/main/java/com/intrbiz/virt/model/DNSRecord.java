@@ -2,50 +2,106 @@ package com.intrbiz.virt.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.intrbiz.data.db.compiler.meta.Action;
 import com.intrbiz.data.db.compiler.meta.SQLColumn;
+import com.intrbiz.data.db.compiler.meta.SQLForeignKey;
 import com.intrbiz.data.db.compiler.meta.SQLPrimaryKey;
 import com.intrbiz.data.db.compiler.meta.SQLTable;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.data.VirtDB;
 
-@SQLTable(schema = VirtDB.class, name = "dns_record", since = @SQLVersion({ 1, 0, 12 }))
-public class DNSRecord
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "kind")
+@JsonTypeName("dns.record")
+@SQLTable(schema = VirtDB.class, name = "dns_record", since = @SQLVersion({ 1, 0, 13 }))
+public class DNSRecord implements DNSContent
 {
     public static final class Scope
     {
-        public static final String PUBLIC = "public";
+        public static final String EXTERNAL = "external";
         
         public static final String INTERNAL = "internal";
     }
     
-    @SQLColumn(index = 1, name = "account_id", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
+    @JsonProperty("id")
+    @SQLColumn(index = 1, name = "id", since = @SQLVersion({ 1, 0, 13 }))
     @SQLPrimaryKey()
+    private UUID id;
+    
+    @JsonProperty("account_id")
+    @SQLColumn(index = 2, name = "account_id", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
+    @SQLForeignKey(references = Account.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID accountId;
 
-    @SQLColumn(index = 2, name = "scope", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
-    @SQLPrimaryKey()
+    @JsonProperty("scope")
+    @SQLColumn(index = 3, name = "scope", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
     private String scope;
     
-    @SQLColumn(index = 3, name = "type", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
-    @SQLPrimaryKey()
+    @JsonProperty("type")
+    @SQLColumn(index = 4, name = "type", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
     private String type;
 
-    @SQLColumn(index = 4, name = "name", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
-    @SQLPrimaryKey()
+    @JsonProperty("name")
+    @SQLColumn(index = 5, name = "name", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
     private String name;
 
-    @SQLColumn(index = 5, name = "content", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
+    @JsonProperty("content")
+    @SQLColumn(index = 6, name = "content", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
     private String content;
     
-    @SQLColumn(index = 6, name = "ttl", notNull = true, since = @SQLVersion({ 1, 0, 12 }))
+    @JsonProperty("ttl")
+    @SQLColumn(index = 7, name = "ttl", notNull = true, since = @SQLVersion({ 1, 0, 13 }))
     private int ttl;
     
-    @SQLColumn(index = 7, name = "priority", since = @SQLVersion({ 1, 0, 12 }))
+    @JsonProperty("priority")
+    @SQLColumn(index = 8, name = "priority", since = @SQLVersion({ 1, 0, 13 }))
     private int priority;
+    
+    @JsonProperty("alias")
+    @SQLColumn(index = 9, name = "alias", since = @SQLVersion({ 1, 0, 23 }))
+    private boolean alias;
+    
+    @JsonProperty("generated")
+    @SQLColumn(index = 10, name = "generated", since = @SQLVersion({ 1, 0, 23 }))
+    private boolean generated;
 
     public DNSRecord()
     {
         super();
+    }
+    
+    public DNSRecord(UUID accountId, String scope, String type, String name, String content, int ttl, int priority, boolean alias, boolean generated)
+    {
+        super();
+        this.id = Account.randomId(accountId);
+        this.accountId = accountId;
+        this.scope = scope;
+        this.type = type;
+        this.name = name;
+        this.content = content;
+        this.ttl = ttl;
+        this.priority = priority;
+        this.alias = alias;
+        this.generated = generated;
+    }
+    
+    public DNSRecord(Account account, String scope, String type, String name, String content, int ttl, int priority, boolean alias, boolean generated)
+    {
+        this(account.getId(), scope, type, name, content, ttl, priority, alias, generated);
+    }
+
+    public UUID getId()
+    {
+        return id;
+    }
+
+    public void setId(UUID id)
+    {
+        this.id = id;
     }
 
     public UUID getAccountId()
@@ -116,6 +172,31 @@ public class DNSRecord
     public void setPriority(int priority)
     {
         this.priority = priority;
+    }    
+    
+    public boolean isAlias()
+    {
+        return alias;
+    }
+
+    public void setAlias(boolean alias)
+    {
+        this.alias = alias;
+    }
+
+    public boolean isGenerated()
+    {
+        return generated;
+    }
+
+    public void setGenerated(boolean generated)
+    {
+        this.generated = generated;
+    }
+    
+    public String getZoneName(String hostedDomainName)
+    {
+        return hostedDomainName;
     }
 
     @Override

@@ -101,6 +101,11 @@ public class RunningMachine
         return state == null ? null : state.getHost();
     }
     
+    public String getHostName()
+    {
+        return state == null ? null : state.getHostName();
+    }
+    
     public MachineHealth getHealth()
     {
         return this.health;

@@ -12,8 +12,8 @@
 	      				<div class="form-group">
 					    	<label for="family">Family:</label>
 					    	<select class="form-control" aria-describedby="Help" id="family" name="family">
-	      						<data-set var="familyOption" value="#{list('c1', 'm1', 'r1', 'd1', 'w1', 'g1')}">
-	      							<option value="#{familyOption}">#{familyOption}</option>
+	      						<data-set var="familyOption" value="#{machineTypeFamilies}">
+	      							<option value="#{familyOption}">#{familyOption.family} - #{familyOption.summary}</option>
 	      						</data-set>
 	      					</select>
 					    	<small id="familyHelp" class="form-text text-muted">Families are groups of machine types with the same core features</small>
@@ -23,10 +23,15 @@
 					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="micro"/>
 					    	<small id="nameHelp" class="form-text text-muted">The name within the family, eg: micro, small, medium, large</small>
 					  	</div>
+					  	<div class="form-group">
+					    	<label for="summary">Summary:</label>
+					    	<input type="text" class="form-control" aria-describedby="summaryHelp" id="summary" name="summary" placeholder="Micro"/>
+					    	<small id="summaryHelp" class="form-text text-muted">A quick summary of this machine type, eg: Micro</small>
+					  	</div>
 	      				<div class="form-group">
 					    	<label for="cpus">CPUs:</label>
 		      				<select class="form-control" aria-describedby="cpusHelp" id="cpus" name="cpus">
-		      					<data-set var="cpusOption" value="#{list(1,2,3,4,5,6,7,8)}">
+		      					<data-set var="cpusOption" value="#{list(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)}">
 		      						<option value="#{cpusOption}">#{cpusOption}</option>
 		      					</data-set>
 		      				</select>
@@ -66,16 +71,21 @@
 	      				<div class="form-group">
 					    	<label for="network_types">Network Types:</label>
 		      				<select class="form-control" aria-describedby="networkTypesHelp" id="network_types" name="network_types" multiple="multiple">
-		      					<data-set var="networkTypeOption" value="#{list('vxlan', 'public', 'service', 'transfer')}">
+		      					<data-set var="networkTypeOption" value="#{list('vxlan')}">
 		      						<option value="#{networkTypeOption}">#{networkTypeOption}</option>
 		      					</data-set>
 		      				</select>
 		      				<small id="networkTypesHelp" class="form-text text-muted">The types of networks this type can access</small>
 	      				</div>
 	      				<div class="form-group">
-					    	<label for="description">Ephemeral Volumes:</label>
+					    	<label for="ephemeral_volumes">Ephemeral Volumes:</label>
 		      				<textarea class="form-control" id="ephemeral_volumes" name="ephemeral_volumes" aria-describedby="ephemeral_volumesHelp" rows="2"></textarea>
-		      				<small id="ephemeral_volumesHelp" class="form-text text-muted">The Ephemeral Volume definitions of this machine type, one per line, in the format: type(options):size, eg: local(type=ssd,format=qcow2):100G</small>
+		      				<small id="ephemeral_volumesHelp" class="form-text text-muted">The Ephemeral Volume definitions of this machine type, one per line, in the format: type(option;options):size, eg: local(type=ssd;format=qcow2):100G</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="description">Description:</label>
+		      				<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2"></textarea>
+		      				<small id="descriptionHelp" class="form-text text-muted">The description of this machine type family</small>
 					  	</div>
 	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
 		      				#{balsa().getValidationErrors()}

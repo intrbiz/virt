@@ -1,4 +1,4 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.dashboard;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -31,6 +31,15 @@ import com.intrbiz.virt.model.Zone;
 @RequireValidPrincipal()
 public class NetworkRouter extends Router<VirtDashApp>
 {   
+    @Any("/")
+    @WithDataAdapter(VirtDB.class)
+    public void index(VirtDB db, @SessionVar("currentAccount") Account currentAccount)
+    {
+        var("networks", db.getNetworksForAccount(currentAccount.getId()));
+        // render
+        encode("network/index");
+    }
+    
     @Get("/new")
     @WithDataAdapter(VirtDB.class)
     public void newNetwork(VirtDB db)
@@ -77,7 +86,7 @@ public class NetworkRouter extends Router<VirtDashApp>
         action("network.create", network);
         // remove the vars
         sessionVar("currentNetwork", null);
-        redirect("/");
+        redirect("/network/");
     }
     
     @Any("/id/:id")

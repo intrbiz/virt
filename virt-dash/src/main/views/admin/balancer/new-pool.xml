@@ -1,0 +1,51 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Create Load Balancer Pool">	
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Create Load Balancer Pool</h5>
+				<div class="card-body">
+					<p class="card-text">Load balancer pools provide load balancing services to accounts with in a network of a zone.</p>
+	      			<form method="post" action="#{path('/admin/balancer/pool/new')}">
+	      				<div class="form-group">
+					    	<label for="name">Name:</label>
+					    	<input type="text" class="form-control" aria-describedby="nameHelp" id="name" name="name" placeholder="uk1a-lb1"/>
+					    	<small id="nameHelp" class="form-text text-muted">The load balancer name, eg: uk1a-lb1.</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="summary">Summary:</label>
+					    	<input type="text" class="form-control" aria-describedby="summaryHelp" id="summary" name="summary" placeholder="UK1A Load Balancer Pool 1"/>
+					    	<small id="summaryHelp" class="form-text text-muted">The display summary for this load balancer pool.</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="description">Description:</label>
+		      				<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2"></textarea>
+		      				<small id="descriptionHelp" class="form-text text-muted">Short description of this zone.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="network">Network:</label>
+		      				<select class="form-control" aria-describedby="networkHelp" id="network" name="network">
+		      					<data-set var="option" value="#{networks}">
+		      						<option value="#{option.id}">#{option.name}</option>
+		      					</data-set>
+		      				</select>
+		      				<small id="networkHelp" class="form-text text-muted">The network this load balancer pool is in.</small>
+					  	</div>
+					  	<div class="form-group">
+					    	<label for="endpoint">Endpoint:</label>
+					    	<input type="text" class="form-control" aria-describedby="endpointHelp" id="endpoint" name="endpoint" placeholder="lb1.intrbiz.cloud"/>
+					    	<small id="endpointHelp" class="form-text text-muted">The public endpoint of this load balancer, eg: lb1.intrbiz.cloud.</small>
+					  	</div>
+	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Create Load Balancer Pool</button>
+	      			</form>
+	      		</div>
+	      	</div>
+    	</div>
+    </div>
+	
+</fragment>

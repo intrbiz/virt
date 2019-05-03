@@ -9,5 +9,18 @@ import com.intrbiz.virt.libvirt.model.definition.BytesValue;
 @XmlType(name="capacity")
 public class CapacityDef extends BytesValue
 {
+    public CapacityDef()
+    {
+        super();
+    }
 
+    public CapacityDef(long value, String unit)
+    {
+        super(value, unit);
+    }
+
+    public CapacityDef(long value)
+    {
+        super(value);
+    }   
 }

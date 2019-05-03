@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.intrbiz.virt.cluster.model.MachineState;
 import com.intrbiz.virt.config.VirtManagerCfg;
 import com.intrbiz.virt.event.model.MachineEO;
+import com.intrbiz.virt.event.model.MachineVolumeEO;
 import com.intrbiz.virt.manager.Manager;
 import com.intrbiz.virt.manager.virt.model.HostInfo;
 
@@ -31,4 +32,6 @@ public interface VirtManager extends Manager<VirtManagerCfg>
     void releaseMachine(MachineEO machine);
     
     void terminateMachine(MachineEO machine);
+    
+    void attachVolumeToMachine(MachineEO machine, MachineVolumeEO attachVolume);
 }

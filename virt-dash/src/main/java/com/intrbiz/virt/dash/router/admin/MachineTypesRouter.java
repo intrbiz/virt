@@ -28,6 +28,7 @@ import com.intrbiz.virt.VirtDashApp;
 import com.intrbiz.virt.data.VirtDB;
 import com.intrbiz.virt.model.MachineType;
 import com.intrbiz.virt.model.MachineType.EphemeralVolume;
+import com.intrbiz.virt.model.MachineTypeFamily;
 
 @Prefix("/admin/machine-type")
 @Template("layout/main")
@@ -40,13 +41,16 @@ public class MachineTypesRouter extends Router<VirtDashApp>
     public void machineType(VirtDB db)
     {
         var("machineTypes", db.listMachineTypes());
-        encode("admin/machine-types");
+        var("machineTypeFamilies", db.listMachineTypeFamilies());
+        encode("admin/machine-type/index");
     }
     
     @Get("/new")
-    public void newMachineType()
+    @WithDataAdapter(VirtDB.class)
+    public void newMachineType(VirtDB db)
     {
-        encode("admin/new-machine-type");
+        var("machineTypeFamilies", db.listMachineTypeFamilies());
+        encode("admin/machine-type/new");
     }
     
     @Post("/new")
@@ -61,7 +65,9 @@ public class MachineTypesRouter extends Router<VirtDashApp>
             @ListParam("volume_types") List<String> volumeTypes,
             @Param("nic_limit") @IsaInt(mandatory=false, defaultValue=1, coalesce=CoalesceMode.ON_NULL) int nicLimit,
             @ListParam("network_types") List<String> networkTypes,
-            @Param("ephemeral_volumes") @CheckStringLength() String ephemeralVolumes
+            @Param("ephemeral_volumes") @CheckStringLength() String ephemeralVolumes,
+            @Param("summary") @CheckStringLength(mandatory=false) String summary,
+            @Param("description") @CheckStringLength(mandatory=false) String description
     ) throws IOException
     {
         MachineType type = new MachineType(family, name);
@@ -72,6 +78,8 @@ public class MachineTypesRouter extends Router<VirtDashApp>
         type.setSupportedVolumeTypes(volumeTypes);
         type.setSupportedNetworkTypes(networkTypes);
         type.setEphemeralVolumes(EphemeralVolume.parse(ephemeralVolumes).stream().map(EphemeralVolume::toString).collect(Collectors.toList()));
+        type.setSummary(summary);
+        type.setDescription(description);
         db.setMachineType(type);
         redirect("/admin/machine-type/");
     }
@@ -80,7 +88,52 @@ public class MachineTypesRouter extends Router<VirtDashApp>
     @Post("/new")
     public void newMachineTypeErrors()
     {
-        encode("admin/new-machine-type");
+        encode("admin/machine-type/new");
+    }
+    
+    @Get("/id/:id/edit")
+    @WithDataAdapter(VirtDB.class)
+    public void editMachineType(VirtDB db, @IsaUUID UUID id)
+    {
+        var("machineType", notNull(db.getMachineType(id)));
+        encode("admin/machine-type/edit");
+    }
+    
+    @Post("/id/:id/edit")
+    @WithDataAdapter(VirtDB.class)
+    public void editMachineType(
+            VirtDB db,
+            @IsaUUID UUID id,
+            @Param("cpus") @IsaInt(mandatory=true) int cpus,
+            @Param("memory") @IsaLong(mandatory=true) long memory,
+            @Param("volume_limit") @IsaInt(mandatory=false, defaultValue=1, coalesce=CoalesceMode.ON_NULL) int volumeLimit,
+            @ListParam("volume_types") List<String> volumeTypes,
+            @Param("nic_limit") @IsaInt(mandatory=false, defaultValue=1, coalesce=CoalesceMode.ON_NULL) int nicLimit,
+            @ListParam("network_types") List<String> networkTypes,
+            @Param("ephemeral_volumes") @CheckStringLength() String ephemeralVolumes,
+            @Param("summary") @CheckStringLength(mandatory=false) String summary,
+            @Param("description") @CheckStringLength(mandatory=false) String description
+    ) throws IOException
+    {
+        MachineType type = var("machineType", notNull(db.getMachineType(id)));
+        type.setCpus(cpus);
+        type.setMemory(memory * 1024L * 1024L);
+        type.setNicLimit(nicLimit);
+        type.setVolumeLimit(volumeLimit);
+        type.setSupportedVolumeTypes(volumeTypes);
+        type.setSupportedNetworkTypes(networkTypes);
+        type.setEphemeralVolumes(EphemeralVolume.parse(ephemeralVolumes).stream().map(EphemeralVolume::toString).collect(Collectors.toList()));
+        type.setSummary(summary);
+        type.setDescription(description);
+        db.setMachineType(type);
+        redirect("/admin/machine-type/");
+    }
+    
+    @Catch({BalsaConversionError.class, BalsaValidationError.class})
+    @Post("/id/:id/edit")
+    public void editMachineTypeErrors()
+    {
+        encode("admin/machine-type/edit");
     }
     
     @Any("/id/:id/remove")
@@ -89,5 +142,73 @@ public class MachineTypesRouter extends Router<VirtDashApp>
     {
         db.removeMachineType(id);
         redirect("/admin/machine-type/");
+    }
+    
+    @Get("/family/new")
+    public void newMachineTypeFamily()
+    {
+        encode("admin/machine-type/family/new");
+    }
+    
+    @Post("/family/new")
+    @WithDataAdapter(VirtDB.class)
+    public void newMachineTypeFamily(
+            VirtDB db,
+            @Param("family") @CheckStringLength(mandatory=true, min=1) String family,
+            @Param("summary") @CheckStringLength(mandatory=false) String summary,
+            @Param("description") @CheckStringLength(mandatory=false) String description
+    ) throws IOException
+    {
+        MachineTypeFamily type = new MachineTypeFamily(family);
+        type.setSummary(summary);
+        type.setDescription(description);
+        db.setMachineTypeFamily(type);
+        redirect("/admin/machine-type/");
+    }
+    
+    @Catch({BalsaConversionError.class, BalsaValidationError.class})
+    @Post("/family/new")
+    public void newMachineTypeFamilyErrors()
+    {
+        encode("admin/machine-type/family/new");
+    }
+    
+    @Any("/family/:family/remove")
+    @WithDataAdapter(VirtDB.class)
+    public void removeMachineTypeFamily(VirtDB db, String id) throws IOException
+    {
+        db.removeMachineTypeFamily(id);
+        redirect("/admin/machine-type/");
+    }
+    
+    @Get("/family/:family/edit")
+    @WithDataAdapter(VirtDB.class)
+    public void editMachineTypeFamily(VirtDB db, String family)
+    {
+        var("machineTypeFamily", notNull(db.getMachineTypeFamily(family)));
+        encode("admin/machine-type/family/edit");
+    }
+    
+    @Post("/family/:family/edit")
+    @WithDataAdapter(VirtDB.class)
+    public void editMachineTypeFamily(
+            VirtDB db,
+            String family,
+            @Param("summary") @CheckStringLength(mandatory=false) String summary,
+            @Param("description") @CheckStringLength(mandatory=false) String description
+    ) throws IOException
+    {
+        MachineTypeFamily type = var("machineTypeFamily", notNull(db.getMachineTypeFamily(family)));
+        type.setSummary(summary);
+        type.setDescription(description);
+        db.setMachineTypeFamily(type);
+        redirect("/admin/machine-type/");
+    }
+    
+    @Catch({BalsaConversionError.class, BalsaValidationError.class})
+    @Post("/family/:family/edit")
+    public void editMachineTypeFamilyErrors()
+    {
+        encode("admin/machine-type/family/edit");
     }
 }

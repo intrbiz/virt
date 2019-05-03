@@ -1,0 +1,58 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Shared Network #{network.name}">
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Shared Network #{network.name}</h5>
+				<div class="card-body">
+					<h5 class="card-title">Network Details</h5>
+					<p class="card-text">Basic details for the network.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Zone</th>
+	      					<th>Name</th>
+	      					<th>CIDR</th>
+	      					<th>Usable Addresses</th>
+	      					<th>Router</th>
+	      					<th>DNS</th>
+	      					<container rendered="#{balsa().permission('global_admin')}">
+      							<th>Type</th>
+      							<th>VXLAN ID</th>
+      						</container>
+	      				</tr>
+      					<tr>
+      						<td>#{network.zone.summary}</td>
+      						<td>#{network.name}</td>
+      						<td>#{network.cidr}</td>
+      						<td>#{network.getIPv4UsableAddresses()}</td>
+      						<td>#{network.ipv4Router}</td>
+      						<td>#{network.ipv4DNS1}, #{network.ipv4DNS2}</td>
+      						<container rendered="#{balsa().permission('global_admin')}">
+      							<td><span class="badge badge-info">#{network.networkType}</span></td>
+      							<td><span class="badge badge-warning">#{network.vxlanSuffix}</span></td>
+      						</container>
+      					</tr>
+	      			</table>
+	      			<p class="card-text">#{currentNetwork.description}</p>
+	      			<h5 class="card-title pt-3">Network Allocations</h5>
+					<p class="card-text">These are the following IPv4 allocations within with network.</p>
+					<table class="table">
+		      			<tr>
+		      				<th>Address</th>
+		      				<th>MAC</th>
+		      			</tr>
+		      			<data-set var="nic" value="#{network.allocations}">
+		      				<tr>
+		      					<td>#{nic.ipv4}</td>
+		      					<td>#{nic.mac}</td>
+		      				</tr>
+	      				</data-set>
+		      		</table>
+		      		<a rendered="#{network.allocations.size == 0}" href="/admin/network/id/#{network.id}/destroy" class="btn btn-danger mr-3">Destroy</a>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

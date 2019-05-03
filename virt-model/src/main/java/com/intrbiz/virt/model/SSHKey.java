@@ -4,6 +4,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.intrbiz.data.db.compiler.meta.Action;
 import com.intrbiz.data.db.compiler.meta.SQLColumn;
 import com.intrbiz.data.db.compiler.meta.SQLForeignKey;
@@ -12,23 +18,31 @@ import com.intrbiz.data.db.compiler.meta.SQLTable;
 import com.intrbiz.data.db.compiler.meta.SQLVersion;
 import com.intrbiz.virt.data.VirtDB;
 
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "kind")
+@JsonTypeName("ssh.key.set")
 @SQLTable(schema = VirtDB.class, name = "ssh_key", since = @SQLVersion({ 1, 0, 0 }))
 public class SSHKey
 {
+    
+    @JsonProperty("id")
     @SQLColumn(index = 1, name = "id", since = @SQLVersion({ 1, 0, 0 }))
     @SQLPrimaryKey()
     private UUID id;
 
+    @JsonProperty("account_id")
     @SQLColumn(index = 2, name = "account_id", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     @SQLForeignKey(references = Account.class, on = "id", onDelete = Action.RESTRICT, onUpdate = Action.RESTRICT, since = @SQLVersion({ 1, 0, 0 }))
     private UUID accountId;
 
+    @JsonProperty("name")
     @SQLColumn(index = 3, name = "name", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     private String name;
 
+    @JsonProperty("key")
     @SQLColumn(index = 4, name = "key", notNull = true, since = @SQLVersion({ 1, 0, 0 }))
     private String key;
     
+    @JsonProperty("additional_keys")
     @SQLColumn(index = 5, name = "additional", type ="TEXT[]", since = @SQLVersion({ 1, 0, 10 }))
     private List<String> additional = new LinkedList<String>();
 
@@ -37,11 +51,11 @@ public class SSHKey
         super();
     }
 
-    public SSHKey(UUID accountId, String name, String... keys)
+    public SSHKey(Account account, String name, String... keys)
     {
         super();
-        this.id = UUID.randomUUID();
-        this.accountId = accountId;
+        this.id = account.randomObjectId();
+        this.accountId = account.getId();
         this.name = name;
         if (keys.length > 0) this.key = keys[0];
         for (int i = 1; i < keys.length; i++)
@@ -100,6 +114,7 @@ public class SSHKey
         this.additional = additional;
     }
     
+    @JsonIgnore
     public List<String> getAllKeys()
     {
         List<String> all = new LinkedList<>();

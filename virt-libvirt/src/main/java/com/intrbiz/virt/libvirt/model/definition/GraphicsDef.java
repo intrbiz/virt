@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "graphics")
 @XmlType(name = "graphics")
-public class GraphicsDef
+public class GraphicsDef extends DeviceDef
 {
     private String type;
 

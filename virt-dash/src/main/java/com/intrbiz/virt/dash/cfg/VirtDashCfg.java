@@ -20,6 +20,8 @@ public class VirtDashCfg extends Configuration
     private static final long serialVersionUID = 1L;
     
     private DatabasePoolConfiguration database;
+    
+    private HostedDNSCfg hostedDns;
 
     public VirtDashCfg()
     {
@@ -35,6 +37,23 @@ public class VirtDashCfg extends Configuration
     public void setDatabase(DatabasePoolConfiguration database)
     {
         this.database = database;
+    }
+
+    @XmlElementRef(type = HostedDNSCfg.class)
+    public HostedDNSCfg getHostedDns()
+    {
+        return hostedDns;
+    }
+
+    public void setHostedDns(HostedDNSCfg hostedDns)
+    {
+        this.hostedDns = hostedDns;
+    }
+    
+    public void applyDefaults()
+    {
+        if (this.hostedDns == null) this.hostedDns = new HostedDNSCfg();
+        this.hostedDns.applyDefaults();
     }
 
     public static VirtDashCfg read(File file) throws JAXBException

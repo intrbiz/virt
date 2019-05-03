@@ -1,6 +1,6 @@
 <domain type='kvm'>
-  <name>leap-cloud-base</name>
-  <uuid>b7ab2fc8-68bc-4965-8e1a-9fa527dcc81d</uuid>
+  <name>c1</name>
+  <uuid></uuid>
   <memory unit='KiB'>2097152</memory>
   <currentMemory unit='KiB'>2097152</currentMemory>
   <memoryBacking>
@@ -21,7 +21,6 @@
       <entry name='manufacturer'>Intrbiz</entry>
       <entry name='product'>Virt</entry>
       <entry name='version'>1.0.0</entry>
-      <entry name='serial'>ds=nocloud-net;s=http://172.16.169.254:8888/</entry>
     </system>
     <baseBoard>
       <entry name='manufacturer'>Intrbiz</entry>

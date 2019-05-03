@@ -1,4 +1,4 @@
-package com.intrbiz.virt.dash.router;
+package com.intrbiz.virt.dash.router.dashboard;
 
 import java.util.stream.Collectors;
 

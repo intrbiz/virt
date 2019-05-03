@@ -1,0 +1,32 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Edit Machine Type Family #{machineTypeFamily.family}">
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Edit Machine Type Family #{machineTypeFamily.family}</h5>
+				<div class="card-body">
+					<p class="card-text">Machine type families group machine types for which are targeted for specific use cases.</p>
+	      			<form method="post" action="#{path('/admin/machine-type/family/' + machineTypeFamily.family + '/edit')}">
+					  	<div class="form-group">
+					    	<label for="summary">Summary:</label>
+					    	<input type="text" class="form-control" aria-describedby="summaryHelp" id="summary" name="summary" value="#{coalesce(machineTypeFamily.summary, '')}"/>
+					    	<small id="summaryHelp" class="form-text text-muted">A quick summary of this machine type, eg: Micro</small>
+					  	</div>
+	      				<div class="form-group">
+					    	<label for="description">Description:</label>
+		      				<textarea class="form-control" id="description" name="description" aria-describedby="descriptionHelp" rows="2">#{coalesce(machineTypeFamily.description, '')}</textarea>
+		      				<small id="descriptionHelp" class="form-text text-muted">The description of this machine type family</small>
+					  	</div>
+	      				<div class="alert alert-warning" role="alert" rendered="#{balsa().hasValidationErrors()}">
+		      				#{balsa().getValidationErrors()}
+		      			</div>
+	      				<button type="submit" class="btn btn-primary">Save Machine Type Family</button>
+	      			</form>
+	      		</div>
+	      	</div>
+    	</div>
+    </div>
+	
+</fragment>

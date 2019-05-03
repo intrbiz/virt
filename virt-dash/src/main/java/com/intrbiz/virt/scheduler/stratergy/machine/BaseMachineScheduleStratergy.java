@@ -35,10 +35,24 @@ public abstract class BaseMachineScheduleStratergy implements MachineScheduleStr
         {
             if (! host.getSupportedVolumeTypes().contains(vol.getType())) return false;
         }
-        // does the host have enough undefined memory to support the machine
-        long undefinedMemory = host.getHostMemory() - host.getDefinedMemory();
-        if (undefinedMemory < machine.getMemory()) return false;
+        // does the host have enough free hugepages to support the machine
+        long neededHugesPages = machine.getMemory() / (2L * 1024L * 1024L);
+        if (host.getHugepages2MiBFree() < neededHugesPages) return false;
+        // apply placement rule
+        if (! checkPlacement(host, machine))
+            return false;
         // all looks good
         return true;
+    }
+    
+    protected boolean checkPlacement(HostState host, MachineEO machine)
+    {
+        if (machine.getPlacementRule() == null || "any".equals(machine.getPlacementRule()))
+            return true;
+        if (machine.getPlacementRule().equals(host.getPlacementGroup()))
+            return true;
+        if (machine.getPlacementRule().startsWith("!") && (! machine.getPlacementRule().substring(1).equals(host.getPlacementGroup())))
+                return true;
+        return false;
     }
 }

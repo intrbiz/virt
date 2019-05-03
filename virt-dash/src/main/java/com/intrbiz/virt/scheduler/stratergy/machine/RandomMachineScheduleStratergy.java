@@ -2,6 +2,7 @@ package com.intrbiz.virt.scheduler.stratergy.machine;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -17,12 +18,12 @@ public class RandomMachineScheduleStratergy extends BaseMachineScheduleStratergy
     @Override
     public HostState scheduleMachine(List<HostState> activeHostsInZone, MachineEO machine)
     {
-        logger.info("Placing machine " + machine + " amongst " + activeHostsInZone);
+        logger.info("Placing machine " + machine + " amongst " + activeHostsInZone.stream().map(h -> h.getName()).collect(Collectors.toSet()));
         List<HostState> capableHosts = this.capableHostsForMachine(activeHostsInZone, machine);
-        logger.debug("Capable hosts: " + capableHosts.size() + " " + capableHosts);
+        logger.info("Capable hosts: " + capableHosts.size() + " " + capableHosts);
         if (capableHosts.isEmpty()) return null;
         // choose a host at random
-        int choice = this.random.nextInt() % capableHosts.size();
+        int choice = Math.abs(this.random.nextInt()) % capableHosts.size();
         return capableHosts.get(choice);
     }
 }

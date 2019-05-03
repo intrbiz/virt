@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "controller")
 @XmlType(name = "controller")
-public class ControllerDef
+public class ControllerDef extends DeviceDef
 {
     private String type;
 

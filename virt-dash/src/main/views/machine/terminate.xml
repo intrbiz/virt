@@ -1,0 +1,24 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Terminate Machine #{machine.name}?">
+  	<div class="row">
+    	<div class="col-md-12">
+    		<div class="card">
+				<h5 class="card-header">Terminate Machine #{machine.name}?</h5>
+				<div class="card-body">
+					<p class="card-text">Are you sure you wish to terminate the machine #{machine.name}.  This will destroy the machine and any data on the root volume and cannot be undone.</p>
+					<p class="card-text">Any attached persistent volumes will not be deleted but maybe uncleanly unmounted.</p>
+					<p class="card-text font-weight-bold">Please enter the name of the machine you want to terminate to proceed.</p>
+					<form method="post" action="#{path('/machine/id/' + machine.id + '/terminate')}">
+					  	<div class="form-group">
+					    	<label for="confirm">Machine Name</label>
+					    	<input type="text" class="form-control" id="confirm" name="confirm"/>
+					  	</div>
+					  	<button type="submit" class="btn btn-danger">Terminate Machine #{machine.name}</button>
+					</form>
+		      	</div>
+      		</div>
+    	</div>
+    </div>
+</fragment>

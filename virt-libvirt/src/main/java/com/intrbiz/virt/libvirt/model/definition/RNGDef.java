@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "rng")
 @XmlType(name = "rng")
-public class RNGDef
+public class RNGDef extends DeviceDef
 {
     private String model;
 

@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "sound")
 @XmlType(name = "sound")
-public class SoundDef
+public class SoundDef extends DeviceDef
 {
     private String model;
 

@@ -1,0 +1,53 @@
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary com.intrbiz.balsa?>
+<!-- The index view -->
+<fragment xmlns="com.intrbiz.balsa" title="Shared Networks">
+	
+	<div class="row mt-3">
+    	<div class="col-md-12">
+    		<div class="card">
+    			<h5 class="card-header">Shared Networks</h5>
+				<div class="card-body">
+					<p class="card-text">These are the shared networks which can be used by any account.</p>
+					<table class="table">
+	      				<tr>
+	      					<th>Zone</th>
+	      					<th>Network</th>
+	      					<th>CIDR</th>
+	      					<th>Router</th>
+	      					<th>Type</th>
+	      					<th>VXLAN ID</th>
+	      					<th>Purpose</th>
+	      					<th>&nbsp;</th>
+	      				</tr>
+	      				<data-set var="network" value="#{networks}">
+	      					<tr>
+	      						<td>#{coalesce(network.zone.summary, 'Any')}</td>
+	      						<td>#{network.name}</td>
+	      						<td>#{network.cidr}</td>
+	      						<td>#{network.ipv4Router}</td>
+	      						<td><span class="badge badge-info">#{network.networkType}</span></td>
+	      						<td><span class="badge badge-warning">#{network.vxlanSuffix}</span></td>
+	      						<td><span class="badge badge-info">#{network.purpose}</span></td>
+	      						<td>
+	      							<div class="btn-group">
+										<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage Network</button>
+										<div class="dropdown-menu dropdown-menu-right">
+											<a class="dropdown-item text-primary" href="/admin/network/id/#{network.id}">Details</a>
+											<container rendered="#{network.allocations.size == 0}">
+												<div class="dropdown-divider"></div>
+									            <a class="dropdown-item text-danger" href="/admin/network/id/#{network.id}/destroy">Destroy</a>
+								            </container>
+										</div>
+									</div>
+	      						</td>
+	      					</tr>
+	      				</data-set>
+	      			</table>
+					<a href="/admin/network/new" class="btn btn-primary">Create a Shared Network</a>
+				</div>
+			</div>
+    	</div>
+    </div>
+    
+</fragment>
