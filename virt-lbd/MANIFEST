@@ -1,0 +1,8 @@
+lib/Virt/LBD.pm
+lib/Virt/LBD
+lib/Virt/LBD/Config.pm
+lib/Virt/LBD/APIClient.pm
+lib/Virt/LBD/HAProxyGenerator.pm
+bin/virt-lbd.pl
+Makefile.PL
+MANIFEST
