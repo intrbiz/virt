@@ -23,21 +23,21 @@ public interface StoreManager extends Manager<StoreManagerCfg>
      * @param vol the volume to create
      * @return information about the created volume
      */
-    VolumeInfo createOrAttachVolume(MachineVolumeEO vol);
+    VolumeInfo createOrAttachVolume(String machineFamily, MachineVolumeEO vol);
     
     /**
      * Release a volume from this host.
      * This will do nothing to shared volumes 
      * but would remove local volumes
      */
-    void releaseVolume(MachineVolumeEO vol);
+    void releaseVolume(String machineFamily, MachineVolumeEO vol);
     
     /**
      * Remove a volume from this host.
      * This will remove non-persistent shared 
      * volumes and any local volumes.
      */
-    void removeVolume(MachineVolumeEO vol);
+    void removeVolume(String machineFamily, MachineVolumeEO vol);
     
     public static interface TYPES {
         

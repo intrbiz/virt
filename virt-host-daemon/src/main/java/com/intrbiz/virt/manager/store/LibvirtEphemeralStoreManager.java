@@ -110,18 +110,18 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
     }
     
     @Override
-    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
             case EPHEMERAL:
                 return this.setupEphemeralVolume(vol);
         }
-        return super.createOrAttachVolume(vol);
+        return super.createOrAttachVolume(machineFamily, vol);
     }
     
     @Override
-    public void releaseVolume(MachineVolumeEO vol)
+    public void releaseVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
@@ -129,11 +129,11 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
                 this.releaseEphemeralVolume(vol);
                 return;
         }
-        super.releaseVolume(vol);
+        super.releaseVolume(machineFamily, vol);
     }
     
     @Override
-    public void removeVolume(MachineVolumeEO vol)
+    public void removeVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
@@ -141,7 +141,7 @@ public class LibvirtEphemeralStoreManager extends LocalStoreManager
                 this.removeEphemeralVolume(vol);
                 return;
         }
-        super.removeVolume(vol);
+        super.removeVolume(machineFamily, vol);
     }
     
     private String getVolTypeMetadata(MachineVolumeEO vol, String key, String defaultValue)

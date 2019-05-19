@@ -277,7 +277,7 @@ public class LibvirtManager implements VirtManager
         LibVirtDomain domain = this.getConnection().lookupDomainByUuid(machine.getId());
         if (domain == null) throw new VirtError("Cannot attach volume, the machine " + machine.getId() + " is not defined on this host");
         // Get the disk attachment information and attach
-        domain.attachDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(attachVolume), attachVolume.getName()));
+        domain.attachDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(machine.getMachineTypeFamily(), attachVolume), attachVolume.getName()));
     }
     
     @Override
@@ -320,7 +320,7 @@ public class LibvirtManager implements VirtManager
         // create our storage volumes
         for (MachineVolumeEO vol : machine.getVolumes())
         {
-            domainDef.getDevices().addDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(vol), vol.getName()));
+            domainDef.getDevices().addDevice(this.fromVolumeInfo(this.context.getStoreManager().createOrAttachVolume(machine.getMachineTypeFamily(), vol), vol.getName()));
         }
         // Define the domain
         logger.info("Defining VM from domain definition: \n" + domainDef);
@@ -355,7 +355,7 @@ public class LibvirtManager implements VirtManager
     {
         for (MachineVolumeEO vol : machine.getVolumes())
         {
-            this.context.getStoreManager().removeVolume(vol);
+            this.context.getStoreManager().removeVolume(machine.getMachineTypeFamily(), vol);
         }
     }
     
@@ -363,7 +363,7 @@ public class LibvirtManager implements VirtManager
     {
         for (MachineVolumeEO vol : machine.getVolumes())
         {
-            this.context.getStoreManager().releaseVolume(vol);
+            this.context.getStoreManager().releaseVolume(machine.getMachineTypeFamily(), vol);
         }
     }
     

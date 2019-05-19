@@ -13,7 +13,7 @@
 					    	<label for="family">Family:</label>
 					    	<select class="form-control" aria-describedby="Help" id="family" name="family">
 	      						<data-set var="familyOption" value="#{machineTypeFamilies}">
-	      							<option value="#{familyOption}">#{familyOption.family} - #{familyOption.summary}</option>
+	      							<option value="#{familyOption.family}">#{familyOption.family} - #{familyOption.summary}</option>
 	      						</data-set>
 	      					</select>
 					    	<small id="familyHelp" class="form-text text-muted">Families are groups of machine types with the same core features</small>

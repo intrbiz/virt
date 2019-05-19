@@ -6,9 +6,10 @@
 	<store-manager type="ceph">
 		<parameter name="local.file.directory">/srv/vms</parameter>
 		<parameter name="ceph.monitor.hosts">172.26.30.31,172.26.30.32,172.26.30.33,172.26.30.3,172.26.30.34,172.26.30.35,172.26.30.36,172.26.30.37</parameter>
-        <parameter name="ceph.machine.pool.name">machine-1</parameter>
+		<parameter name="ceph.auth.uuid">6f3128fa-fada-463a-989f-b965c83e5da9</parameter>
         <parameter name="ceph.persistent.pool.name">persistent-1</parameter>
-        <parameter name="ceph.auth.uuid">6f3128fa-fada-463a-989f-b965c83e5da9</parameter>
+        <parameter name="ceph.machine.*.pool.name">machine-1</parameter>
+        <parameter name="ceph.machine.km1.pool.name">machine-fast-1</parameter>
 	</store-manager>
 	<virt-manager type="libvirt">
 		<parameter name="libvirt.url">qemu+tcp://root@127.0.0.1:16509/system</parameter>

@@ -59,18 +59,18 @@ public class LocalStoreManager extends BaseStoreManager
     }
 
     @Override
-    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
             case LOCAL:
                 return this.setupLocalVolume(vol);
         }
-        return super.createOrAttachVolume(vol);
+        return super.createOrAttachVolume(machineFamily, vol);
     }
     
     @Override
-    public void releaseVolume(MachineVolumeEO vol)
+    public void releaseVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
@@ -78,11 +78,11 @@ public class LocalStoreManager extends BaseStoreManager
                 this.releaseLocalVolume(vol);
                 return;
         }
-        super.releaseVolume(vol);
+        super.releaseVolume(machineFamily, vol);
     }
     
     @Override
-    public void removeVolume(MachineVolumeEO vol)
+    public void removeVolume(String machineFamily, MachineVolumeEO vol)
     {
         switch (vol.getType())
         {
@@ -90,7 +90,7 @@ public class LocalStoreManager extends BaseStoreManager
                 this.removeLocalVolume(vol);
                 return;
         }
-        super.removeVolume(vol);
+        super.removeVolume(machineFamily, vol);
     }
     
     @Override

@@ -299,7 +299,7 @@ public class MachineType
         
         public String toVolumeTypeMetadataString()
         {
-            return this.volumeTypeMetadata.entrySet().stream().map((e) -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
+            return this.volumeTypeMetadata.entrySet().stream().map((e) -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(";"));
         }
         
         public String toSizeString()

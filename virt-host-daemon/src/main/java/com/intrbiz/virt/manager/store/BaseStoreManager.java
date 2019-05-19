@@ -56,19 +56,19 @@ public abstract class BaseStoreManager implements StoreManager
     }
 
     @Override
-    public VolumeInfo createOrAttachVolume(MachineVolumeEO vol)
+    public VolumeInfo createOrAttachVolume(String machineFamily, MachineVolumeEO vol)
     {
         throw new VirtError("Volume type " + vol.getType() + " is not supported");
     }
     
     @Override
-    public void releaseVolume(MachineVolumeEO vol)
+    public void releaseVolume(String machineFamily, MachineVolumeEO vol)
     {
         throw new VirtError("Volume type " + vol.getType() + " is not supported");
     }
     
     @Override
-    public void removeVolume(MachineVolumeEO vol)
+    public void removeVolume(String machineFamily, MachineVolumeEO vol)
     {
         throw new VirtError("Volume type " + vol.getType() + " is not supported");
     }
